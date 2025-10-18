@@ -30,17 +30,17 @@ export default function DestinationDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-lg text-muted-foreground">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-lg text-gray-400">Loading...</div>
       </div>
     );
   }
 
   if (!destination) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
-        <div className="text-lg text-muted-foreground">Destination not found</div>
-        <Button onClick={() => setLocation("/")} variant="outline">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white">
+        <div className="text-lg text-gray-400">Destination not found</div>
+        <Button onClick={() => setLocation("/")} className="rounded-full">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
         </Button>
@@ -49,131 +49,135 @@ export default function DestinationDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-border bg-background sticky top-0 z-50">
-        <div className="container py-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => setLocation("/")}
-            className="mb-4 font-bold hover:bg-foreground hover:text-background"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            BACK TO CATALOGUE
-          </Button>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight">
-            {destination.name}
-          </h1>
-        </div>
-      </header>
-
-      <div className="container py-8">
-        <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {/* Image */}
-          <div className="space-y-4">
-            <div className="relative rounded-lg overflow-hidden bg-muted aspect-[4/3] border-4 border-foreground">
-              {destination.mainImage ? (
-                <img 
-                  src={destination.mainImage} 
-                  alt={destination.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-gradient-to-br from-muted to-muted-foreground/10">
-                  <MapPin className="h-24 w-24 opacity-20" />
-                </div>
-              )}
-              {destination.crown && (
-                <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 p-3 rounded-full shadow-lg">
-                  <Crown className="h-6 w-6" />
-                </div>
-              )}
-            </div>
+    <div className="min-h-screen bg-white">
+      {/* Navigation Bar */}
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200">
+        <div className="max-w-[980px] mx-auto px-6">
+          <div className="flex items-center justify-between h-12">
+            <Button 
+              variant="ghost" 
+              onClick={() => setLocation("/")}
+              className="hover:bg-gray-100 rounded-full"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-sm font-semibold">Travel Guide</h1>
+            <div className="w-20"></div>
           </div>
+        </div>
+      </nav>
 
-          {/* Info */}
-          <div className="space-y-6">
-            <div>
-              <div className="flex items-center gap-2 text-lg mb-4">
+      {/* Hero Image */}
+      <section className="relative h-[60vh] bg-gray-100">
+        {destination.mainImage ? (
+          <img 
+            src={destination.mainImage} 
+            alt={destination.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gradient-to-br from-gray-50 to-gray-100">
+            <MapPin className="h-32 w-32 opacity-20" />
+          </div>
+        )}
+        {destination.crown && (
+          <div className="absolute top-6 right-6 bg-yellow-400 text-yellow-900 p-3 rounded-full shadow-lg">
+            <Crown className="h-6 w-6" />
+          </div>
+        )}
+      </section>
+
+      {/* Content */}
+      <section className="py-12">
+        <div className="max-w-[980px] mx-auto px-6">
+          <div className="max-w-3xl mx-auto">
+            {/* Title */}
+            <h2 className="text-4xl md:text-6xl font-semibold tracking-tight mb-6">
+              {destination.name}
+            </h2>
+
+            {/* Meta Info */}
+            <div className="flex flex-wrap items-center gap-3 mb-8">
+              <div className="flex items-center gap-2 text-gray-600">
                 <MapPin className="h-5 w-5" />
-                <span className="lowercase font-medium">{destination.city}</span>
+                <span className="text-lg">{destination.city.charAt(0).toUpperCase() + destination.city.slice(1)}</span>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-6">
-                {destination.category && (
-                  <Badge variant="secondary" className="text-sm px-3 py-1 font-bold uppercase">
-                    {destination.category}
-                  </Badge>
-                )}
-                {destination.michelinStars > 0 && (
-                  <Badge className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 font-bold">
-                    {destination.michelinStars} ⭐ MICHELIN
-                  </Badge>
-                )}
-                {destination.reviewed && (
-                  <Badge variant="outline" className="text-sm px-3 py-1 font-bold">
-                    REVIEWED
-                  </Badge>
-                )}
-                {destination.brand && (
-                  <Badge variant="outline" className="text-sm px-3 py-1">
-                    {destination.brand}
-                  </Badge>
-                )}
-              </div>
-
-              {destination.myRating > 0 && (
-                <div className="mb-6 p-4 bg-muted rounded-lg">
-                  <div className="text-sm font-bold mb-2 uppercase">Rating</div>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-5 w-5 ${
-                          i < destination.myRating
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-muted-foreground"
-                        }`}
-                      />
-                    ))}
-                    <span className="ml-2 font-bold">
-                      {destination.myRating}/5
-                    </span>
-                  </div>
-                </div>
+              {destination.category && (
+                <Badge variant="secondary" className="text-sm px-4 py-1.5 rounded-full">
+                  {destination.category}
+                </Badge>
               )}
-
-              {destination.subline && (
-                <p className="text-lg italic text-muted-foreground mb-6 border-l-4 border-foreground pl-4">
-                  {destination.subline}
-                </p>
+              
+              {destination.michelinStars > 0 && (
+                <Badge className="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-1.5 rounded-full">
+                  {destination.michelinStars} ⭐ Michelin
+                </Badge>
               )}
-
-              {destination.content && (
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-foreground leading-relaxed">
-                    {destination.content}
-                  </p>
-                </div>
-              )}
-
-              {(destination.lat !== 0 && destination.long !== 0) && (
-                <div className="mt-6">
-                  <Button 
-                    variant="default"
-                    className="font-bold"
-                    onClick={() => window.open(`https://www.google.com/maps?q=${destination.lat},${destination.long}`, '_blank')}
-                  >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    VIEW ON MAP
-                    <ExternalLink className="h-4 w-4 ml-2" />
-                  </Button>
-                </div>
+              
+              {destination.reviewed && (
+                <Badge variant="outline" className="text-sm px-4 py-1.5 rounded-full">
+                  Reviewed
+                </Badge>
               )}
             </div>
+
+            {/* Rating */}
+            {destination.myRating > 0 && (
+              <div className="mb-8 p-6 bg-gray-50 rounded-2xl">
+                <div className="text-sm font-semibold mb-3 text-gray-600">Rating</div>
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-6 w-6 ${
+                        i < destination.myRating
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                  <span className="ml-2 text-lg font-semibold">
+                    {destination.myRating}/5
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Subline */}
+            {destination.subline && (
+              <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
+                {destination.subline}
+              </p>
+            )}
+
+            {/* Description */}
+            {destination.content && (
+              <div className="prose prose-lg max-w-none mb-8">
+                <p className="text-lg text-gray-700 leading-relaxed">
+                  {destination.content}
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            {(destination.lat !== 0 && destination.long !== 0) && (
+              <div className="mt-8">
+                <Button 
+                  size="lg"
+                  className="rounded-full px-8"
+                  onClick={() => window.open(`https://www.google.com/maps?q=${destination.lat},${destination.long}`, '_blank')}
+                >
+                  <MapPin className="h-5 w-5 mr-2" />
+                  View on Map
+                  <ExternalLink className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
