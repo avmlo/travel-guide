@@ -11,16 +11,16 @@ interface DestinationCardProps {
 
 export function DestinationCard({ destination, onClick, colorIndex = 0 }: DestinationCardProps) {
   return (
-    <Card 
-      className="overflow-hidden hover:shadow-xl transition-all cursor-pointer h-full flex flex-col border"
+    <div 
+      className="group cursor-pointer"
       onClick={onClick}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+      <div className="relative aspect-[3/4] overflow-hidden bg-muted mb-3">
         {destination.mainImage ? (
           <img 
             src={destination.mainImage} 
             alt={destination.name}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
         ) : (
@@ -29,24 +29,23 @@ export function DestinationCard({ destination, onClick, colorIndex = 0 }: Destin
           </div>
         )}
         {destination.crown && (
-          <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 p-2 rounded-full shadow-lg">
-            <Crown className="h-5 w-5" />
+          <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 p-1.5 rounded-full shadow-lg">
+            <Crown className="h-4 w-4" />
           </div>
         )}
         {destination.michelinStars > 0 && (
-          <div className="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-            {destination.michelinStars} ⭐
+          <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-0.5 rounded text-xs font-bold shadow-lg">
+            {destination.michelinStars}⭐
           </div>
         )}
       </div>
       
-      <CardHeader className="flex-grow p-4">
-        <CardTitle className="text-base font-semibold line-clamp-2 mb-2">
+      <div className="space-y-1">
+        <h3 className="font-medium text-sm leading-tight line-clamp-2">
           {destination.name}
-        </CardTitle>
+        </h3>
         
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
-          <MapPin className="h-3.5 w-3.5" />
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <span className="lowercase">{destination.city}</span>
         </div>
         
@@ -55,8 +54,8 @@ export function DestinationCard({ destination, onClick, colorIndex = 0 }: Destin
             {destination.category}
           </div>
         )}
-      </CardHeader>
-    </Card>
+      </div>
+    </div>
   );
 }
 

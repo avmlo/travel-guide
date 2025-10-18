@@ -77,7 +77,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b-4 border-foreground bg-background">
+      <header className="border-b bg-border bg-background">
         <div className="container py-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl md:text-4xl font-black tracking-tight">
@@ -234,7 +234,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t-4 border-foreground bg-background mt-16">
+      <footer className="border-t bg-border bg-background mt-16">
         <div className="container py-6">
           <div className="flex flex-wrap gap-4 text-sm mb-3">
             <a href="#" className="hover:underline font-bold">ABOUT</a>

@@ -51,7 +51,7 @@ export default function DestinationDetail() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b-4 border-foreground bg-background sticky top-0 z-50">
+      <header className="border-b bg-border bg-background sticky top-0 z-50">
         <div className="container py-6">
           <Button 
             variant="ghost" 
