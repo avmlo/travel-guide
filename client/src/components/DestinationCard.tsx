@@ -7,24 +7,13 @@ interface DestinationCardProps {
   colorIndex?: number;
 }
 
-const borderColors = [
-  "border-[#4ECDC4]", // Teal/Cyan
-  "border-[#9B59B6]", // Purple
-  "border-[#FF6B6B]", // Coral/Red
-  "border-[#F39C12]", // Orange
-  "border-[#3498DB]", // Blue
-  "border-[#E74C3C]", // Red
-];
-
-export function DestinationCard({ destination, onClick, colorIndex = 0 }: DestinationCardProps) {
-  const borderColor = borderColors[colorIndex % borderColors.length];
-  
+export function DestinationCard({ destination, onClick }: DestinationCardProps) {
   return (
     <div 
       className="group cursor-pointer"
       onClick={onClick}
     >
-      <div className={`relative aspect-[4/3] overflow-hidden bg-gray-100 border-4 ${borderColor} mb-3 transition-all duration-300 hover:shadow-lg`}>
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 rounded-xl mb-3 transition-all duration-300 hover:shadow-xl">
         {destination.mainImage ? (
           <img 
             src={destination.mainImage} 

@@ -2,9 +2,8 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Map as MapIcon } from "lucide-react";
+import { Search, MapPin } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
-import { MapView } from "@/components/MapView";
 import { Destination } from "@/types/destination";
 import {
   Select,
@@ -22,7 +21,6 @@ export default function Home() {
   const [selectedCity, setSelectedCity] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [displayCount, setDisplayCount] = useState(40);
-  const [showMap, setShowMap] = useState(true);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -89,18 +87,18 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Navigation Bar */}
-      <nav className="border-b border-gray-200 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-[1600px] mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-green-600 rounded flex items-center justify-center">
-                <span className="text-white font-bold text-xl">T</span>
-              </div>
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
+        <div className="max-w-[1600px] mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 4L22.5 12.5L28 8L25 16L34 16L26 20L34 24L25 24L28 32L22.5 27.5L20 36L17.5 27.5L12 32L15 24L6 24L14 20L6 16L15 16L12 8L17.5 12.5L20 4Z" fill="black"/>
+              </svg>
             </div>
-            <div className="flex items-center gap-8 text-sm">
-              <a href="#" className="hover:text-gray-600 transition-colors">Work</a>
-              <a href="#" className="hover:text-gray-600 transition-colors">About</a>
-              <a href="#" className="hover:text-gray-600 transition-colors">Contact</a>
+            <div className="flex items-center gap-6 bg-gray-100 px-6 py-2 rounded-full">
+              <a href="#" className="text-sm font-medium hover:text-gray-600 transition-colors">Work</a>
+              <a href="#" className="text-sm font-medium hover:text-gray-600 transition-colors">About</a>
+              <a href="#" className="text-sm font-medium hover:text-gray-600 transition-colors">Contact</a>
             </div>
           </div>
         </div>
@@ -145,15 +143,6 @@ export default function Home() {
                   ))}
                 </SelectContent>
               </Select>
-
-              <button
-                onClick={() => setShowMap(!showMap)}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
-              >
-                <MapIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">{showMap ? "Hide Map" : "Show Map"}</span>
-                <span className="sm:hidden">{showMap ? "Hide" : "Map"}</span>
-              </button>
 
               {(searchQuery || selectedCategory !== "all" || selectedCity) && (
                 <Button
@@ -225,73 +214,31 @@ export default function Home() {
               </Button>
             </div>
           ) : (
-            <div className="flex gap-8 relative">
-              {/* Cards Column */}
-              <div className={`flex-1 ${showMap ? 'lg:w-2/3' : 'w-full'}`}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {displayedDestinations.map((destination, index) => (
-                    <DestinationCard
-                      key={destination.slug}
-                      destination={destination}
-                      colorIndex={index}
-                      onClick={() => setLocation(`/destination/${destination.slug}`)}
-                    />
-                  ))}
-                </div>
-                
-                {hasMore && (
-                  <div className="flex justify-center mt-12">
-                    <Button
-                      onClick={() => setDisplayCount(prev => prev + 40)}
-                      size="lg"
-                      variant="outline"
-                      className="px-8 border-gray-300 hover:bg-gray-50"
-                    >
-                      Load More
-                    </Button>
-                  </div>
-                )}
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {displayedDestinations.map((destination, index) => (
+                  <DestinationCard
+                    key={destination.slug}
+                    destination={destination}
+                    colorIndex={index}
+                    onClick={() => setLocation(`/destination/${destination.slug}`)}
+                  />
+                ))}
               </div>
-
-              {/* Map Column - Fixed on Desktop, Full Screen on Mobile */}
-              {showMap && (
-                <>
-                  {/* Mobile Map - Full Screen Overlay */}
-                  <div className="lg:hidden fixed inset-0 z-40 bg-background">
-                    <div className="h-full flex flex-col">
-                      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                        <h3 className="font-semibold">Map View</h3>
-                        <button
-                          onClick={() => setShowMap(false)}
-                          className="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-sm"
-                        >
-                          Close
-                        </button>
-                      </div>
-                      <div className="flex-1">
-                        <MapView
-                          destinations={filteredDestinations}
-                          onDestinationClick={(slug) => {
-                            setShowMap(false);
-                            setLocation(`/destination/${slug}`);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Desktop Map - Side Panel */}
-                  <div className="hidden lg:block lg:w-1/3">
-                    <div className="sticky top-20">
-                      <MapView
-                        destinations={filteredDestinations}
-                        onDestinationClick={(slug) => setLocation(`/destination/${slug}`)}
-                      />
-                    </div>
-                  </div>
-                </>
+              
+              {hasMore && (
+                <div className="flex justify-center mt-12">
+                  <Button
+                    onClick={() => setDisplayCount(prev => prev + 40)}
+                    size="lg"
+                    variant="outline"
+                    className="px-8 border-gray-300 hover:bg-gray-50"
+                  >
+                    Load More
+                  </Button>
+                </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </section>
@@ -309,23 +256,25 @@ export default function Home() {
             <div>
               <h4 className="font-semibold mb-4 text-sm">Features</h4>
               <div className="space-y-2">
-                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900 border-l-2 border-purple-500 pl-2">Destinations</a>
-                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900 border-l-2 border-teal-500 pl-2">Map View</a>
-                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900 border-l-2 border-orange-500 pl-2">Search</a>
+                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900">Destinations</a>
+                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900">Search</a>
+                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900">Filters</a>
               </div>
             </div>
             <div>
               <h4 className="font-semibold mb-4 text-sm">Learn more</h4>
               <div className="space-y-2">
-                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900 border-l-2 border-blue-500 pl-2">About</a>
-                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900 border-l-2 border-red-500 pl-2">Blog</a>
+                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900">About</a>
+                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900">Blog</a>
+                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900">Stories</a>
               </div>
             </div>
             <div>
               <h4 className="font-semibold mb-4 text-sm">Support</h4>
               <div className="space-y-2">
-                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900 border-l-2 border-green-500 pl-2">Contact</a>
-                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900 border-l-2 border-pink-500 pl-2">Help</a>
+                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900">Contact</a>
+                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900">Help</a>
+                <a href="#" className="block text-sm text-gray-600 hover:text-gray-900">Legal</a>
               </div>
             </div>
           </div>
