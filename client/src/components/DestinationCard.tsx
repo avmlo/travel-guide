@@ -23,11 +23,9 @@ const borderColors = [
 ];
 
 export function DestinationCard({ destination, onClick, colorIndex = 0 }: DestinationCardProps) {
-  const borderColor = borderColors[colorIndex % borderColors.length];
-  
   return (
     <div 
-      className={`group cursor-pointer border-4 ${borderColor} bg-white overflow-hidden`}
+      className="group cursor-pointer border border-gray-200 bg-white overflow-hidden hover:shadow-lg transition-shadow"
       onClick={onClick}
     >
       <div className="relative aspect-square overflow-hidden bg-gray-100">
