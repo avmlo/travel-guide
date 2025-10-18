@@ -100,7 +100,7 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
 
   if (error) {
     return (
-      <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex flex-col items-center justify-center p-8">
+      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex flex-col items-center justify-center p-8">
         <p className="text-gray-600 mb-4 text-center">{error}</p>
         <p className="text-sm text-gray-400 text-center max-w-md">
           Showing {destinationsWithCoords.length} destinations with coordinates.
@@ -112,7 +112,7 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
 
   if (!mapLoaded) {
     return (
-      <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
+      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
         <p className="text-gray-400">Loading Apple Maps...</p>
       </div>
     );
@@ -120,7 +120,7 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
 
   if (destinationsWithCoords.length === 0) {
     return (
-      <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
+      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
         <p className="text-gray-400">No destinations with coordinates to display on map.</p>
       </div>
     );
@@ -129,8 +129,8 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
   return (
     <div 
       ref={mapRef} 
-      className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm"
-      style={{ minHeight: "600px" }}
+      className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm"
+      style={{ minHeight: "calc(100vh - 8rem)" }}
     />
   );
 }
