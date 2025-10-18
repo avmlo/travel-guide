@@ -7,18 +7,29 @@ interface DestinationCardProps {
   colorIndex?: number;
 }
 
-export function DestinationCard({ destination, onClick }: DestinationCardProps) {
+const borderColors = [
+  "border-[#4ECDC4]", // Teal/Cyan
+  "border-[#9B59B6]", // Purple
+  "border-[#FF6B6B]", // Coral/Red
+  "border-[#F39C12]", // Orange
+  "border-[#3498DB]", // Blue
+  "border-[#E74C3C]", // Red
+];
+
+export function DestinationCard({ destination, onClick, colorIndex = 0 }: DestinationCardProps) {
+  const borderColor = borderColors[colorIndex % borderColors.length];
+  
   return (
     <div 
       className="group cursor-pointer"
       onClick={onClick}
     >
-      <div className="relative aspect-square overflow-hidden bg-gray-100 rounded-2xl mb-3">
+      <div className={`relative aspect-[4/3] overflow-hidden bg-gray-100 border-4 ${borderColor} mb-3 transition-all duration-300 hover:shadow-lg`}>
         {destination.mainImage ? (
           <img 
             src={destination.mainImage} 
             alt={destination.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+            className="w-full h-full object-cover"
             loading="lazy"
           />
         ) : (
@@ -26,9 +37,6 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
             <MapPin className="h-16 w-16 opacity-20" />
           </div>
         )}
-        
-        {/* Overlay gradient on hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
         
         {destination.crown && (
           <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 p-2 rounded-full shadow-lg backdrop-blur-sm">
@@ -43,7 +51,7 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
       </div>
       
       <div className="space-y-1">
-        <h3 className="font-semibold text-base leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors capitalize">
+        <h3 className="font-semibold text-lg leading-tight line-clamp-2 capitalize">
           {destination.name}
         </h3>
         
