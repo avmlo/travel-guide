@@ -4,6 +4,7 @@ import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
 import { MapPin, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WeatherWidget } from "@/components/WeatherWidget";
 
 export default function CityPage() {
   const params = useParams();
@@ -112,9 +113,12 @@ export default function CityPage() {
             <MapPin className="h-8 w-8 text-gray-600" />
             <h1 className="text-5xl font-bold">{cityName}</h1>
           </div>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-600 mb-8">
             {filteredDestinations.length} destination{filteredDestinations.length !== 1 ? "s" : ""} to explore
           </p>
+          
+          {/* Weather Widget */}
+          <WeatherWidget city={cityName} />
         </div>
       </section>
 

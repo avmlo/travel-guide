@@ -203,7 +203,21 @@ export default function Home() {
 
             {/* City Filter */}
             <div>
-              <div className="text-xs font-semibold mb-3 text-gray-600 uppercase tracking-wide">Cities</div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Cities</div>
+                <select
+                  onChange={(e) => e.target.value && setLocation(`/city/${e.target.value}`)}
+                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white hover:bg-gray-50"
+                  value=""
+                >
+                  <option value="">View City Page →</option>
+                  {cities.map((city) => (
+                    <option key={city} value={city}>
+                      {city.charAt(0).toUpperCase() + city.slice(1).replace(/-/g, ' ')}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setSelectedCity("")}
@@ -218,8 +232,12 @@ export default function Home() {
                 {cities.slice(0, 50).map((city) => (
                   <button
                     key={city}
-                    onClick={() => setLocation(`/city/${city}`)}
-                    className="px-4 py-2 rounded-full text-sm transition-all capitalize bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
+                    className={`px-4 py-2 rounded-full text-sm transition-all capitalize ${
+                      selectedCity === city 
+                        ? "bg-black text-white" 
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
                   >
                     {city}
                   </button>
