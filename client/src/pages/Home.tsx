@@ -2,8 +2,9 @@ import { useEffect, useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Grid3x3, Map } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
+import { MapView } from "@/components/MapView";
 import { Destination } from "@/types/destination";
 import {
   Select,
@@ -20,6 +21,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [displayCount, setDisplayCount] = useState(40);
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
   useEffect(() => {
     async function loadDestinations() {
@@ -65,6 +68,14 @@ export default function Home() {
       return matchesSearch && matchesCity && matchesCategory;
     });
   }, [destinations, searchQuery, selectedCity, selectedCategory]);
+
+  const displayedDestinations = filteredDestinations.slice(0, displayCount);
+  const hasMore = displayCount < filteredDestinations.length;
+
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(40);
+  }, [searchQuery, selectedCity, selectedCategory]);
 
   if (loading) {
     return (
@@ -173,20 +184,43 @@ export default function Home() {
               {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
             </p>
             
-            {(searchQuery || selectedCategory !== "all" || selectedCity) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("all");
-                  setSelectedCity("");
-                }}
-                className="rounded-full text-sm"
-              >
-                Clear all filters
-              </Button>
-            )}
+            <div className="flex items-center gap-3">
+              {(searchQuery || selectedCategory !== "all" || selectedCity) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("all");
+                    setSelectedCity("");
+                  }}
+                  className="rounded-full text-sm"
+                >
+                  Clear all filters
+                </Button>
+              )}
+              
+              <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                  className="rounded-full h-8 px-3"
+                >
+                  <Grid3x3 className="h-4 w-4 mr-1" />
+                  Grid
+                </Button>
+                <Button
+                  variant={viewMode === "map" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("map")}
+                  className="rounded-full h-8 px-3"
+                >
+                  <Map className="h-4 w-4 mr-1" />
+                  Map
+                </Button>
+              </div>
+            </div>
           </div>
 
           {filteredDestinations.length === 0 ? (
@@ -205,17 +239,37 @@ export default function Home() {
                 Clear filters
               </Button>
             </div>
+          ) : viewMode === "map" ? (
+            <MapView
+              destinations={filteredDestinations}
+              onDestinationClick={(slug) => setLocation(`/destination/${slug}`)}
+            />
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {filteredDestinations.map((destination, index) => (
-                <DestinationCard
-                  key={destination.slug}
-                  destination={destination}
-                  colorIndex={index}
-                  onClick={() => setLocation(`/destination/${destination.slug}`)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {displayedDestinations.map((destination, index) => (
+                  <DestinationCard
+                    key={destination.slug}
+                    destination={destination}
+                    colorIndex={index}
+                    onClick={() => setLocation(`/destination/${destination.slug}`)}
+                  />
+                ))}
+              </div>
+              
+              {hasMore && (
+                <div className="flex justify-center mt-12">
+                  <Button
+                    onClick={() => setDisplayCount(prev => prev + 40)}
+                    size="lg"
+                    variant="outline"
+                    className="rounded-full px-8 border-gray-300 hover:bg-gray-50"
+                  >
+                    Load More
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

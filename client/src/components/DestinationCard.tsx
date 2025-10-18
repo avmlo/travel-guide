@@ -43,7 +43,7 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
       </div>
       
       <div className="space-y-1">
-        <h3 className="font-semibold text-base leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+        <h3 className="font-semibold text-base leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors capitalize">
           {destination.name}
         </h3>
         
