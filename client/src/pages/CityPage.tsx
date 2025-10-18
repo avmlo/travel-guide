@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
-import { MapPin, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MapPin } from "lucide-react";
 import { WeatherWidget } from "@/components/WeatherWidget";
+import { UserMenu } from "@/components/UserMenu";
+import { AIAssistant } from "@/components/AIAssistant";
 
 export default function CityPage() {
   const params = useParams();
@@ -13,6 +14,7 @@ export default function CityPage() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [displayedCount, setDisplayedCount] = useState(40);
 
   useEffect(() => {
     async function loadDestinations() {
@@ -52,6 +54,9 @@ export default function CityPage() {
     return cityDestinations.filter((d) => d.category === selectedCategory);
   }, [cityDestinations, selectedCategory]);
 
+  const displayedDestinations = filteredDestinations.slice(0, displayedCount);
+  const hasMore = displayedCount < filteredDestinations.length;
+
   const cityName = citySlug
     ? citySlug
         .split("-")
@@ -71,15 +76,16 @@ export default function CityPage() {
     return (
       <div className="min-h-screen bg-[#f5f1e8]">
         <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4">
-            <Button
-              variant="ghost"
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <button
               onClick={() => setLocation("/")}
-              className="gap-2"
+              className="text-4xl font-bold hover:opacity-70 transition-opacity"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Button>
+              ✱
+            </button>
+            <div className="flex items-center gap-4">
+              <UserMenu />
+            </div>
           </div>
         </header>
         <div className="container mx-auto px-4 py-20 text-center">
@@ -95,79 +101,108 @@ export default function CityPage() {
       {/* Header */}
       <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <Button
-            variant="ghost"
-            onClick={() => setLocation("/")}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
-          </Button>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setLocation("/")}
+              className="text-4xl font-bold hover:opacity-70 transition-opacity"
+            >
+              ✱
+            </button>
+            <nav className="hidden md:flex items-center gap-6 text-sm">
+              <button onClick={() => setLocation("/")} className="hover:opacity-70">
+                Work
+              </button>
+              <button className="hover:opacity-70">About</button>
+              <button className="hover:opacity-70">Contact</button>
+            </nav>
+            <div className="flex items-center gap-4">
+              <UserMenu />
+            </div>
+          </div>
         </div>
       </header>
 
       {/* City Header */}
-      <section className="py-12 bg-white border-b border-gray-200">
+      <section className="py-16 bg-[#f5f1e8]">
         <div className="container mx-auto px-4">
-          <div className="flex items-center gap-3 mb-4">
-            <MapPin className="h-8 w-8 text-gray-600" />
-            <h1 className="text-5xl font-bold">{cityName}</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <MapPin className="h-6 w-6 text-gray-600" />
+            <h1 className="text-6xl md:text-7xl font-bold">{cityName}</h1>
           </div>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-lg text-gray-600 mb-8">
             {filteredDestinations.length} destination{filteredDestinations.length !== 1 ? "s" : ""} to explore
           </p>
-          
-          {/* Weather Widget */}
+        </div>
+      </section>
+
+      {/* Weather Widget */}
+      <section className="pb-8 bg-[#f5f1e8]">
+        <div className="container mx-auto px-4">
           <WeatherWidget city={cityName} />
         </div>
       </section>
 
-      {/* Category Filter */}
-      {categories.length > 0 && (
-        <section className="py-6 bg-white border-b border-gray-200">
-          <div className="container mx-auto px-4">
-            <div className="text-xs font-semibold mb-3 text-gray-600 uppercase tracking-wide">
-              Categories
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedCategory("all")}
-                className={`px-4 py-2 rounded-full text-sm transition-all ${
-                  selectedCategory === "all"
-                    ? "bg-black text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                All ({cityDestinations.length})
-              </button>
-              {categories.map((cat) => {
-                const count = cityDestinations.filter((d) => d.category === cat).length;
-                return (
+      {/* Filters */}
+      <section className="py-8 bg-[#f5f1e8]">
+        <div className="container mx-auto px-4">
+          <div className="space-y-6">
+            {/* Category Filter */}
+            {categories.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold mb-3 text-gray-600 uppercase tracking-wide">
+                  Categories
+                </div>
+                <div className="flex flex-wrap gap-2">
                   <button
-                    key={cat}
-                    onClick={() =>
-                      setSelectedCategory(cat === selectedCategory ? "all" : cat)
-                    }
+                    onClick={() => setSelectedCategory("all")}
                     className={`px-4 py-2 rounded-full text-sm transition-all ${
-                      selectedCategory === cat
+                      selectedCategory === "all"
                         ? "bg-black text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    {cat} ({count})
+                    All ({cityDestinations.length})
                   </button>
-                );
-              })}
-            </div>
+                  {categories.map((cat) => {
+                    const count = cityDestinations.filter((d) => d.category === cat).length;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setSelectedCategory(cat === selectedCategory ? "all" : cat);
+                          setDisplayedCount(40);
+                        }}
+                        className={`px-4 py-2 rounded-full text-sm transition-all ${
+                          selectedCategory === cat
+                            ? "bg-black text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {cat} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
+      {/* Destinations Count */}
+      <section className="pb-6 bg-[#f5f1e8]">
+        <div className="container mx-auto px-4">
+          <p className="text-sm text-gray-600">
+            {displayedDestinations.length} destination{displayedDestinations.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+      </section>
 
       {/* Destinations Grid */}
-      <section className="py-12">
+      <section className="pb-12 bg-[#f5f1e8]">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
-            {filteredDestinations.map((destination) => (
+            {displayedDestinations.map((destination) => (
               <DestinationCard
                 key={destination.slug}
                 destination={destination}
@@ -175,8 +210,64 @@ export default function CityPage() {
               />
             ))}
           </div>
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="flex justify-center mt-12">
+              <button
+                onClick={() => setDisplayedCount((prev) => prev + 40)}
+                className="px-8 py-3 bg-white border border-gray-300 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Load More
+              </button>
+            </div>
+          )}
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 bg-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="font-bold text-lg mb-4">Travel Guide</h3>
+              <p className="text-sm text-gray-600">
+                Discover curated destinations from around the world.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Features</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="border-l-2 border-blue-500 pl-3">Destinations</li>
+                <li className="border-l-2 border-green-500 pl-3">Search</li>
+                <li className="border-l-2 border-purple-500 pl-3">Filters</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Learn more</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="border-l-2 border-orange-500 pl-3">About</li>
+                <li className="border-l-2 border-red-500 pl-3">Blog</li>
+                <li className="border-l-2 border-teal-500 pl-3">Stories</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Support</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="border-l-2 border-pink-500 pl-3">Contact</li>
+                <li className="border-l-2 border-yellow-500 pl-3">Help</li>
+                <li className="border-l-2 border-indigo-500 pl-3">Legal</li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-gray-200 text-sm text-gray-500">
+            © 2025 Travel Guide. All rights reserved.
+          </div>
+        </div>
+      </footer>
+
+      {/* AI Assistant */}
+      <AIAssistant destinations={destinations} />
     </div>
   );
 }

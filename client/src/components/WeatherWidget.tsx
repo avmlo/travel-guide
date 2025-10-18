@@ -52,8 +52,8 @@ export function WeatherWidget({ city, latitude, longitude }: WeatherWidgetProps)
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-6">
         <Cloud className="h-5 w-5 text-gray-600" />
         <h3 className="font-semibold text-lg">7-Day Weather Forecast</h3>
       </div>
@@ -62,8 +62,8 @@ export function WeatherWidget({ city, latitude, longitude }: WeatherWidgetProps)
         {weather.forecast.map((day: any, index: number) => (
           <div
             key={day.date}
-            className={`text-center p-3 rounded-lg ${
-              index === 0 ? "bg-gray-50 border border-gray-200" : "bg-gray-50"
+            className={`text-center p-4 rounded-xl transition-all ${
+              index === 0 ? "bg-gray-100 border-2 border-gray-300" : "bg-gray-50 hover:bg-gray-100"
             }`}
           >
             <div className="text-xs font-semibold text-gray-600 mb-1">
