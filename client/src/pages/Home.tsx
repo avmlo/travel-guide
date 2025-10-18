@@ -5,13 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Search, MapPin } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -129,22 +123,8 @@ export default function Home() {
               />
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[180px] h-10 border-gray-300">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {(searchQuery || selectedCategory !== "all" || selectedCity) && (
+            {(searchQuery || selectedCategory !== "all" || selectedCity) && (
+              <div className="flex justify-end">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -157,7 +137,37 @@ export default function Home() {
                 >
                   Clear filters
                 </Button>
-              )}
+              </div>
+            )}
+
+            {/* Category Filter */}
+            <div>
+              <div className="text-xs font-semibold mb-3 text-gray-600 uppercase tracking-wide">Categories</div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSelectedCategory("all")}
+                  className={`px-4 py-2 rounded-full text-sm transition-all ${
+                    selectedCategory === "all" 
+                      ? "bg-black text-white" 
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  All
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat === selectedCategory ? "all" : cat)}
+                    className={`px-4 py-2 rounded-full text-sm transition-all ${
+                      selectedCategory === cat 
+                        ? "bg-black text-white" 
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* City Filter */}
