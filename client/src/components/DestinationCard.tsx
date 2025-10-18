@@ -9,25 +9,10 @@ interface DestinationCardProps {
   colorIndex?: number;
 }
 
-const borderColors = [
-  'border-red-500',
-  'border-blue-500',
-  'border-green-500',
-  'border-yellow-500',
-  'border-purple-500',
-  'border-pink-500',
-  'border-orange-500',
-  'border-teal-500',
-  'border-indigo-500',
-  'border-cyan-500',
-];
-
 export function DestinationCard({ destination, onClick, colorIndex = 0 }: DestinationCardProps) {
-  const borderColor = borderColors[colorIndex % borderColors.length];
-  
   return (
     <Card 
-      className={`overflow-hidden hover:shadow-xl transition-all cursor-pointer h-full flex flex-col border-4 ${borderColor}`}
+      className="overflow-hidden hover:shadow-xl transition-all cursor-pointer h-full flex flex-col border"
       onClick={onClick}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
