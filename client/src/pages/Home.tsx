@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Search, MapPin } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
+import { AIAssistant } from "@/components/AIAssistant";
+import { SmartSearch } from "@/components/SmartSearch";
+import { ItineraryGenerator } from "@/components/ItineraryGenerator";
 
 
 export default function Home() {
@@ -15,6 +18,8 @@ export default function Home() {
   const [selectedCity, setSelectedCity] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [displayCount, setDisplayCount] = useState(40);
+  const [aiSearchResults, setAiSearchResults] = useState<string[]>([]);
+  const [isAISearch, setIsAISearch] = useState(false);
 
 
   useEffect(() => {
@@ -44,6 +49,10 @@ export default function Home() {
   }, [destinations]);
 
   const filteredDestinations = useMemo(() => {
+    if (isAISearch && aiSearchResults.length > 0) {
+      return destinations.filter((dest) => aiSearchResults.includes(dest.slug));
+    }
+
     return destinations.filter((dest) => {
       const matchesSearch =
         searchQuery === "" ||
@@ -60,7 +69,7 @@ export default function Home() {
 
       return matchesSearch && matchesCity && matchesCategory;
     });
-  }, [destinations, searchQuery, selectedCity, selectedCategory]);
+  }, [destinations, searchQuery, selectedCity, selectedCategory, isAISearch, aiSearchResults]);
 
   const displayedDestinations = filteredDestinations.slice(0, displayCount);
   const hasMore = displayCount < filteredDestinations.length;
@@ -68,7 +77,18 @@ export default function Home() {
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(40);
-  }, [searchQuery, selectedCity, selectedCategory]);
+  }, [searchQuery, selectedCity, selectedCategory, isAISearch]);
+
+  const handleAISearchResults = (slugs: string[], explanation: string) => {
+    setAiSearchResults(slugs);
+    setIsAISearch(true);
+    setDisplayCount(40);
+  };
+
+  const handleClearAISearch = () => {
+    setAiSearchResults([]);
+    setIsAISearch(false);
+  };
 
   if (loading) {
     return (
@@ -112,17 +132,17 @@ export default function Home() {
           
           {/* Search and Filters */}
           <div className="max-w-4xl space-y-6">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                placeholder="Search destinations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-base border-gray-300"
-              />
+            <SmartSearch
+              destinations={destinations}
+              onSearchResults={handleAISearchResults}
+              onClear={handleClearAISearch}
+            />
+
+            <div className="flex gap-3">
+              <ItineraryGenerator destinations={destinations} cities={cities} />
             </div>
 
-            {(searchQuery || selectedCategory !== "all" || selectedCity) && (
+            {(searchQuery || selectedCategory !== "all" || selectedCity || isAISearch) && (
               <div className="flex justify-end">
                 <Button
                   variant="ghost"
@@ -131,6 +151,7 @@ export default function Home() {
                     setSearchQuery("");
                     setSelectedCategory("all");
                     setSelectedCity("");
+                    handleClearAISearch();
                   }}
                   className="text-sm"
                 >
@@ -251,6 +272,9 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* AI Assistant */}
+      <AIAssistant destinations={destinations} />
 
       {/* Footer */}
       <footer className="border-t border-gray-200 py-12">
