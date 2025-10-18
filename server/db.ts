@@ -35,7 +35,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "email", "loginMethod"] as const;
+    const textFields = ["name", "email"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
@@ -51,13 +51,6 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     if (user.lastSignedIn !== undefined) {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role === undefined) {
-      if (user.id === ENV.ownerId) {
-        user.role = 'admin';
-        values.role = 'admin';
-        updateSet.role = 'admin';
-      }
     }
 
     if (Object.keys(updateSet).length === 0) {

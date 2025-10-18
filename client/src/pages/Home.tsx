@@ -46,7 +46,14 @@ export default function Home() {
 
   const categories = useMemo(() => {
     const cats = new Set(destinations.map((d) => d.category).filter(Boolean));
-    return Array.from(cats).sort();
+    const sorted = Array.from(cats).sort();
+    // Move "Other" to the end
+    const otherIndex = sorted.indexOf("Other");
+    if (otherIndex > -1) {
+      sorted.splice(otherIndex, 1);
+      sorted.push("Other");
+    }
+    return sorted;
   }, [destinations]);
 
   const filteredDestinations = useMemo(() => {
@@ -197,11 +204,13 @@ export default function Home() {
             {/* City Filter */}
             <div>
               <div className="text-xs font-semibold mb-3 text-gray-600 uppercase tracking-wide">Cities</div>
-              <div className="flex flex-wrap gap-x-3 gap-y-2 text-sm">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setSelectedCity("")}
-                  className={`hover:underline transition-colors ${
-                    !selectedCity ? "font-semibold underline" : "text-gray-600"
+                  className={`px-4 py-2 rounded-full text-sm transition-all ${
+                    !selectedCity 
+                      ? "bg-black text-white" 
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
                   All
@@ -210,8 +219,10 @@ export default function Home() {
                   <button
                     key={city}
                     onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                    className={`hover:underline transition-colors ${
-                      selectedCity === city ? "font-semibold underline" : "text-gray-600"
+                    className={`px-4 py-2 rounded-full text-sm transition-all capitalize ${
+                      selectedCity === city 
+                        ? "bg-black text-white" 
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
                     {city}

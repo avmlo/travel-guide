@@ -16,7 +16,7 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 rounded-xl mb-3 transition-all duration-300 hover:shadow-xl">
         <div className="absolute top-2 left-2 z-10">
-          <SaveButton destinationSlug={destination.slug} className="bg-white/90 hover:bg-white rounded-full" />
+          <SaveButton destinationSlug={destination.slug} />
         </div>
         {destination.mainImage ? (
           <img 

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { Button } from "@/components/ui/button";
 
 interface SaveButtonProps {
   destinationSlug: string;
@@ -50,21 +49,23 @@ export function SaveButton({ destinationSlug, className = "" }: SaveButtonProps)
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
       onClick={handleToggleSave}
-      className={`${className} hover:bg-transparent`}
+      className={`p-2 rounded-full shadow-lg backdrop-blur-sm transition-all ${
+        isSaved
+          ? "bg-red-500/90 hover:bg-red-600"
+          : "bg-white/90 hover:bg-white"
+      } ${className}`}
       disabled={saveMutation.isPending || unsaveMutation.isPending}
     >
       <Heart
-        className={`h-5 w-5 transition-all ${
+        className={`h-4 w-4 transition-all ${
           isSaved
-            ? "fill-red-500 text-red-500"
-            : "text-gray-400 hover:text-red-500"
+            ? "fill-white text-white"
+            : "text-gray-600 hover:text-red-500"
         }`}
       />
-    </Button>
+    </button>
   );
 }
 
