@@ -1,21 +1,40 @@
-import { mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { mysqlTable, varchar, int, timestamp, text, datetime } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  id: varchar("id", { length: 64 }).primaryKey(),
-  name: text("name"),
-  email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  createdAt: timestamp("createdAt").defaultNow(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow(),
+  id: varchar("id", { length: 255 }).primaryKey(),
+  name: varchar("name", { length: 255 }),
+  email: varchar("email", { length: 255 }),
+  avatar: varchar("avatar", { length: 500 }),
+  createdAt: datetime("created_at"),
+  lastSignedIn: datetime("last_signed_in"),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+export const savedPlaces = mysqlTable("saved_places", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  destinationSlug: varchar("destination_slug", { length: 255 }).notNull(),
+  savedAt: timestamp("saved_at").notNull(),
+  notes: text("notes"),
+});
+
+export const userPreferences = mysqlTable("user_preferences", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull().unique(),
+  favoriteCategories: text("favorite_categories"), // JSON array
+  favoriteCities: text("favorite_cities"), // JSON array
+  interests: text("interests"), // JSON array
+  updatedAt: timestamp("updated_at").notNull(),
+});
+
+export const userActivity = mysqlTable("user_activity", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  destinationSlug: varchar("destination_slug", { length: 255 }).notNull(),
+  action: varchar("action", { length: 50 }).notNull(), // 'view', 'search', 'save', 'unsave'
+  timestamp: timestamp("timestamp").notNull(),
+  metadata: text("metadata"), // JSON for additional context
+});
+

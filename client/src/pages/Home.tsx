@@ -8,6 +8,7 @@ import { Destination } from "@/types/destination";
 import { AIAssistant } from "@/components/AIAssistant";
 import { SmartSearch } from "@/components/SmartSearch";
 import { ItineraryGenerator } from "@/components/ItineraryGenerator";
+import { UserMenu } from "@/components/UserMenu";
 
 
 export default function Home() {
@@ -109,10 +110,13 @@ export default function Home() {
                 <path d="M20 4L22.5 12.5L28 8L25 16L34 16L26 20L34 24L25 24L28 32L22.5 27.5L20 36L17.5 27.5L12 32L15 24L6 24L14 20L6 16L15 16L12 8L17.5 12.5L20 4Z" fill="black"/>
               </svg>
             </div>
-            <div className="flex items-center gap-6 bg-gray-100 px-6 py-2 rounded-full">
-              <a href="#" className="text-sm font-medium hover:text-gray-600 transition-colors">Work</a>
-              <a href="#" className="text-sm font-medium hover:text-gray-600 transition-colors">About</a>
-              <a href="#" className="text-sm font-medium hover:text-gray-600 transition-colors">Contact</a>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6 bg-gray-100 px-6 py-2 rounded-full">
+                <a href="#" className="text-sm font-medium hover:text-gray-600 transition-colors">Work</a>
+                <a href="#" className="text-sm font-medium hover:text-gray-600 transition-colors">About</a>
+                <a href="#" className="text-sm font-medium hover:text-gray-600 transition-colors">Contact</a>
+              </div>
+              <UserMenu />
             </div>
           </div>
         </div>
