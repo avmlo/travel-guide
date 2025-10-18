@@ -158,10 +158,11 @@ export default function Home() {
 
               <button
                 onClick={() => setShowMap(!showMap)}
-                className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
+                className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
               >
                 <MapIcon className="h-4 w-4" />
-                {showMap ? "Hide Map" : "Show Map"}
+                <span className="hidden sm:inline">{showMap ? "Hide Map" : "Show Map"}</span>
+                <span className="sm:hidden">{showMap ? "Hide" : "Map"}</span>
               </button>
             </div>
 
@@ -263,16 +264,43 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Map Column - Fixed on Desktop */}
+              {/* Map Column - Fixed on Desktop, Full Screen on Mobile */}
               {showMap && (
-                <div className="hidden lg:block lg:w-1/3">
-                  <div className="sticky top-20">
-                    <MapView
-                      destinations={filteredDestinations}
-                      onDestinationClick={(slug) => setLocation(`/destination/${slug}`)}
-                    />
+                <>
+                  {/* Mobile Map - Full Screen Overlay */}
+                  <div className="lg:hidden fixed inset-0 z-40 bg-white">
+                    <div className="h-full flex flex-col">
+                      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                        <h3 className="font-semibold">Map View</h3>
+                        <button
+                          onClick={() => setShowMap(false)}
+                          className="px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-50 text-sm"
+                        >
+                          Close
+                        </button>
+                      </div>
+                      <div className="flex-1">
+                        <MapView
+                          destinations={filteredDestinations}
+                          onDestinationClick={(slug) => {
+                            setShowMap(false);
+                            setLocation(`/destination/${slug}`);
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                  
+                  {/* Desktop Map - Side Panel */}
+                  <div className="hidden lg:block lg:w-1/3">
+                    <div className="sticky top-20">
+                      <MapView
+                        destinations={filteredDestinations}
+                        onDestinationClick={(slug) => setLocation(`/destination/${slug}`)}
+                      />
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           )}
