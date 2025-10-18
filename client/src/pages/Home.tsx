@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [displayCount, setDisplayCount] = useState(40);
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function loadDestinations() {
@@ -100,7 +101,11 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <button className="hover:text-gray-600 transition-colors">
+              <button 
+                onClick={() => searchInputRef.current?.focus()}
+                className="hover:text-gray-600 transition-colors"
+                aria-label="Search"
+              >
                 <Search className="h-4 w-4" />
               </button>
             </div>
@@ -123,6 +128,7 @@ export default function Home() {
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
+                ref={searchInputRef}
                 placeholder="Search destinations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

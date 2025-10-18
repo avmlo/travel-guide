@@ -1,53 +1,122 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Destination } from "@/types/destination";
-import "leaflet/dist/leaflet.css";
 
 interface MapViewProps {
   destinations: Destination[];
   onDestinationClick: (slug: string) => void;
 }
 
-export function MapView({ destinations, onDestinationClick }: MapViewProps) {
-  const [isClient, setIsClient] = useState(false);
+declare global {
+  interface Window {
+    mapkit: any;
+  }
+}
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+export function MapView({ destinations, onDestinationClick }: MapViewProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const destinationsWithCoords = destinations.filter(
     (d) => d.lat !== 0 && d.long !== 0
   );
 
-  // Calculate center of all destinations
-  const center: [number, number] = destinationsWithCoords.length > 0
-    ? [
-        destinationsWithCoords.reduce((sum, d) => sum + d.lat, 0) / destinationsWithCoords.length,
-        destinationsWithCoords.reduce((sum, d) => sum + d.long, 0) / destinationsWithCoords.length,
-      ]
-    : [25, 0]; // Default center
+  useEffect(() => {
+    // Load MapKit JS script
+    const script = document.createElement("script");
+    script.src = "https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.core.js";
+    script.crossOrigin = "anonymous";
+    script.async = true;
+    
+    script.onload = () => {
+      if (window.mapkit) {
+        // Initialize MapKit with a token (using anonymous mode for demo)
+        // Note: For production, you need to get a MapKit JS token from Apple Developer
+        try {
+          window.mapkit.init({
+            authorizationCallback: (done: any) => {
+              // For demo purposes, we'll use a public token approach
+              // In production, you should generate a JWT token from your server
+              done(""); // Empty token for now - will show error but demonstrate structure
+            }
+          });
+          setMapLoaded(true);
+        } catch (err) {
+          console.error("MapKit initialization error:", err);
+          setError("MapKit requires an Apple Developer token. Using fallback view.");
+        }
+      }
+    };
 
-  if (!isClient) {
+    script.onerror = () => {
+      setError("Failed to load Apple Maps. Using fallback view.");
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || !window.mapkit) return;
+
+    try {
+      const map = new window.mapkit.Map(mapRef.current, {
+        center: new window.mapkit.Coordinate(25, 0),
+        zoom: 2,
+        showsMapTypeControl: false,
+        showsZoomControl: true,
+        showsUserLocationControl: false,
+      });
+
+      // Add markers for destinations
+      const annotations = destinationsWithCoords.map((destination) => {
+        const annotation = new window.mapkit.MarkerAnnotation(
+          new window.mapkit.Coordinate(destination.lat, destination.long),
+          {
+            title: destination.name,
+            subtitle: destination.city,
+            color: "#007AFF",
+          }
+        );
+
+        annotation.addEventListener("select", () => {
+          onDestinationClick(destination.slug);
+        });
+
+        return annotation;
+      });
+
+      map.showItems(annotations);
+    } catch (err) {
+      console.error("Error creating map:", err);
+      setError("Unable to display map. Please check your connection.");
+    }
+  }, [mapLoaded, destinationsWithCoords, onDestinationClick]);
+
+  if (error) {
     return (
-      <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400">Loading map...</p>
+      <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex flex-col items-center justify-center p-8">
+        <p className="text-gray-600 mb-4 text-center">{error}</p>
+        <p className="text-sm text-gray-400 text-center max-w-md">
+          Showing {destinationsWithCoords.length} destinations with coordinates.
+          Click on any destination card to view details.
+        </p>
       </div>
     );
   }
 
-  // Dynamically import Leaflet components only on client side
-  const MapContainer = require("react-leaflet").MapContainer;
-  const TileLayer = require("react-leaflet").TileLayer;
-  const Marker = require("react-leaflet").Marker;
-  const Popup = require("react-leaflet").Popup;
-  const L = require("leaflet");
-
-  // Fix default marker icon issue with Leaflet in React
-  delete (L.Icon.Default.prototype as any)._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  });
+  if (!mapLoaded) {
+    return (
+      <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-400">Loading Apple Maps...</p>
+      </div>
+    );
+  }
 
   if (destinationsWithCoords.length === 0) {
     return (
@@ -58,47 +127,11 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
   }
 
   return (
-    <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-      <MapContainer
-        center={center}
-        zoom={2}
-        style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom={true}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {destinationsWithCoords.map((destination) => (
-          <Marker
-            key={destination.slug}
-            position={[destination.lat, destination.long]}
-          >
-            <Popup>
-              <div className="min-w-[200px]">
-                {destination.mainImage && (
-                  <img
-                    src={destination.mainImage}
-                    alt={destination.name}
-                    className="w-full h-32 object-cover rounded mb-2"
-                  />
-                )}
-                <h3 className="font-semibold text-sm mb-1 capitalize">{destination.name}</h3>
-                <p className="text-xs text-gray-600 mb-2">
-                  {destination.city.charAt(0).toUpperCase() + destination.city.slice(1)}
-                </p>
-                <button
-                  onClick={() => onDestinationClick(destination.slug)}
-                  className="text-xs text-blue-600 hover:underline"
-                >
-                  View details →
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
-    </div>
+    <div 
+      ref={mapRef} 
+      className="w-full h-[600px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm"
+      style={{ minHeight: "600px" }}
+    />
   );
 }
 

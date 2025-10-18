@@ -13,7 +13,7 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
       className="group cursor-pointer"
       onClick={onClick}
     >
-      <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 rounded-2xl mb-3">
+      <div className="relative aspect-square overflow-hidden bg-gray-100 rounded-2xl mb-3">
         {destination.mainImage ? (
           <img 
             src={destination.mainImage} 
