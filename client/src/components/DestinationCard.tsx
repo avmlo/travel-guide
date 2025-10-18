@@ -1,6 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Star, Crown, MapPin } from "lucide-react";
+import { Crown, MapPin } from "lucide-react";
 import { Destination } from "@/types/destination";
 
 interface DestinationCardProps {
@@ -9,13 +7,30 @@ interface DestinationCardProps {
   colorIndex?: number;
 }
 
+const borderColors = [
+  'border-red-500',
+  'border-green-500',
+  'border-blue-500',
+  'border-yellow-500',
+  'border-purple-500',
+  'border-pink-500',
+  'border-orange-500',
+  'border-teal-500',
+  'border-indigo-500',
+  'border-cyan-500',
+  'border-lime-500',
+  'border-rose-500',
+];
+
 export function DestinationCard({ destination, onClick, colorIndex = 0 }: DestinationCardProps) {
+  const borderColor = borderColors[colorIndex % borderColors.length];
+  
   return (
     <div 
-      className="group cursor-pointer"
+      className={`group cursor-pointer border-4 ${borderColor} bg-white overflow-hidden`}
       onClick={onClick}
     >
-      <div className="relative aspect-[3/4] overflow-hidden bg-muted mb-3">
+      <div className="relative aspect-square overflow-hidden bg-gray-100">
         {destination.mainImage ? (
           <img 
             src={destination.mainImage} 
@@ -24,7 +39,7 @@ export function DestinationCard({ destination, onClick, colorIndex = 0 }: Destin
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-gradient-to-br from-muted to-muted-foreground/10">
+          <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gradient-to-br from-gray-50 to-gray-100">
             <MapPin className="h-16 w-16 opacity-20" />
           </div>
         )}
@@ -40,20 +55,14 @@ export function DestinationCard({ destination, onClick, colorIndex = 0 }: Destin
         )}
       </div>
       
-      <div className="space-y-1">
-        <h3 className="font-medium text-sm leading-tight line-clamp-2">
-          {destination.name}
+      <div className="p-3 bg-white">
+        <h3 className="font-medium text-sm leading-tight mb-1 line-clamp-2">
+          {destination.name.toLowerCase()}
         </h3>
         
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <span className="lowercase">{destination.city}</span>
+        <div className="text-xs text-gray-500">
+          {destination.city}
         </div>
-        
-        {destination.category && (
-          <div className="text-xs text-muted-foreground">
-            {destination.category}
-          </div>
-        )}
       </div>
     </div>
   );

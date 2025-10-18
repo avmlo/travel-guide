@@ -5,21 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [displayCount, setDisplayCount] = useState(48);
 
   useEffect(() => {
     async function loadDestinations() {
@@ -42,11 +35,6 @@ export default function Home() {
     return Array.from(citySet).sort();
   }, [destinations]);
 
-  const categories = useMemo(() => {
-    const cats = new Set(destinations.map((d) => d.category).filter(Boolean));
-    return Array.from(cats).sort();
-  }, [destinations]);
-
   const filteredDestinations = useMemo(() => {
     return destinations.filter((dest) => {
       const matchesSearch =
@@ -57,14 +45,14 @@ export default function Home() {
         dest.category.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesCity =
-        selectedCity === "all" || dest.city === selectedCity;
+        !selectedCity || dest.city === selectedCity;
 
-      const matchesCategory =
-        selectedCategory === "all" || dest.category === selectedCategory;
-
-      return matchesSearch && matchesCity && matchesCategory;
+      return matchesSearch && matchesCity;
     });
-  }, [destinations, searchQuery, selectedCity, selectedCategory]);
+  }, [destinations, searchQuery, selectedCity]);
+
+  const displayedDestinations = filteredDestinations.slice(0, displayCount);
+  const hasMore = displayCount < filteredDestinations.length;
 
   if (loading) {
     return (
@@ -75,174 +63,140 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b bg-border bg-background">
-        <div className="container py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight">
-              THE TRAVEL GUIDE
-            </h1>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-xs hidden md:inline-flex"
-              >
-                CATALOGUE
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase text-xs hidden md:inline-flex"
-              >
-                INFO
-              </Button>
+      <header className="bg-white">
+        <div className="container py-6">
+          {/* Logo */}
+          <h1 className="text-[4rem] md:text-[6rem] lg:text-[8rem] font-black tracking-tighter leading-none mb-4">
+            THE TRAVEL GUIDE
+          </h1>
+          
+          {/* Navigation Tabs */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase text-xs px-4 h-8 rounded-sm"
+            >
+              CATALOGUE
+            </Button>
+            <Button
+              size="sm"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase text-xs px-4 h-8 rounded-sm"
+            >
+              INFO
+            </Button>
+            <Button
+              size="sm"
+              className="bg-purple-600 hover:bg-purple-700 text-white font-bold uppercase text-xs px-4 h-8 rounded-sm"
+            >
+              ARCHIVE
+            </Button>
+            <Button
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold uppercase text-xs px-4 h-8 rounded-sm"
+            >
+              EDITORIAL
+            </Button>
+            <div className="ml-auto text-sm font-medium text-gray-600 hidden md:block">
+              NEW YORK 3:03:34 PM
             </div>
           </div>
 
-          {/* Search and Filters - Prominent */}
-          <div className="grid md:grid-cols-12 gap-3">
-            <div className="md:col-span-6 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
-              <Input
-                placeholder={`Search ${destinations.length} destinations...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-11 h-12 border-2 border-pink-400 focus:border-pink-500 focus:ring-pink-500 text-base"
-              />
-            </div>
-
-            <div className="md:col-span-3">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="h-12 border-2">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="md:col-span-3">
-              <Select value={selectedCity} onValueChange={setSelectedCity}>
-                <SelectTrigger className="h-12 border-2">
-                  <SelectValue placeholder="City" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Cities</SelectItem>
-                  {cities.map((city) => (
-                    <SelectItem key={city} value={city}>
-                      {city.charAt(0).toUpperCase() + city.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Search Bar */}
+          <div className="relative max-w-md mb-6">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder={`Search ${destinations.length} items...`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 border-2 border-pink-400 focus:border-pink-500 focus-visible:ring-pink-500 rounded-sm h-10"
+            />
           </div>
 
-          {/* Active Filters */}
-          {(searchQuery || selectedCategory !== "all" || selectedCity !== "all") && (
-            <div className="flex items-center gap-2 mt-3 text-sm">
-              <span className="text-muted-foreground">Filters:</span>
-              {searchQuery && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setSearchQuery("")}
-                  className="h-7 text-xs"
-                >
-                  "{searchQuery}" ×
-                </Button>
-              )}
-              {selectedCategory !== "all" && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setSelectedCategory("all")}
-                  className="h-7 text-xs"
-                >
-                  {selectedCategory} ×
-                </Button>
-              )}
-              {selectedCity !== "all" && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setSelectedCity("all")}
-                  className="h-7 text-xs"
-                >
-                  {selectedCity} ×
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("all");
-                  setSelectedCity("all");
-                }}
-                className="h-7 text-xs"
+          {/* City Filter Tags */}
+          <div className="mb-4">
+            <div className="text-sm font-bold mb-3 uppercase">PLACES</div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedCity("")}
+                className={`text-sm px-0 py-0 hover:underline ${
+                  !selectedCity ? "font-bold underline" : ""
+                }`}
               >
-                Clear all
-              </Button>
+                All
+              </button>
+              {cities.slice(0, 40).map((city) => (
+                <button
+                  key={city}
+                  onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
+                  className={`text-sm px-0 py-0 hover:underline ${
+                    selectedCity === city ? "font-bold underline" : ""
+                  }`}
+                >
+                  {city}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       </header>
 
-      {/* Results */}
-      <div className="container py-6">
-        <div className="mb-4 text-sm text-muted-foreground font-medium">
-          {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
-        </div>
-
+      {/* Results Grid */}
+      <div className="container pb-12">
         {filteredDestinations.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-lg text-muted-foreground mb-4">
+            <p className="text-lg text-gray-600 mb-4">
               No destinations found matching your search.
             </p>
             <Button
               variant="outline"
               onClick={() => {
                 setSearchQuery("");
-                setSelectedCategory("all");
-                setSelectedCity("all");
+                setSelectedCity("");
               }}
             >
               Clear filters
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filteredDestinations.map((destination, index) => (
-              <DestinationCard
-                key={destination.slug}
-                destination={destination}
-                colorIndex={index}
-                onClick={() => setLocation(`/destination/${destination.slug}`)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {displayedDestinations.map((destination, index) => (
+                <DestinationCard
+                  key={destination.slug}
+                  destination={destination}
+                  colorIndex={index}
+                  onClick={() => setLocation(`/destination/${destination.slug}`)}
+                />
+              ))}
+            </div>
+            
+            {hasMore && (
+              <div className="flex justify-center mt-8">
+                <Button
+                  onClick={() => setDisplayCount(prev => prev + 48)}
+                  className="bg-gray-800 hover:bg-gray-900 text-white font-bold uppercase px-8"
+                >
+                  Load More
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* Footer */}
-      <footer className="border-t bg-border bg-background mt-16">
+      <footer className="bg-white border-t">
         <div className="container py-6">
           <div className="flex flex-wrap gap-4 text-sm mb-3">
-            <a href="#" className="hover:underline font-bold">ABOUT</a>
-            <a href="#" className="hover:underline font-bold">CONTACT</a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:underline font-bold">INSTAGRAM</a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:underline font-bold">TWITTER</a>
+            <a href="#" className="hover:underline font-bold uppercase">AVMLO LLC</a>
+            <a href="#" className="hover:underline font-bold uppercase">TAPI GUIDE PROJECT</a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:underline font-bold uppercase">INSTAGRAM</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:underline font-bold uppercase">TWITTER</a>
+            <a href="#" className="hover:underline font-bold uppercase">SAVEE</a>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-600">
             © {new Date().getFullYear()} ALL RIGHTS RESERVED
           </p>
         </div>
