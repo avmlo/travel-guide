@@ -8,9 +8,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Calendar, Loader2, MapPin } from "lucide-react";
+import { Calendar, Loader2, MapPin, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Destination } from "@/types/destination";
+import { useLocation } from "wouter";
 
 interface ItineraryGeneratorProps {
   destinations: Destination[];
@@ -18,6 +19,7 @@ interface ItineraryGeneratorProps {
 }
 
 export function ItineraryGenerator({ destinations, cities }: ItineraryGeneratorProps) {
+  const [, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [city, setCity] = useState("");
   const [days, setDays] = useState(3);
@@ -145,9 +147,22 @@ export function ItineraryGenerator({ destinations, cities }: ItineraryGeneratorP
                         <div className="flex-1">
                           <div className="flex items-start gap-2">
                             <MapPin className="h-4 w-4 mt-0.5 text-gray-400 flex-shrink-0" />
-                            <div>
+                            <div className="flex-1">
                               <p className="font-medium">{activity.activity}</p>
-                              <p className="text-sm text-gray-600">{activity.destination}</p>
+                              {activity.destinationSlug ? (
+                                <button
+                                  onClick={() => {
+                                    setLocation(`/destination/${activity.destinationSlug}`);
+                                    setIsOpen(false);
+                                  }}
+                                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 mt-0.5"
+                                >
+                                  {activity.destination}
+                                  <ExternalLink className="h-3 w-3" />
+                                </button>
+                              ) : (
+                                <p className="text-sm text-gray-600">{activity.destination}</p>
+                              )}
                               <p className="text-sm text-gray-500 mt-1">
                                 {activity.description}
                               </p>

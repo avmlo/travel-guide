@@ -218,12 +218,8 @@ export default function Home() {
                 {cities.slice(0, 50).map((city) => (
                   <button
                     key={city}
-                    onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                    className={`px-4 py-2 rounded-full text-sm transition-all capitalize ${
-                      selectedCity === city 
-                        ? "bg-black text-white" 
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                    onClick={() => setLocation(`/city/${city}`)}
+                    className="px-4 py-2 rounded-full text-sm transition-all capitalize bg-gray-100 text-gray-700 hover:bg-gray-200"
                   >
                     {city}
                   </button>

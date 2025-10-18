@@ -144,6 +144,7 @@ Analyze this query and return matching destinations.`;
                       time: { type: "string" },
                       activity: { type: "string" },
                       destination: { type: "string" },
+                      destinationSlug: { type: "string", description: "Slug of the destination for linking" },
                       description: { type: "string" },
                     },
                     required: ["time", "activity", "destination", "description"],
@@ -171,9 +172,11 @@ Analyze this query and return matching destinations.`;
 User interests: ${input.interests.join(", ")}
 
 Available destinations in ${input.city}:
-${JSON.stringify(relevantDestinations.slice(0, 30), null, 2)}
+${JSON.stringify(relevantDestinations.slice(0, 30).map((d: any) => ({ name: d.name, slug: d.slug, category: d.category, description: d.description })), null, 2)}
 
-Create a realistic, well-paced itinerary that includes specific destinations from the list above. Include breakfast, lunch, dinner, and activities. Make sure to reference actual destination names from the provided list.`;
+IMPORTANT: You MUST ONLY use destinations from the provided list above. Do not suggest any destinations not in this list.
+For each activity, include the exact 'slug' field from the destination data as 'destinationSlug'.
+Create a realistic, well-paced itinerary. Include breakfast, lunch, dinner, and activities using ONLY the destinations provided.`;
 
       const result = await generateStructuredWithGemini<{
         title: string;

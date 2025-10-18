@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import DestinationDetail from "./pages/DestinationDetail";
 import SavedPlaces from "./pages/SavedPlaces";
+import CityPage from "./pages/CityPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -14,6 +15,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path="/destination/:slug" component={DestinationDetail} />
+      <Route path="/city/:city" component={CityPage} />
       <Route path="/saved" component={SavedPlaces} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
