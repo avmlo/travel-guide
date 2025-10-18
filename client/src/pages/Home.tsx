@@ -2,8 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
 import {
@@ -19,8 +18,8 @@ export default function Home() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedCity, setSelectedCity] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   useEffect(() => {
     async function loadDestinations() {
@@ -38,14 +37,14 @@ export default function Home() {
     loadDestinations();
   }, []);
 
-  const categories = useMemo(() => {
-    const cats = new Set(destinations.map((d) => d.category).filter(Boolean));
-    return Array.from(cats).sort();
-  }, [destinations]);
-
   const cities = useMemo(() => {
     const citySet = new Set(destinations.map((d) => d.city).filter(Boolean));
     return Array.from(citySet).sort();
+  }, [destinations]);
+
+  const categories = useMemo(() => {
+    const cats = new Set(destinations.map((d) => d.category).filter(Boolean));
+    return Array.from(cats).sort();
   }, [destinations]);
 
   const filteredDestinations = useMemo(() => {
@@ -54,158 +53,132 @@ export default function Home() {
         searchQuery === "" ||
         dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         dest.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dest.city.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesCategory =
-        selectedCategory === "all" || dest.category === selectedCategory;
+        dest.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dest.category.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesCity =
         selectedCity === "all" || dest.city === selectedCity;
 
-      return matchesSearch && matchesCategory && matchesCity;
-    });
-  }, [destinations, searchQuery, selectedCategory, selectedCity]);
+      const matchesCategory =
+        selectedCategory === "all" || dest.category === selectedCategory;
 
-  const featuredDestinations = useMemo(() => {
-    return destinations
-      .filter((d) => d.crown || d.michelinStars > 0)
-      .slice(0, 6);
-  }, [destinations]);
+      return matchesSearch && matchesCity && matchesCategory;
+    });
+  }, [destinations, searchQuery, selectedCity, selectedCategory]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-muted-foreground">Loading destinations...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-lg text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border-b">
-        <div className="container py-16 md:py-24">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Discover Amazing Destinations
+      {/* Header */}
+      <header className="border-b-4 border-foreground bg-background">
+        <div className="container py-4">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight">
+              THE TRAVEL GUIDE
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
-              Explore curated travel destinations from around the world, featuring top-rated restaurants, 
-              cafés, hotels, and unique experiences.
-            </p>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span>{cities.length} Cities</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <span>{categories.length} Categories</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{destinations.length} Destinations</span>
-              </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-xs hidden md:inline-flex"
+              >
+                CATALOGUE
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase text-xs hidden md:inline-flex"
+              >
+                INFO
+              </Button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Featured Destinations */}
-      {featuredDestinations.length > 0 && (
-        <div className="container py-12">
-          <h2 className="text-3xl font-bold mb-6">Featured Destinations</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredDestinations.map((destination) => (
-              <DestinationCard
-                key={destination.slug}
-                destination={destination}
-                onClick={() => setLocation(`/destination/${destination.slug}`)}
+          {/* Search and Filters - Prominent */}
+          <div className="grid md:grid-cols-12 gap-3">
+            <div className="md:col-span-6 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+              <Input
+                placeholder={`Search ${destinations.length} destinations...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-11 h-12 border-2 border-pink-400 focus:border-pink-500 focus:ring-pink-500 text-base"
               />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Search and Filters */}
-      <div className="container py-8">
-        <div className="bg-card border rounded-lg p-6 shadow-sm">
-          <div className="grid md:grid-cols-4 gap-4">
-            <div className="md:col-span-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search destinations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
             </div>
 
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="md:col-span-3">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="h-12 border-2">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
-              <SelectTrigger>
-                <SelectValue placeholder="City" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Cities</SelectItem>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city.charAt(0).toUpperCase() + city.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="md:col-span-3">
+              <Select value={selectedCity} onValueChange={setSelectedCity}>
+                <SelectTrigger className="h-12 border-2">
+                  <SelectValue placeholder="City" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Cities</SelectItem>
+                  {cities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city.charAt(0).toUpperCase() + city.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
+          {/* Active Filters */}
           {(searchQuery || selectedCategory !== "all" || selectedCity !== "all") && (
-            <div className="flex items-center gap-2 mt-4">
-              <span className="text-sm text-muted-foreground">Active filters:</span>
+            <div className="flex items-center gap-2 mt-3 text-sm">
+              <span className="text-muted-foreground">Filters:</span>
               {searchQuery && (
-                <Badge variant="secondary">
-                  Search: {searchQuery}
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="ml-2 hover:text-foreground"
-                  >
-                    ×
-                  </button>
-                </Badge>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSearchQuery("")}
+                  className="h-7 text-xs"
+                >
+                  "{searchQuery}" ×
+                </Button>
               )}
               {selectedCategory !== "all" && (
-                <Badge variant="secondary">
-                  {selectedCategory}
-                  <button
-                    onClick={() => setSelectedCategory("all")}
-                    className="ml-2 hover:text-foreground"
-                  >
-                    ×
-                  </button>
-                </Badge>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSelectedCategory("all")}
+                  className="h-7 text-xs"
+                >
+                  {selectedCategory} ×
+                </Button>
               )}
               {selectedCity !== "all" && (
-                <Badge variant="secondary">
-                  {selectedCity}
-                  <button
-                    onClick={() => setSelectedCity("all")}
-                    className="ml-2 hover:text-foreground"
-                  >
-                    ×
-                  </button>
-                </Badge>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setSelectedCity("all")}
+                  className="h-7 text-xs"
+                >
+                  {selectedCity} ×
+                </Button>
               )}
               <Button
                 variant="ghost"
@@ -215,30 +188,28 @@ export default function Home() {
                   setSelectedCategory("all");
                   setSelectedCity("all");
                 }}
+                className="h-7 text-xs"
               >
                 Clear all
               </Button>
             </div>
           )}
         </div>
-      </div>
+      </header>
 
       {/* Results */}
-      <div className="container pb-16">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">
-            {filteredDestinations.length} Destination{filteredDestinations.length !== 1 ? 's' : ''}
-          </h2>
+      <div className="container py-6">
+        <div className="mb-4 text-sm text-muted-foreground font-medium">
+          {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
         </div>
 
         {filteredDestinations.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-lg text-muted-foreground">
-              No destinations found matching your criteria.
+          <div className="text-center py-20">
+            <p className="text-lg text-muted-foreground mb-4">
+              No destinations found matching your search.
             </p>
             <Button
               variant="outline"
-              className="mt-4"
               onClick={() => {
                 setSearchQuery("");
                 setSelectedCategory("all");
@@ -249,11 +220,12 @@ export default function Home() {
             </Button>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredDestinations.map((destination) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {filteredDestinations.map((destination, index) => (
               <DestinationCard
                 key={destination.slug}
                 destination={destination}
+                colorIndex={index}
                 onClick={() => setLocation(`/destination/${destination.slug}`)}
               />
             ))}
@@ -262,10 +234,16 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30">
-        <div className="container py-8">
-          <p className="text-center text-sm text-muted-foreground">
-            Travel Guide • {destinations.length} destinations across {cities.length} cities
+      <footer className="border-t-4 border-foreground bg-background mt-16">
+        <div className="container py-6">
+          <div className="flex flex-wrap gap-4 text-sm mb-3">
+            <a href="#" className="hover:underline font-bold">ABOUT</a>
+            <a href="#" className="hover:underline font-bold">CONTACT</a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:underline font-bold">INSTAGRAM</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:underline font-bold">TWITTER</a>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} ALL RIGHTS RESERVED
           </p>
         </div>
       </footer>
