@@ -10,10 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { MapPin, Globe, Star, Calendar, User, Heart, Settings, LogOut, Mail } from "lucide-react";
+import { DestinationDrawer } from "@/components/DestinationDrawer";
+import { Destination } from "@/types/destination";
 
 interface VisitedPlace {
   id: number;
   destination_id: number;
+  destination_slug: string;
   visited_date: string;
   notes: string;
   rating: number;
@@ -33,6 +36,48 @@ export default function Account() {
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [visitedPlaces, setVisitedPlaces] = useState<VisitedPlace[]>([]);
+  const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
+
+  // Load all destinations for drawer
+  useEffect(() => {
+    async function loadDestinations() {
+      const { data } = await supabase
+        .from('destinations')
+        .select('*');
+      
+      if (data) {
+        const transformed: Destination[] = data.map(d => ({
+          name: d.name,
+          slug: d.slug,
+          city: d.city,
+          category: d.category,
+          content: d.content || d.description || '',
+          mainImage: d.image || '',
+          michelinStars: d.michelin_stars || 0,
+          crown: d.crown || false,
+          brand: '',
+          cardTags: '',
+          lat: 0,
+          long: 0,
+          myRating: 0,
+          reviewed: false,
+          subline: d.description || ''
+        }));
+        setAllDestinations(transformed);
+      }
+    }
+    loadDestinations();
+  }, []);
+
+  const handleCardClick = (destinationSlug: string) => {
+    const dest = allDestinations.find(d => d.slug === destinationSlug);
+    if (dest) {
+      setSelectedDestination(dest);
+      setIsDrawerOpen(true);
+    }
+  };
 
   useEffect(() => {
     async function loadUser() {
@@ -62,7 +107,7 @@ export default function Account() {
       .from('visited_places')
       .select(`
         *,
-        destination:destinations(name, city, category, image)
+        destination:destinations(name, city, category, image, slug)
       `)
       .eq('user_id', userId)
       .order('visited_date', { ascending: false });
@@ -145,7 +190,7 @@ export default function Account() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -166,18 +211,6 @@ export default function Account() {
                 <div>
                   <div className="text-2xl font-bold">{stats.citiesVisited}</div>
                   <div className="text-sm text-gray-500">Cities Explored</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <Star className="h-6 w-6 text-yellow-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold">{stats.averageRating}</div>
-                  <div className="text-sm text-gray-500">Average Rating</div>
                 </div>
               </div>
             </div>
@@ -228,7 +261,10 @@ export default function Account() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {visitedPlaces.map((vp) => (
-                      <div key={vp.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                      <button 
+                        key={vp.id} 
+                        onClick={() => handleCardClick(vp.destination_slug)}
+                        className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow text-left w-full">
                         {vp.destination.image && (
                           <div className="relative h-48 overflow-hidden">
                             <img 
@@ -261,7 +297,7 @@ export default function Account() {
                             <p className="text-sm text-gray-600 line-clamp-2 italic">"{vp.notes}"</p>
                           )}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -341,6 +377,13 @@ export default function Account() {
       </main>
 
       <Footer />
+      
+      {/* Destination Drawer */}
+      <DestinationDrawer
+        destination={selectedDestination}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+      />
     </div>
   );
 }
