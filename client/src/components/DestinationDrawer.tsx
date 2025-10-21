@@ -179,7 +179,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                   {[...Array(destination.michelinStars)].map((_, i) => (
                     <img 
                       key={i}
-                      src="/michelin-flower.svg"
+                      src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
                       alt="Michelin Star"
                       className="h-6 w-6"
                     />
