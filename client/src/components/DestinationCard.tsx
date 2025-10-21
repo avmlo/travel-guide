@@ -35,7 +35,7 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
         {destination.michelinStars > 0 && (
           <div className="absolute top-3 left-3 bg-white backdrop-blur-sm text-gray-900 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-lg flex items-center gap-1.5">
             <img 
-              src="/michelin-star.png" 
+              src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg" 
               alt="Michelin Star" 
               className="h-4 w-4 inline-block"
             />
