@@ -157,19 +157,19 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           {/* Header with new design */}
           <div className="mb-8">
             {/* Title */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl mb-6 leading-tight" style={{ fontFamily: '"EB Garamond", serif' }}>
               {destination.name}
             </h1>
             
             {/* Pills and Michelin Stars */}
             <div className="flex flex-wrap items-center gap-3">
               {/* City Pill - Yellow/Beige */}
-              <span className="inline-flex items-center px-6 py-2 rounded-full bg-[#E8D5B7] text-black text-sm font-medium uppercase tracking-wide">
+              <span className="inline-flex items-center px-6 py-2 rounded-full bg-[#E8D5B7] text-black text-sm font-medium uppercase tracking-wide" style={{ fontFamily: '"Sono", monospace' }}>
                 {destination.city}
               </span>
               
               {/* Category Pill - Light Blue */}
-              <span className="inline-flex items-center px-6 py-2 rounded-full bg-[#B8D8E8] text-black text-sm font-medium uppercase tracking-wide">
+              <span className="inline-flex items-center px-6 py-2 rounded-full bg-[#B8D8E8] text-black text-sm font-medium uppercase tracking-wide" style={{ fontFamily: '"Sono", monospace' }}>
                 {destination.category}
               </span>
               
@@ -192,7 +192,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           {/* Subline */}
           {destination.subline && (
             <div className="mb-8">
-              <p className="text-lg text-gray-700 leading-relaxed italic">
+              <p className="text-lg text-gray-700 leading-relaxed italic" style={{ fontFamily: '"EB Garamond", serif' }}>
                 {destination.subline.replace(/<[^>]*>/g, '')}
               </p>
             </div>
@@ -201,7 +201,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           {/* Content */}
           {destination.content && (
             <div className="mb-8 prose prose-gray max-w-none">
-              <div className="text-gray-600 leading-relaxed whitespace-pre-line">
+              <div className="text-gray-600 leading-relaxed whitespace-pre-line" style={{ fontFamily: '"EB Garamond", serif' }}>
                 {destination.content.replace(/<[^>]*>/g, '')}
               </div>
             </div>
