@@ -93,17 +93,17 @@ export function AIAssistant({ destinations }: AIAssistantProps) {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-black text-white px-6 py-4 rounded-full shadow-2xl hover:bg-gray-800 transition-all z-50 flex items-center gap-3 group"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-black text-white px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-2xl hover:bg-gray-800 transition-all z-50 flex items-center gap-2 sm:gap-3 group"
         >
-          <MessageCircle className="h-6 w-6" />
-          <span className="font-medium text-sm">AI Travel Assistant</span>
+          <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="font-medium text-xs sm:text-sm hidden xs:inline">AI Travel Assistant</span>
           <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">!</div>
         </button>
       )}
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200">
+        <div className="fixed inset-4 sm:bottom-6 sm:right-6 sm:left-auto sm:top-auto sm:w-96 sm:h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center gap-2">

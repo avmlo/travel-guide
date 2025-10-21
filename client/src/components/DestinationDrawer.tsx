@@ -129,21 +129,21 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
       {/* Drawer */}
       <div 
-        className={`fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+        className={`fixed right-0 top-0 h-full w-full sm:w-[85%] md:w-2/3 lg:w-1/2 bg-white z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
         >
           <X className="h-5 w-5" />
         </button>
 
         {/* Image */}
         {destination.mainImage && (
-          <div className="relative h-96 w-full overflow-hidden">
+          <div className="relative h-64 sm:h-80 md:h-96 w-full overflow-hidden">
             <img 
               src={destination.mainImage} 
               alt={destination.name}
@@ -153,7 +153,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         )}
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
@@ -166,11 +166,16 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
             <h1 className="text-4xl font-bold mb-3">{destination.name}</h1>
             
             {destination.michelinStars && destination.michelinStars > 0 && (
-              <div className="flex items-center gap-1 text-yellow-600">
+              <div className="flex items-center gap-1.5">
                 {[...Array(destination.michelinStars)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-current" />
+                  <img 
+                    key={i} 
+                    src="/michelin-star.png" 
+                    alt="Michelin Star" 
+                    className="h-5 w-5"
+                  />
                 ))}
-                <span className="ml-2 text-sm font-medium">
+                <span className="ml-1 text-sm font-medium text-gray-700">
                   {destination.michelinStars} Michelin Star{destination.michelinStars > 1 ? 's' : ''}
                 </span>
               </div>

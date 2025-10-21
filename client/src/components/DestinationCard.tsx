@@ -33,8 +33,13 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
           </div>
         )}
         {destination.michelinStars > 0 && (
-          <div className="absolute top-3 left-3 bg-red-600/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
-            {destination.michelinStars}⭐
+          <div className="absolute top-3 left-3 bg-white backdrop-blur-sm text-gray-900 px-2.5 py-1.5 rounded-lg text-xs font-semibold shadow-lg flex items-center gap-1.5">
+            <img 
+              src="/michelin-star.png" 
+              alt="Michelin Star" 
+              className="h-4 w-4 inline-block"
+            />
+            <span>{destination.michelinStars}</span>
           </div>
         )}
       </div>

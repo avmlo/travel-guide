@@ -25,6 +25,7 @@ export default function Home() {
   const [isAISearch, setIsAISearch] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showAllCities, setShowAllCities] = useState(false);
 
 
   useEffect(() => {
@@ -69,7 +70,14 @@ export default function Home() {
 
   const cities = useMemo(() => {
     const citySet = new Set(destinations.map((d) => d.city).filter(Boolean));
-    return Array.from(citySet).sort();
+    const cityArray = Array.from(citySet);
+    
+    // Sort cities by number of destinations (descending)
+    return cityArray.sort((a, b) => {
+      const countA = destinations.filter(d => d.city === a).length;
+      const countB = destinations.filter(d => d.city === b).length;
+      return countB - countA; // Descending order
+    });
   }, [destinations]);
 
   const categories = useMemo(() => {
@@ -139,74 +147,84 @@ export default function Home() {
       <Navigation cities={cities} />
 
       {/* Hero Section */}
-      <section className="py-6">
-        <div className="max-w-[1600px] mx-auto px-6">
+      <section className="py-4 sm:py-6">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
           
           {/* Search Bar */}
-          <div className="mb-6">
-            <div className="relative max-w-md">
+          <div className="mb-4 sm:mb-6">
+            <div className="relative w-full sm:max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
                 placeholder="Search 897 items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-gray-100 border-none rounded-lg"
+                className="pl-10 bg-gray-100 border-none rounded-lg text-sm"
               />
             </div>
           </div>
 
           {/* Filter Section */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-6">Places</h1>
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">Places</h1>
 
 
 
 
 
             {/* City Filter - Pill Style with Counts */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedCity("")}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  !selectedCity 
-                    ? "bg-black text-white" 
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                All
-              </button>
-              {cities.map((city) => {
-                const count = destinations.filter(d => d.city === city).length;
-                return (
-                  <button
-                    key={city}
-                    onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all capitalize inline-flex items-center gap-1.5 ${
-                      selectedCity === city 
-                        ? "bg-black text-white" 
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {city}
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                      selectedCity === city
-                        ? "bg-white/20"
-                        : "bg-gray-200"
-                    }`}>
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
+            <div>
+              <div className={`flex flex-wrap gap-1.5 sm:gap-2 ${!showAllCities ? 'max-h-[72px] overflow-hidden' : ''}`}>
+                <button
+                  onClick={() => setSelectedCity("")}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-medium transition-all ${
+                    !selectedCity 
+                      ? "bg-black text-white" 
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  All
+                </button>
+                {cities.map((city) => {
+                  const count = destinations.filter(d => d.city === city).length;
+                  return (
+                    <button
+                      key={city}
+                      onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
+                      className={`px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-medium transition-all capitalize inline-flex items-center gap-1 sm:gap-1.5 ${
+                        selectedCity === city 
+                          ? "bg-black text-white" 
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      <span className="truncate max-w-[80px] sm:max-w-none">{city}</span>
+                      <span className={`text-[10px] px-1 sm:px-1.5 py-0.5 rounded flex-shrink-0 ${
+                        selectedCity === city
+                          ? "bg-white/20"
+                          : "bg-gray-200"
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {cities.length > 10 && (
+                <button
+                  onClick={() => setShowAllCities(!showAllCities)}
+                  className="mt-3 text-xs font-medium text-gray-600 hover:text-black transition-colors"
+                >  
+                  {showAllCities ? '− Show Less' : '+ Show More'}
+                </button>
+              )}
             </div>
           </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="pb-12">
-        <div className="max-w-[1600px] mx-auto px-6">
+      <section className="pb-8 sm:pb-12">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
           <div className="mb-4">
             <p className="text-sm text-gray-500">
               {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
@@ -230,7 +248,7 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4">
                 {displayedDestinations.map((destination, index) => (
                   <DestinationCard
                     key={destination.slug}
@@ -245,7 +263,7 @@ export default function Home() {
               </div>
               
               {hasMore && (
-                <div className="flex justify-center mt-12">
+                <div className="flex justify-center mt-8 sm:mt-12">
                   <Button
                     onClick={() => setDisplayCount(prev => prev + 40)}
                     size="lg"
