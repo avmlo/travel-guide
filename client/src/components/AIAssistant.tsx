@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
@@ -16,12 +17,8 @@ interface AIAssistantProps {
 
 export function AIAssistant({ destinations }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hi! I'm your AI travel assistant. Ask me anything about destinations, recommendations, or travel planning!",
-    },
-  ]);
+  const [userName, setUserName] = useState<string>("");
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -35,6 +32,32 @@ export function AIAssistant({ destinations }: AIAssistantProps) {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const name = session.user.user_metadata?.name || "";
+        setUserName(name);
+        
+        // Set initial greeting message
+        const greeting = name 
+          ? `Hi ${name}! I'm your AI travel assistant.`
+          : "Hi! I'm your AI travel assistant.";
+        
+        setMessages([{
+          role: "assistant",
+          content: `${greeting} I can help you:\n\n✈️ Find perfect destinations from our curated collection\n🗺️ Create custom itineraries for your trips\n🍽️ Recommend restaurants, hotels, and attractions\n💡 Answer any travel questions\n\nJust ask me anything! For example:\n• "Recommend romantic restaurants in Paris"\n• "Create a 3-day itinerary for Tokyo"\n• "Best Michelin-starred restaurants in New York"`
+        }]);
+      } else {
+        setMessages([{
+          role: "assistant",
+          content: "Hi! I'm your AI travel assistant. I can help you:\n\n✈️ Find perfect destinations from our curated collection\n🗺️ Create custom itineraries for your trips\n🍽️ Recommend restaurants, hotels, and attractions\n💡 Answer any travel questions\n\nJust ask me anything! For example:\n• \"Recommend romantic restaurants in Paris\"\n• \"Create a 3-day itinerary for Tokyo\"\n• \"Best Michelin-starred restaurants in New York\""
+        }]);
+      }
+    }
+    loadUser();
+  }, []);
+
   const handleSend = async () => {
     if (!input.trim() || chatMutation.isPending) return;
 
@@ -45,7 +68,7 @@ export function AIAssistant({ destinations }: AIAssistantProps) {
     try {
       const response = await chatMutation.mutateAsync({
         messages: [...messages, userMessage],
-        destinations: destinations.slice(0, 100),
+        destinations: destinations, // Send all destinations for comprehensive recommendations
       });
 
       setMessages((prev) => [
@@ -70,9 +93,11 @@ export function AIAssistant({ destinations }: AIAssistantProps) {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-black text-white p-4 rounded-full shadow-lg hover:bg-gray-800 transition-all z-50"
+          className="fixed bottom-6 right-6 bg-black text-white px-6 py-4 rounded-full shadow-2xl hover:bg-gray-800 transition-all z-50 flex items-center gap-3 group"
         >
           <MessageCircle className="h-6 w-6" />
+          <span className="font-medium text-sm">AI Travel Assistant</span>
+          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">!</div>
         </button>
       )}
 

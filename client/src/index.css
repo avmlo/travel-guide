@@ -174,4 +174,23 @@
       max-width: 1280px; /* Standard content width */
     }
   }
+
+  /* Simple card hover effect - image zoom only */
+  .destination-card {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  /* Smooth button transitions */
+  .pill-button {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .pill-button:hover {
+    @apply transform translate-y-[-1px];
+  }
+
+  /* Enhanced navigation transitions */
+  nav a, nav button, nav select {
+    @apply transition-colors duration-200 ease-in-out;
+  }
 }

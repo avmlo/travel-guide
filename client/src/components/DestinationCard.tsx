@@ -1,6 +1,5 @@
 import { Crown, MapPin } from "lucide-react";
 import { Destination } from "@/types/destination";
-import { SaveButton } from "@/components/SaveButton";
 
 interface DestinationCardProps {
   destination: Destination;
@@ -11,18 +10,15 @@ interface DestinationCardProps {
 export function DestinationCard({ destination, onClick }: DestinationCardProps) {
   return (
     <div 
-      className="group cursor-pointer"
+      className="group cursor-pointer destination-card"
       onClick={onClick}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 rounded-xl mb-3 transition-all duration-300 hover:shadow-xl">
-        <div className="absolute top-2 left-2 z-10">
-          <SaveButton destinationSlug={destination.slug} />
-        </div>
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 rounded-xl mb-2 transition-all duration-300">
         {destination.mainImage ? (
           <img 
             src={destination.mainImage} 
             alt={destination.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         ) : (
@@ -44,19 +40,13 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
       </div>
       
       <div className="space-y-1">
-        <h3 className="font-semibold text-lg leading-tight line-clamp-2 capitalize">
+        <h3 className="font-semibold text-lg leading-tight line-clamp-2">
           {destination.name}
         </h3>
         
-        <p className="text-sm text-gray-500">
-          {destination.city.charAt(0).toUpperCase() + destination.city.slice(1)}
+        <p className="text-sm text-gray-500 capitalize">
+          {destination.city}
         </p>
-        
-        {destination.category && (
-          <p className="text-xs text-gray-400">
-            {destination.category}
-          </p>
-        )}
       </div>
     </div>
   );

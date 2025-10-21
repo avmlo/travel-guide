@@ -39,6 +39,15 @@ export async function chatWithGemini(messages: Array<{ role: string; content: st
     parts: [{ text: msg.content }]
   }));
 
+  // Ensure first message has 'user' role
+  if (history.length > 0 && history[0].role !== 'user') {
+    // If first message is not from user, remove it or prepend a user message
+    history.unshift({
+      role: 'user',
+      parts: [{ text: 'Hello' }]
+    });
+  }
+
   const chat = model.startChat({ history });
   const lastMessage = messages[messages.length - 1];
   const result = await chat.sendMessage(lastMessage.content);

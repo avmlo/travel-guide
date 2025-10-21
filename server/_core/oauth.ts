@@ -3,6 +3,7 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { ENV } from "./env";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -10,6 +11,32 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
+  // Login route - redirects to OAuth authorization
+  app.get("/api/auth/login", async (req: Request, res: Response) => {
+    try {
+      const redirectUri = req.query.redirect_uri as string || req.headers.referer || "/";
+      const state = Buffer.from(redirectUri).toString('base64');
+      const authUrl = `https://accounts.manus.im/oauth/authorize?client_id=${ENV.appId}&response_type=code&redirect_uri=${encodeURIComponent(`${req.protocol}://${req.get('host')}/api/oauth/callback`)}&state=${state}`;
+      res.redirect(302, authUrl);
+    } catch (error) {
+      console.error("[OAuth] Login failed", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Signup route - same as login for OAuth flow
+  app.get("/api/auth/signup", async (req: Request, res: Response) => {
+    try {
+      const redirectUri = req.query.redirect_uri as string || req.headers.referer || "/";
+      const state = Buffer.from(redirectUri).toString('base64');
+      const authUrl = `https://accounts.manus.im/oauth/authorize?client_id=${ENV.appId}&response_type=code&redirect_uri=${encodeURIComponent(`${req.protocol}://${req.get('host')}/api/oauth/callback`)}&state=${state}`;
+      res.redirect(302, authUrl);
+    } catch (error) {
+      console.error("[OAuth] Signup failed", error);
+      res.status(500).json({ error: "Signup failed" });
+    }
+  });
+
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");

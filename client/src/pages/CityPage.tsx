@@ -4,8 +4,10 @@ import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
 import { MapPin } from "lucide-react";
 import { WeatherWidget } from "@/components/WeatherWidget";
-import { UserMenu } from "@/components/UserMenu";
+import { Navigation } from "@/components/Navigation";
+import { Footer } from "@/components/Footer";
 import { AIAssistant } from "@/components/AIAssistant";
+import { supabase } from "@/lib/supabase";
 
 export default function CityPage() {
   const params = useParams();
@@ -19,9 +21,33 @@ export default function CityPage() {
   useEffect(() => {
     async function loadDestinations() {
       try {
-        const response = await fetch("/destinations.json");
-        const data: Destination[] = await response.json();
-        setDestinations(data);
+        const { data, error } = await supabase
+          .from('destinations')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        
+        // Transform Supabase data to match Destination type
+        const transformedData: Destination[] = (data || []).map(d => ({
+          name: d.name,
+          slug: d.slug,
+          city: d.city,
+          category: d.category,
+          content: d.content || d.description || '',
+          mainImage: d.image || '',
+          michelinStars: d.michelin_stars || 0,
+          crown: d.crown || false,
+          brand: '',
+          cardTags: '',
+          lat: 0,
+          long: 0,
+          myRating: 0,
+          reviewed: false,
+          subline: d.description || ''
+        }));
+        
+        setDestinations(transformedData);
       } catch (error) {
         console.error("Error loading destinations:", error);
       } finally {
@@ -31,6 +57,11 @@ export default function CityPage() {
 
     loadDestinations();
   }, []);
+
+  const cities = useMemo(() => {
+    const citySet = new Set(destinations.map((d) => d.city).filter(Boolean));
+    return Array.from(citySet).sort();
+  }, [destinations]);
 
   const cityDestinations = useMemo(() => {
     return destinations.filter(
@@ -75,87 +106,54 @@ export default function CityPage() {
   if (cityDestinations.length === 0) {
     return (
       <div className="min-h-screen bg-[#f5f1e8]">
-        <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <button
-              onClick={() => setLocation("/")}
-              className="text-4xl font-bold hover:opacity-70 transition-opacity"
-            >
-              ✱
-            </button>
-            <div className="flex items-center gap-4">
-              <UserMenu />
-            </div>
-          </div>
-        </header>
+        <Navigation cities={cities} currentCity={citySlug} />
         <div className="container mx-auto px-4 py-20 text-center">
           <h1 className="text-4xl font-bold mb-4">{cityName}</h1>
           <p className="text-gray-600">No destinations found in this city.</p>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-[#f5f1e8]">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setLocation("/")}
-              className="text-4xl font-bold hover:opacity-70 transition-opacity"
-            >
-              ✱
-            </button>
-            <nav className="hidden md:flex items-center gap-6 text-sm">
-              <button onClick={() => setLocation("/")} className="hover:opacity-70">
-                Work
-              </button>
-              <button className="hover:opacity-70">About</button>
-              <button className="hover:opacity-70">Contact</button>
-            </nav>
-            <div className="flex items-center gap-4">
-              <UserMenu />
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navigation cities={cities} currentCity={citySlug} />
 
       {/* City Header */}
-      <section className="py-16 bg-[#f5f1e8]">
+      <section className="py-8 bg-[#f5f1e8]">
         <div className="container mx-auto px-4">
-          <div className="flex items-center gap-3 mb-2">
-            <MapPin className="h-6 w-6 text-gray-600" />
-            <h1 className="text-6xl md:text-7xl font-bold">{cityName}</h1>
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin className="h-5 w-5 text-gray-600" />
+            <h1 className="text-4xl md:text-5xl font-bold">{cityName}</h1>
           </div>
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-base text-gray-600 mb-4">
             {filteredDestinations.length} destination{filteredDestinations.length !== 1 ? "s" : ""} to explore
           </p>
         </div>
       </section>
 
       {/* Weather Widget */}
-      <section className="pb-8 bg-[#f5f1e8]">
+      <section className="pb-4 bg-[#f5f1e8]">
         <div className="container mx-auto px-4">
           <WeatherWidget city={cityName} />
         </div>
       </section>
 
       {/* Filters */}
-      <section className="py-8 bg-[#f5f1e8]">
+      <section className="py-4 bg-[#f5f1e8]">
         <div className="container mx-auto px-4">
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Category Filter */}
             {categories.length > 0 && (
               <div>
-                <div className="text-xs font-semibold mb-3 text-gray-600 uppercase tracking-wide">
+                <div className="text-xs font-semibold mb-2 text-gray-600 uppercase tracking-wide">
                   Categories
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedCategory("all")}
-                    className={`px-4 py-2 rounded-full text-sm transition-all ${
+                    className={`pill-button px-4 py-2 rounded-full text-sm ${
                       selectedCategory === "all"
                         ? "bg-black text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -172,7 +170,7 @@ export default function CityPage() {
                           setSelectedCategory(cat === selectedCategory ? "all" : cat);
                           setDisplayedCount(40);
                         }}
-                        className={`px-4 py-2 rounded-full text-sm transition-all ${
+                        className={`pill-button px-4 py-2 rounded-full text-sm ${
                           selectedCategory === cat
                             ? "bg-black text-white"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -190,7 +188,7 @@ export default function CityPage() {
       </section>
 
       {/* Destinations Count */}
-      <section className="pb-6 bg-[#f5f1e8]">
+      <section className="pb-3 bg-[#f5f1e8]">
         <div className="container mx-auto px-4">
           <p className="text-sm text-gray-600">
             {displayedDestinations.length} destination{displayedDestinations.length !== 1 ? "s" : ""}
@@ -199,7 +197,7 @@ export default function CityPage() {
       </section>
 
       {/* Destinations Grid */}
-      <section className="pb-12 bg-[#f5f1e8]">
+      <section className="pb-8 bg-[#f5f1e8]">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
             {displayedDestinations.map((destination) => (
@@ -213,7 +211,7 @@ export default function CityPage() {
 
           {/* Load More Button */}
           {hasMore && (
-            <div className="flex justify-center mt-12">
+            <div className="flex justify-center mt-8">
               <button
                 onClick={() => setDisplayedCount((prev) => prev + 40)}
                 className="px-8 py-3 bg-white border border-gray-300 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors"
@@ -225,49 +223,8 @@ export default function CityPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold text-lg mb-4">Travel Guide</h3>
-              <p className="text-sm text-gray-600">
-                Discover curated destinations from around the world.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Features</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="border-l-2 border-blue-500 pl-3">Destinations</li>
-                <li className="border-l-2 border-green-500 pl-3">Search</li>
-                <li className="border-l-2 border-purple-500 pl-3">Filters</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Learn more</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="border-l-2 border-orange-500 pl-3">About</li>
-                <li className="border-l-2 border-red-500 pl-3">Blog</li>
-                <li className="border-l-2 border-teal-500 pl-3">Stories</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="border-l-2 border-pink-500 pl-3">Contact</li>
-                <li className="border-l-2 border-yellow-500 pl-3">Help</li>
-                <li className="border-l-2 border-indigo-500 pl-3">Legal</li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-gray-200 text-sm text-gray-500">
-            © 2025 Travel Guide. All rights reserved.
-          </div>
-        </div>
-      </footer>
-
-      {/* AI Assistant */}
       <AIAssistant destinations={destinations} />
+      <Footer />
     </div>
   );
 }
