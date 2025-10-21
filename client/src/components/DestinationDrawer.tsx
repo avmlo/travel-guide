@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, MapPin, Star, Calendar, StickyNote } from "lucide-react";
+import { X, Calendar, Star, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -129,7 +129,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
       {/* Drawer */}
       <div 
-        className={`fixed right-0 top-0 h-full w-full sm:w-[85%] md:w-2/3 lg:w-1/2 bg-white z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+        className={`fixed right-0 top-0 h-full w-full sm:w-[85%] md:w-2/3 lg:w-1/2 bg-[#f5f3f0] z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -153,33 +153,42 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         )}
 
         {/* Content */}
-        <div className="p-4 sm:p-6 md:p-8">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-              <MapPin className="h-4 w-4" />
-              <span className="capitalize">{destination.city}</span>
-              <span>•</span>
-              <span className="capitalize">{destination.category}</span>
+        <div className="p-6 sm:p-8 md:p-12">
+          {/* Header with new design */}
+          <div className="mb-8">
+            {/* Title */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif mb-6 leading-tight">
+              {destination.name}
+            </h1>
+            
+            {/* Pills and Michelin Stars */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* City Pill - Yellow/Beige */}
+              <span className="inline-flex items-center px-6 py-2 rounded-full bg-[#E8D5B7] text-black text-sm font-medium uppercase tracking-wide">
+                {destination.city}
+              </span>
+              
+              {/* Category Pill - Light Blue */}
+              <span className="inline-flex items-center px-6 py-2 rounded-full bg-[#B8D8E8] text-black text-sm font-medium uppercase tracking-wide">
+                {destination.category}
+              </span>
+              
+              {/* Michelin Stars - Red Flower Icons */}
+              {destination.michelinStars && destination.michelinStars > 0 && (
+                <div className="flex items-center gap-1.5">
+                  {[...Array(destination.michelinStars)].map((_, i) => (
+                    <svg 
+                      key={i}
+                      className="h-6 w-6 text-[#E63946]"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M12 0L13.5 8.5L21 7L15 12L21 17L13.5 15.5L12 24L10.5 15.5L3 17L9 12L3 7L10.5 8.5L12 0Z" />
+                    </svg>
+                  ))}
+                </div>
+              )}
             </div>
-            
-            <h1 className="text-4xl font-bold mb-3">{destination.name}</h1>
-            
-            {destination.michelinStars && destination.michelinStars > 0 && (
-              <div className="flex items-center gap-1.5">
-                {[...Array(destination.michelinStars)].map((_, i) => (
-                  <img 
-                    key={i} 
-                    src="/michelin-star.png" 
-                    alt="Michelin Star" 
-                    className="h-5 w-5"
-                  />
-                ))}
-                <span className="ml-1 text-sm font-medium text-gray-700">
-                  {destination.michelinStars} Michelin Star{destination.michelinStars > 1 ? 's' : ''}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Subline */}
@@ -201,16 +210,16 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           )}
 
           {/* Actions */}
-          <div className="pt-6 border-t space-y-4">
+          <div className="pt-6 border-t border-gray-300 space-y-4">
             {!showVisitedForm ? (
               <div className="flex gap-3">
-                <Button className="flex-1" size="lg">
+                <Button className="flex-1 bg-black hover:bg-gray-800 text-white" size="lg">
                   Save Place
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="flex-1"
+                  className="flex-1 border-2 border-black hover:bg-black hover:text-white"
                   onClick={handleQuickMarkAsVisited}
                   disabled={saving || isVisited}
                 >
@@ -218,7 +227,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-4 p-6 bg-white rounded-lg border border-gray-300">
                 <h3 className="font-semibold text-lg">
                   {isVisited ? "Update Visit Details (Optional)" : "Add Visit Details"}
                 </h3>
@@ -233,7 +242,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                     type="date"
                     value={visitDate}
                     onChange={(e) => setVisitDate(e.target.value)}
-                    className="mt-1"
+                    className="mt-1 bg-white"
                   />
                 </div>
 
@@ -272,7 +281,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Share your experience..."
                     rows={3}
-                    className="mt-1"
+                    className="mt-1 bg-white"
                   />
                 </div>
 
@@ -280,7 +289,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                   <Button 
                     onClick={handleUpdateVisitDetails}
                     disabled={saving}
-                    className="flex-1"
+                    className="flex-1 bg-black hover:bg-gray-800 text-white"
                   >
                     {saving ? "Saving..." : "Update Details"}
                   </Button>
@@ -288,6 +297,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                     variant="outline"
                     onClick={() => setShowVisitedForm(false)}
                     disabled={saving}
+                    className="border-2 border-black hover:bg-black hover:text-white"
                   >
                     Cancel
                   </Button>
@@ -297,7 +307,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           </div>
 
           {/* Additional Info */}
-          <div className="mt-8 pt-8 border-t">
+          <div className="mt-8 pt-8 border-t border-gray-300">
             <h3 className="font-semibold text-lg mb-4">Details</h3>
             <div className="space-y-3 text-sm text-gray-600">
               <div className="flex justify-between">
