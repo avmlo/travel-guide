@@ -1,13 +1,11 @@
 {
   "version": 2,
+  "buildCommand": "pnpm install && pnpm build",
+  "outputDirectory": "dist/public",
   "builds": [
     {
       "src": "dist/index.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "dist/public/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -16,8 +14,16 @@
       "dest": "dist/index.js"
     },
     {
+      "src": "/trpc/(.*)",
+      "dest": "dist/index.js"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|json|woff|woff2|ttf|eot))",
+      "dest": "/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "dist/public/$1"
+      "dest": "/index.html"
     }
   ],
   "env": {
