@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { AISuggestions } from "@/components/AISuggestions";
 
 interface DestinationDrawerProps {
   destination: Destination | null;
@@ -349,6 +350,15 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               </div>
             )}
           </div>
+
+          {/* AI Suggestions */}
+          <AISuggestions 
+            destination={destination}
+            onSelectDestination={(slug: string) => {
+              // This will be handled by parent component
+              console.log('Selected suggestion:', slug);
+            }}
+          />
 
           {/* Additional Info */}
           <div className="mt-8 pt-8 border-t border-gray-300">
