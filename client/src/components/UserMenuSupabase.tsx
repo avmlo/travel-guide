@@ -63,22 +63,28 @@ export function UserMenuSupabase() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
-          {user.user_metadata?.avatar_url ? (
+        <Button variant="ghost" size="sm" className="gap-2 hover:bg-gray-100">
+          {user.user_metadata?.profile_picture ? (
             <img
-              src={user.user_metadata.avatar_url}
+              src={user.user_metadata.profile_picture}
               alt={user.user_metadata?.name || user.email || "User"}
-              className="w-6 h-6 rounded-full"
+              className="w-7 h-7 rounded-full object-cover border border-gray-200"
             />
           ) : (
-            <User className="h-4 w-4" />
+            <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center">
+              <User className="h-4 w-4 text-gray-600" />
+            </div>
           )}
-          <span className="hidden sm:inline">
-            {user.user_metadata?.name || user.email || "Account"}
+          <span className="hidden sm:inline text-sm font-medium">
+            {user.user_metadata?.name || "Account"}
           </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuItem onClick={() => setLocation("/account")}>  
+          <User className="h-4 w-4 mr-2" />
+          My Account
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setLocation("/saved")}>
           <Heart className="h-4 w-4 mr-2" />
           Saved Places

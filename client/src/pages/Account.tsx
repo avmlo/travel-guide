@@ -36,9 +36,12 @@ export default function Account() {
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [visitedPlaces, setVisitedPlaces] = useState<VisitedPlace[]>([]);
+  const [savedPlaces, setSavedPlaces] = useState<any[]>([]);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
+  const [profilePicture, setProfilePicture] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
 
   // Load all destinations for drawer
   useEffect(() => {
@@ -92,9 +95,13 @@ export default function Account() {
       setEmail(session.user.email || "");
       setName(session.user.user_metadata?.name || "");
       setBio(session.user.user_metadata?.bio || "");
+      setProfilePicture(session.user.user_metadata?.profile_picture || "");
       
       // Load visited places
       await loadVisitedPlaces(session.user.id);
+      
+      // Load saved places
+      await loadSavedPlaces(session.user.id);
       
       setLoading(false);
     }
@@ -117,6 +124,21 @@ export default function Account() {
     }
   };
 
+  const loadSavedPlaces = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('saved_places')
+      .select(`
+        *,
+        destination:destinations(name, city, category, image, slug, michelin_stars)
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setSavedPlaces(data as any);
+    }
+  };
+
   const stats = useMemo(() => {
     const cities = new Set(visitedPlaces.map(vp => vp.destination.city));
     const countries = new Set(visitedPlaces.map(vp => vp.destination.city));
@@ -136,7 +158,7 @@ export default function Account() {
     
     try {
       const { error } = await supabase.auth.updateUser({
-        data: { name, bio }
+        data: { name, bio, profile_picture: profilePicture }
       });
 
       if (error) throw error;
@@ -144,6 +166,45 @@ export default function Account() {
       toast.success("Profile updated successfully!");
     } catch (error: any) {
       toast.error(error.message || "Failed to update profile");
+    }
+  };
+
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      setUploading(true);
+
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `profile-pictures/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const publicUrl = data.publicUrl;
+      setProfilePicture(publicUrl);
+
+      // Update user metadata
+      await supabase.auth.updateUser({
+        data: { profile_picture: publicUrl }
+      });
+
+      toast.success("Profile picture updated!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to upload profile picture");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -161,28 +222,42 @@ export default function Account() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#f5f3f0' }}>
       <Navigation cities={[]} />
 
-      <main className="flex-1 py-12">
+      <main className="flex-1 py-8">
         <div className="max-w-7xl mx-auto px-6">
           {/* Header Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
-                  {name ? name.charAt(0).toUpperCase() : email.charAt(0).toUpperCase()}
+                <div className="relative">
+                  {profilePicture ? (
+                    <img 
+                      src={profilePicture} 
+                      alt={name || "Profile"}
+                      className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-3xl font-bold">
+                      {name ? name.charAt(0).toUpperCase() : email.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold mb-1">{name || "Traveler"}</h1>
-                  <p className="text-gray-500 flex items-center gap-2">
+                  <p className="text-gray-500 flex items-center gap-2 text-sm">
                     <Mail className="h-4 w-4" />
                     {email}
                   </p>
                   {bio && <p className="text-gray-600 mt-2 max-w-2xl">{bio}</p>}
                 </div>
               </div>
-              <Button variant="outline" onClick={handleSignOut} className="gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleSignOut} 
+                className="gap-2 border-black hover:bg-black hover:text-white"
+              >
                 <LogOut className="h-4 w-4" />
                 Sign Out
               </Button>
@@ -190,47 +265,47 @@ export default function Account() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full" style={{ backgroundColor: '#E8D5B7' }}>
+                  <MapPin className="h-10 w-10 p-2 text-gray-700" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{stats.placesVisited}</div>
-                  <div className="text-sm text-gray-500">Places Visited</div>
+                  <div className="text-xs text-gray-500">Places Visited</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                  <Globe className="h-6 w-6 text-green-600" />
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full" style={{ backgroundColor: '#B8D8E8' }}>
+                  <Globe className="h-10 w-10 p-2 text-gray-700" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{stats.citiesVisited}</div>
-                  <div className="text-sm text-gray-500">Cities Explored</div>
+                  <div className="text-xs text-gray-500">Cities Explored</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Heart className="h-6 w-6 text-purple-600" />
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-pink-100">
+                  <Heart className="h-10 w-10 p-2 text-pink-600" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{stats.countriesVisited}</div>
-                  <div className="text-sm text-gray-500">Countries</div>
+                  <div className="text-xs text-gray-500">Countries</div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Tabs Section */}
-          <Tabs defaultValue="visited" className="space-y-6">
-            <TabsList className="bg-white border border-gray-200">
+          <Tabs defaultValue="visited" className="space-y-4">
+            <TabsList className="bg-white border border-gray-200 rounded-xl">
               <TabsTrigger value="visited" className="gap-2">
                 <MapPin className="h-4 w-4" />
                 Visited Places
@@ -247,7 +322,7 @@ export default function Account() {
 
             {/* Visited Places Tab */}
             <TabsContent value="visited">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-2xl font-bold mb-6">My Travel Journey</h2>
                 
                 {visitedPlaces.length === 0 ? (
@@ -306,24 +381,100 @@ export default function Account() {
 
             {/* Saved Places Tab */}
             <TabsContent value="saved">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-2xl font-bold mb-6">Saved for Later</h2>
-                <div className="text-center py-16">
-                  <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No saved places</h3>
-                  <p className="text-gray-500">
-                    Save places you want to visit in the future
-                  </p>
-                </div>
+                
+                {savedPlaces.length === 0 ? (
+                  <div className="text-center py-16">
+                    <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">No saved places</h3>
+                    <p className="text-gray-500">
+                      Save places you want to visit in the future
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {savedPlaces.map((sp) => (
+                      <button 
+                        key={sp.id} 
+                        onClick={() => handleCardClick(sp.destination_slug)}
+                        className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow text-left w-full group"
+                      >
+                        {sp.destination.image && (
+                          <div className="relative h-48 overflow-hidden">
+                            <img 
+                              src={sp.destination.image} 
+                              alt={sp.destination.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                            {sp.destination.michelin_stars > 0 && (
+                              <div className="absolute top-2 left-2 flex gap-0.5">
+                                {[...Array(sp.destination.michelin_stars)].map((_, i) => (
+                                  <img 
+                                    key={i}
+                                    src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                                    alt="Michelin Star"
+                                    className="h-5 w-5"
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="p-4">
+                          <h3 className="font-semibold text-lg line-clamp-1 mb-1">{sp.destination.name}</h3>
+                          <p className="text-sm text-gray-500 capitalize mb-2">
+                            {sp.destination.city} • {sp.destination.category}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <Heart className="h-3 w-3 fill-pink-500 text-pink-500" />
+                            <span>Saved {new Date(sp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </TabsContent>
 
             {/* Settings Tab */}
             <TabsContent value="settings">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-2xl font-bold mb-6">Account Settings</h2>
                 
                 <form onSubmit={handleUpdateProfile} className="max-w-2xl space-y-6">
+                  {/* Profile Picture Upload */}
+                  <div>
+                    <Label>Profile Picture</Label>
+                    <div className="mt-2 flex items-center gap-4">
+                      {profilePicture ? (
+                        <img 
+                          src={profilePicture} 
+                          alt="Profile"
+                          className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl font-bold">
+                          {name ? name.charAt(0).toUpperCase() : email.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <Input
+                          id="profile-picture"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePictureUpload}
+                          disabled={uploading}
+                          className="max-w-xs"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {uploading ? "Uploading..." : "Upload a profile picture (JPG, PNG, max 5MB)"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <Label htmlFor="email">Email Address</Label>
                     <Input
