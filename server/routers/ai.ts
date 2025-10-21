@@ -230,5 +230,86 @@ Create a realistic, well-paced itinerary. Include breakfast, lunch, dinner, and 
 
       return result;
     }),
+
+  // Get personalized suggestions for a destination
+  getSuggestions: publicProcedure
+    .input(
+      z.object({
+        currentDestination: z.object({
+          slug: z.string(),
+          name: z.string(),
+          city: z.string(),
+          category: z.string(),
+          michelinStars: z.number().optional(),
+        }),
+        allDestinations: z.array(z.any()),
+        savedPlaces: z.array(z.string()).optional(),
+        visitedPlaces: z.array(z.string()).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const systemInstruction = `You are a personalized travel recommendation engine. 
+      
+Analyze the current destination and the user's preferences (based on their saved places) to suggest similar destinations they might enjoy.
+      
+RULES:
+1. ONLY suggest destinations from the provided list
+2. DO NOT suggest destinations the user has already visited
+3. Prioritize destinations similar to their saved places
+4. Consider location, category, style, and special features (like Michelin stars)
+5. Suggest 3-5 destinations maximum
+6. Provide a brief reason why each suggestion matches their taste`;
+
+      const schema = {
+        type: "object",
+        properties: {
+          suggestions: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                slug: { type: "string", description: "Destination slug" },
+                reason: { type: "string", description: "Why this destination is recommended" },
+              },
+              required: ["slug", "reason"],
+            },
+            description: "List of recommended destinations",
+          },
+        },
+        required: ["suggestions"],
+      };
+
+      // Filter out visited places and current destination
+      const availableDestinations = input.allDestinations.filter(
+        (d: any) => 
+          d.slug !== input.currentDestination.slug &&
+          !input.visitedPlaces?.includes(d.slug)
+      );
+
+      // Get saved destinations for context
+      const savedDestinations = input.savedPlaces
+        ? input.allDestinations.filter((d: any) => input.savedPlaces?.includes(d.slug))
+        : [];
+
+      const prompt = `Current destination the user is viewing:
+${JSON.stringify(input.currentDestination, null, 2)}
+
+User's saved places (shows their preferences):
+${savedDestinations.length > 0 ? JSON.stringify(savedDestinations.slice(0, 10).map((d: any) => ({ name: d.name, city: d.city, category: d.category, michelinStars: d.michelinStars })), null, 2) : "No saved places yet"}
+
+Available destinations to recommend (excluding visited):
+${JSON.stringify(availableDestinations.slice(0, 50).map((d: any) => ({ slug: d.slug, name: d.name, city: d.city, category: d.category, michelinStars: d.michelinStars })), null, 2)}
+
+Based on the current destination and the user's saved places, suggest 3-5 similar destinations they would enjoy.`;
+
+      const result = await generateStructuredWithGemini<{
+        suggestions: Array<{
+          slug: string;
+          reason: string;
+        }>;
+      }>(prompt, schema, systemInstruction);
+
+      return result;
+    }),
 });
 

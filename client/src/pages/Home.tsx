@@ -26,6 +26,50 @@ export default function Home() {
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showAllCities, setShowAllCities] = useState(false);
+  const [hideVisited, setHideVisited] = useState(false);
+  const [showFavoritesFirst, setShowFavoritesFirst] = useState(false);
+  const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
+  const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
+  const [user, setUser] = useState<any>(null);
+
+  // Load user's saved and visited places
+  useEffect(() => {
+    async function loadUserData() {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+      
+      if (session?.user) {
+        // Load saved places
+        const { data: savedData } = await supabase
+          .from('saved_places')
+          .select('destination_slug')
+          .eq('user_id', session.user.id);
+        
+        if (savedData) {
+          setSavedPlaces(savedData.map(s => s.destination_slug));
+        }
+
+        // Load visited places
+        const { data: visitedData } = await supabase
+          .from('visited_places')
+          .select('destination_slug')
+          .eq('user_id', session.user.id);
+        
+        if (visitedData) {
+          setVisitedPlaces(visitedData.map(v => v.destination_slug));
+        }
+      }
+    }
+
+    loadUserData();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      loadUserData();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
 
   useEffect(() => {
@@ -93,27 +137,43 @@ export default function Home() {
   }, [destinations]);
 
   const filteredDestinations = useMemo(() => {
+    let filtered = destinations;
+
     if (isAISearch && aiSearchResults.length > 0) {
-      return destinations.filter((dest) => aiSearchResults.includes(dest.slug));
+      filtered = destinations.filter((dest) => aiSearchResults.includes(dest.slug));
+    } else {
+      filtered = destinations.filter((dest) => {
+        const matchesSearch =
+          searchQuery === "" ||
+          dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          dest.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          dest.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          dest.category.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesCity =
+          !selectedCity || dest.city === selectedCity;
+
+        const matchesCategory =
+          selectedCategory === "all" || dest.category === selectedCategory;
+
+        return matchesSearch && matchesCity && matchesCategory;
+      });
     }
 
-    return destinations.filter((dest) => {
-      const matchesSearch =
-        searchQuery === "" ||
-        dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dest.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dest.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dest.category.toLowerCase().includes(searchQuery.toLowerCase());
+    // Apply hide visited filter
+    if (hideVisited && visitedPlaces.length > 0) {
+      filtered = filtered.filter((dest) => !visitedPlaces.includes(dest.slug));
+    }
 
-      const matchesCity =
-        !selectedCity || dest.city === selectedCity;
+    // Apply favorites first sorting
+    if (showFavoritesFirst && savedPlaces.length > 0) {
+      const favorites = filtered.filter((dest) => savedPlaces.includes(dest.slug));
+      const others = filtered.filter((dest) => !savedPlaces.includes(dest.slug));
+      filtered = [...favorites, ...others];
+    }
 
-      const matchesCategory =
-        selectedCategory === "all" || dest.category === selectedCategory;
-
-      return matchesSearch && matchesCity && matchesCategory;
-    });
-  }, [destinations, searchQuery, selectedCity, selectedCategory, isAISearch, aiSearchResults]);
+    return filtered;
+  }, [destinations, searchQuery, selectedCity, selectedCategory, isAISearch, aiSearchResults, hideVisited, visitedPlaces, showFavoritesFirst, savedPlaces]);
 
   const displayedDestinations = filteredDestinations.slice(0, displayCount);
   const hasMore = displayCount < filteredDestinations.length;
@@ -218,6 +278,38 @@ export default function Home() {
                 </button>
               )}
             </div>
+
+            {/* User Filters - Only show if logged in */}
+            {user && (savedPlaces.length > 0 || visitedPlaces.length > 0) && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {savedPlaces.length > 0 && (
+                  <button
+                    onClick={() => setShowFavoritesFirst(!showFavoritesFirst)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all inline-flex items-center gap-1.5 ${
+                      showFavoritesFirst
+                        ? "bg-pink-100 text-pink-700 border border-pink-300"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    <span>❤️</span>
+                    <span>{showFavoritesFirst ? 'Favorites First' : 'Show Favorites First'}</span>
+                  </button>
+                )}
+                {visitedPlaces.length > 0 && (
+                  <button
+                    onClick={() => setHideVisited(!hideVisited)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all inline-flex items-center gap-1.5 ${
+                      hideVisited
+                        ? "bg-green-100 text-green-700 border border-green-300"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    <span>✓</span>
+                    <span>{hideVisited ? 'Visited Hidden' : 'Hide Visited'}</span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
