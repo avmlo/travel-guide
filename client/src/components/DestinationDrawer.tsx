@@ -157,7 +157,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           {/* Header with new design */}
           <div className="mb-8">
             {/* Title */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl mb-6 leading-tight" style={{ fontFamily: '"EB Garamond", serif' }}>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl mb-6 leading-tight">
               {destination.name}
             </h1>
             

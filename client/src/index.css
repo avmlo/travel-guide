@@ -121,9 +121,14 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'EB Garamond', serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
+  }
+  p {
+    font-family: 'EB Garamond', serif;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
