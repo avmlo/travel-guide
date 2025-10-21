@@ -177,14 +177,12 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               {destination.michelinStars && destination.michelinStars > 0 && (
                 <div className="flex items-center gap-1.5">
                   {[...Array(destination.michelinStars)].map((_, i) => (
-                    <svg 
+                    <img 
                       key={i}
-                      className="h-6 w-6 text-[#E63946]"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M12 0L13.5 8.5L21 7L15 12L21 17L13.5 15.5L12 24L10.5 15.5L3 17L9 12L3 7L10.5 8.5L12 0Z" />
-                    </svg>
+                      src="/michelin-flower.svg"
+                      alt="Michelin Star"
+                      className="h-6 w-6"
+                    />
                   ))}
                 </div>
               )}
