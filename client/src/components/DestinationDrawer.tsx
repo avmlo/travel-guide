@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Calendar, Star, StickyNote } from "lucide-react";
+import { X, Calendar, Star, StickyNote, Share2, Link2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,8 +21,38 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [isVisited, setIsVisited] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   if (!destination) return null;
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/?destination=${destination.slug}`;
+    const shareData = {
+      title: destination.name,
+      text: `Check out ${destination.name} in ${destination.city}`,
+      url: shareUrl,
+    };
+
+    // Try native share first (mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Shared successfully!");
+      } catch (err) {
+        // User cancelled or error occurred
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        toast.success("Link copied to clipboard!");
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        toast.error("Failed to copy link");
+      }
+    }
+  };
 
   const handleQuickMarkAsVisited = async () => {
     setSaving(true);
@@ -133,13 +163,29 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        {/* Header Buttons */}
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 flex gap-2">
+          {/* Share Button */}
+          <button
+            onClick={handleShare}
+            className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+            title="Share destination"
+          >
+            {copied ? (
+              <Check className="h-5 w-5 text-green-600" />
+            ) : (
+              <Share2 className="h-5 w-5 text-gray-700" />
+            )}
+          </button>
+          
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
         {/* Image */}
         {destination.mainImage && (
