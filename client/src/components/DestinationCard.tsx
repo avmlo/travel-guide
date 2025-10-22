@@ -1,6 +1,14 @@
 import { Crown, MapPin } from "lucide-react";
 import { Destination } from "@/types/destination";
 
+// Helper function to capitalize city names
+function capitalizeCity(city: string): string {
+  return city
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 interface DestinationCardProps {
   destination: Destination;
   onClick?: () => void;
@@ -51,8 +59,8 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
           {destination.name}
         </h3>
         
-        <p className="text-xs text-black/60 lowercase">
-          {destination.city}
+        <p className="text-xs text-black/60">
+          {capitalizeCity(destination.city)}
         </p>
       </div>
     </div>
