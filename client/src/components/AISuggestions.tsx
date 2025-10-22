@@ -146,8 +146,21 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
     );
   }
 
-  if (error || suggestions.length === 0) {
-    return null; // Don't show section if there's an error or no suggestions
+  if (error) {
+    console.error('AI Suggestions error:', error);
+    return (
+      <div className="mt-8 pt-8 border-t border-gray-300">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-5 w-5 text-purple-600" />
+          <h3 className="font-semibold text-lg">AI Suggestions</h3>
+        </div>
+        <p className="text-sm text-gray-500">Unable to load suggestions at this time.</p>
+      </div>
+    );
+  }
+
+  if (suggestions.length === 0) {
+    return null; // Don't show section if no suggestions
   }
 
   return (
