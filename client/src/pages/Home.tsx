@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { SEO } from "@/components/SEO";
 import { Breadcrumbs, getHomeBreadcrumbs, getDestinationBreadcrumbs } from "@/components/Breadcrumbs";
+import { PAGINATION } from "@shared/const";
 
 
 export default function Home() {
@@ -22,7 +23,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [displayCount, setDisplayCount] = useState(40);
+  const [displayCount, setDisplayCount] = useState(PAGINATION.INITIAL_DISPLAY);
   const [aiSearchResults, setAiSearchResults] = useState<string[]>([]);
   const [isAISearch, setIsAISearch] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
@@ -182,13 +183,13 @@ export default function Home() {
 
   // Reset display count when filters change
   useEffect(() => {
-    setDisplayCount(40);
+    setDisplayCount(PAGINATION.INITIAL_DISPLAY);
   }, [searchQuery, selectedCity, selectedCategory, isAISearch]);
 
   const handleAISearchResults = (slugs: string[], explanation: string) => {
     setAiSearchResults(slugs);
     setIsAISearch(true);
-    setDisplayCount(40);
+    setDisplayCount(PAGINATION.INITIAL_DISPLAY);
   };
 
   const handleClearAISearch = () => {
@@ -366,7 +367,7 @@ export default function Home() {
               {hasMore && (
                 <div className="flex justify-center mt-8 sm:mt-12">
                   <Button
-                    onClick={() => setDisplayCount(prev => prev + 40)}
+                    onClick={() => setDisplayCount(prev => prev + PAGINATION.LOAD_MORE_INCREMENT)}
                     size="lg"
                     variant="outline"
                     className="px-8 border-gray-300 hover:bg-gray-50"

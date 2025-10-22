@@ -32,19 +32,56 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  // Trust proxy (for rate limiting and IP detection)
+  app.set('trust proxy', 1);
+
+  // CORS configuration
+  app.use((req, res, next) => {
+    const allowedOrigins = process.env.NODE_ENV === 'production'
+      ? ['https://yourdomain.com'] // Update with your production domain
+      : ['http://localhost:3000', 'http://localhost:5173'];
+
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+
+    next();
+  });
+
+  // Security headers
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
-  
+
   // Sitemap
   app.use(sitemapRouter);
-  
+
   // Google Places API
   app.use(placesRouter);
-  
-  // tRPC API
+
+  // tRPC API with rate limiting
   app.use(
     "/api/trpc",
     createExpressMiddleware({

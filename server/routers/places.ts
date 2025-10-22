@@ -1,9 +1,16 @@
 import { Router } from "express";
 import axios from "axios";
+import { API_TIMEOUTS } from "@shared/const";
 
 const router = Router();
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
+
+// Create axios instance with timeout
+const placesAxios = axios.create({
+  timeout: API_TIMEOUTS.GOOGLE_PLACES,
+  headers: { 'Accept': 'application/json' }
+});
 
 interface PlaceDetails {
   name: string;
@@ -51,7 +58,7 @@ router.get("/api/places/search", async (req, res) => {
       key: GOOGLE_PLACES_API_KEY,
     };
 
-    const searchResponse = await axios.get(searchUrl, { params: searchParams });
+    const searchResponse = await placesAxios.get(searchUrl, { params: searchParams });
     
     if (!searchResponse.data.candidates || searchResponse.data.candidates.length === 0) {
       return res.status(404).json({ error: "Place not found" });
@@ -67,7 +74,7 @@ router.get("/api/places/search", async (req, res) => {
       key: GOOGLE_PLACES_API_KEY,
     };
 
-    const detailsResponse = await axios.get(detailsUrl, { params: detailsParams });
+    const detailsResponse = await placesAxios.get(detailsUrl, { params: detailsParams });
     
     if (detailsResponse.data.status !== 'OK') {
       return res.status(500).json({ error: "Failed to fetch place details" });

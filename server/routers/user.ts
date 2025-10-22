@@ -3,6 +3,8 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { savedPlaces, userPreferences, userActivity } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { safeJsonParse, safeJsonStringify } from "../_core/utils";
+import { AI_LIMITS } from "@shared/const";
 
 export const userRouter = router({
   // Get saved places for current user
@@ -117,13 +119,9 @@ export const userRouter = router({
 
     const pref = prefs[0];
     return {
-      favoriteCategories: pref.favoriteCategories
-        ? JSON.parse(pref.favoriteCategories)
-        : [],
-      favoriteCities: pref.favoriteCities
-        ? JSON.parse(pref.favoriteCities)
-        : [],
-      interests: pref.interests ? JSON.parse(pref.interests) : [],
+      favoriteCategories: safeJsonParse<string[]>(pref.favoriteCategories, []),
+      favoriteCities: safeJsonParse<string[]>(pref.favoriteCities, []),
+      interests: safeJsonParse<string[]>(pref.interests, []),
     };
   }),
 
@@ -149,12 +147,12 @@ export const userRouter = router({
       const data = {
         userId: ctx.user.id,
         favoriteCategories: input.favoriteCategories
-          ? JSON.stringify(input.favoriteCategories)
+          ? safeJsonStringify(input.favoriteCategories)
           : null,
         favoriteCities: input.favoriteCities
-          ? JSON.stringify(input.favoriteCities)
+          ? safeJsonStringify(input.favoriteCities)
           : null,
-        interests: input.interests ? JSON.stringify(input.interests) : null,
+        interests: input.interests ? safeJsonStringify(input.interests) : null,
         updatedAt: new Date(),
       };
 
@@ -188,7 +186,7 @@ export const userRouter = router({
         destinationSlug: input.destinationSlug,
         action: input.action,
         timestamp: new Date(),
-        metadata: input.metadata ? JSON.stringify(input.metadata) : null,
+        metadata: input.metadata ? safeJsonStringify(input.metadata) : null,
       });
 
       return { success: true };
@@ -219,7 +217,7 @@ export const userRouter = router({
         .where(eq(userActivity.userId, ctx.user.id))
         .orderBy(desc(userActivity.timestamp));
 
-      const recentActivity = activity.slice(0, 50);
+      const recentActivity = activity.slice(0, AI_LIMITS.MAX_RECENT_ACTIVITY);
 
       // Get user preferences
       const prefs = await db
@@ -237,12 +235,8 @@ export const userRouter = router({
       let favoriteCities: string[] = [];
 
       if (prefs.length > 0) {
-        favoriteCategories = prefs[0].favoriteCategories
-          ? JSON.parse(prefs[0].favoriteCategories)
-          : [];
-        favoriteCities = prefs[0].favoriteCities
-          ? JSON.parse(prefs[0].favoriteCities)
-          : [];
+        favoriteCategories = safeJsonParse<string[]>(prefs[0].favoriteCategories, []);
+        favoriteCities = safeJsonParse<string[]>(prefs[0].favoriteCities, []);
       }
 
       // Score destinations based on user preferences

@@ -66,9 +66,10 @@ export function AIAssistant({ destinations }: AIAssistantProps) {
     setInput("");
 
     try {
+      // Only send destinations on first message to reduce payload size and avoid memory leak
       const response = await chatMutation.mutateAsync({
         messages: [...messages, userMessage],
-        destinations: destinations, // Send all destinations for comprehensive recommendations
+        destinations: messages.length === 1 ? destinations : undefined,
       });
 
       setMessages((prev) => [
@@ -93,28 +94,36 @@ export function AIAssistant({ destinations }: AIAssistantProps) {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-black text-white px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-2xl hover:bg-gray-800 transition-all z-50 flex items-center gap-2 sm:gap-3 group"
+          aria-label="Open AI Travel Assistant"
+          aria-expanded={isOpen}
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-black text-white px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-2xl hover:bg-gray-800 transition-all z-50 flex items-center gap-2 sm:gap-3 group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
         >
-          <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+          <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
           <span className="font-medium text-xs sm:text-sm hidden xs:inline">AI Travel Assistant</span>
-          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">!</div>
+          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse" aria-hidden="true">!</div>
         </button>
       )}
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed inset-4 sm:bottom-6 sm:right-6 sm:left-auto sm:top-auto sm:w-96 sm:h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200">
+        <div
+          className="fixed inset-4 sm:bottom-6 sm:right-6 sm:left-auto sm:top-auto sm:w-96 sm:h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200"
+          role="dialog"
+          aria-label="AI Travel Assistant Chat"
+          aria-modal="true"
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              <h3 className="font-semibold">AI Travel Assistant</h3>
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              <h3 className="font-semibold" id="chat-title">AI Travel Assistant</h3>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 rounded"
+              aria-label="Close AI Travel Assistant"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
 
@@ -154,20 +163,26 @@ export function AIAssistant({ destinations }: AIAssistantProps) {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                 placeholder="Ask me anything..."
                 className="flex-1"
                 disabled={chatMutation.isPending}
+                aria-label="Chat message input"
+                aria-describedby="chat-help-text"
               />
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || chatMutation.isPending}
                 size="icon"
                 className="bg-black hover:bg-gray-800"
+                aria-label="Send message"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
+            <span id="chat-help-text" className="sr-only">
+              Type your travel question and press Enter to send
+            </span>
           </div>
         </div>
       )}
