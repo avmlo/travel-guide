@@ -9,6 +9,14 @@ import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { CookieBanner } from "@/components/CookieBanner";
 
+// Helper function to capitalize city names
+function capitalizeCity(city: string): string {
+  return city
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export default function Home() {
   const [, setLocation] = useLocation();
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -217,7 +225,7 @@ export default function Home() {
                     selectedCity === city ? "font-medium text-black" : "font-medium text-black/30 hover:text-black/60"
                   }`}
                 >
-                  {city}
+                  {capitalizeCity(city)}
                 </button>
               ))}
               {cities.length > 20 && (
