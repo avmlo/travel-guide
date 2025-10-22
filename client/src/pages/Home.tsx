@@ -157,11 +157,11 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
       <Header />
 
       {/* Main Content */}
-      <main className="px-6 md:px-10 py-12">
+      <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-[1920px] mx-auto">
           {/* Search Bar */}
           <div className="mb-8">
@@ -169,9 +169,9 @@ export default function Home() {
               onClick={() => setIsSearchOpen(true)}
               className="relative max-w-[500px] w-full text-left"
             >
-              <div className="flex items-center gap-3 px-4 py-3 bg-[#efefef] rounded-lg hover:bg-gray-200 transition-colors">
+              <div className="flex items-center gap-3 px-4 py-3 bg-[#efefef] dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                 <Search className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-500">Search {destinations.length} items...</span>
+                <span className="text-gray-500 dark:text-gray-400">Search {destinations.length} items...</span>
               </div>
             </button>
           </div>
@@ -185,7 +185,7 @@ export default function Home() {
               <button
                 onClick={() => setSelectedCity("")}
                 className={`transition-colors ${
-                  !selectedCity ? "font-medium text-black" : "font-medium text-black/30 hover:text-black/60"
+                  !selectedCity ? "font-medium text-black dark:text-white" : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
                 }`}
               >
                 All
@@ -195,7 +195,7 @@ export default function Home() {
                   key={city}
                   onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
                   className={`transition-colors ${
-                    selectedCity === city ? "font-medium text-black" : "font-medium text-black/30 hover:text-black/60"
+                    selectedCity === city ? "font-medium text-black dark:text-white" : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
                   }`}
                 >
                   {capitalizeCity(city)}
@@ -204,7 +204,7 @@ export default function Home() {
               {cities.length > 20 && (
                 <button
                   onClick={() => setShowAllCities(!showAllCities)}
-                  className="font-medium text-black/30 hover:text-black/60 transition-colors"
+                  className="font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300 transition-colors"
                 >
                   {showAllCities ? '- Show Less' : '+ Show More'}
                 </button>
@@ -214,7 +214,7 @@ export default function Home() {
 
           {/* Results Count */}
           <div className="mb-6">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
             </p>
           </div>
@@ -236,7 +236,7 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6 animate-in fade-in duration-500">
                 {displayedDestinations.map((destination, index) => (
                   <DestinationCard
                     key={destination.slug}
@@ -253,7 +253,7 @@ export default function Home() {
                 <div className="flex justify-center mt-12">
                   <button
                     onClick={() => setDisplayCount(prev => prev + 40)}
-                    className="px-8 py-3 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all"
+                    className="px-8 py-3 border border-gray-300 dark:border-gray-700 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-600 transition-all"
                   >
                     Load More
                   </button>

@@ -2,6 +2,7 @@ import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { NotificationDropdown } from "./NotificationDropdown";
+import { DarkModeToggle } from "./DarkModeToggle";
 
 export function Header() {
   const [, setLocation] = useLocation();
@@ -29,9 +30,9 @@ export function Header() {
   };
 
   return (
-    <header className="border-b border-gray-200">
+    <header className="border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900">
       {/* Title Bar */}
-      <div className="px-6 md:px-10 py-4">
+      <div className="px-6 md:px-10 py-4 dark:text-white">
         <div className="max-w-[1920px] mx-auto">
           <button 
             onClick={() => setLocation("/")}
@@ -43,7 +44,7 @@ export function Header() {
       </div>
       
       {/* Navigation Bar */}
-      <div className="px-6 md:px-10 border-t border-gray-200">
+      <div className="px-6 md:px-10 border-t border-gray-200 dark:border-gray-800 dark:text-white">
         <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
           <div className="flex items-center gap-6">
             <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
@@ -56,6 +57,7 @@ export function Header() {
           <div className="flex items-center gap-4">
             <span className="text-xs font-bold uppercase">New York</span>
             <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+            <DarkModeToggle />
             {user && <NotificationDropdown />}
             {user ? (
               <button 
