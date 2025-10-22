@@ -8,6 +8,7 @@ import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { AISuggestions } from "@/components/AISuggestions";
+import { GoogleMap } from "@/components/GoogleMap";
 
 interface DestinationDrawerProps {
   destination: Destination | null;
@@ -361,6 +362,12 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               console.log('Selected suggestion:', slug);
             }}
           />
+
+          {/* Google Map & Location */}
+          <div className="mt-8 pt-8 border-t border-gray-300">
+            <h3 className="text-lg font-semibold mb-4">Location & Map</h3>
+            <GoogleMap destination={destination} />
+          </div>
 
           {/* Additional Info */}
           <div className="mt-8 pt-8 border-t border-gray-300">
