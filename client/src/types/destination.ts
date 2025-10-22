@@ -9,6 +9,7 @@ export interface Destination {
   lat: number;
   long: number;
   mainImage: string;
+  additionalImages?: string[];
   michelinStars: number;
   myRating: number;
   reviewed: boolean;
