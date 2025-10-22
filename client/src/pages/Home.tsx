@@ -1,8 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
 import { AIAssistant } from "@/components/AIAssistant";
@@ -220,18 +219,14 @@ export default function Home() {
             destination={selectedDestination}
           />
           
-          {/* Search Bar */}
+          {/* Smart AI Search */}
           <div className="mb-4 sm:mb-6">
-            <div className="relative w-full sm:max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search 897 items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-gray-100 border-none rounded-lg text-sm"
-              />
-            </div>
+            <SmartSearch
+              destinations={destinations}
+              onSearchResults={handleAISearchResults}
+              onClear={handleClearAISearch}
+              onTextSearch={setSearchQuery}
+            />
           </div>
 
           {/* Filter Section */}
@@ -382,10 +377,17 @@ export default function Home() {
       </section>
 
       <AIAssistant destinations={destinations} />
-      <DestinationDrawer 
+      <DestinationDrawer
         destination={selectedDestination}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
+        onSelectDestination={(slug) => {
+          const dest = destinations.find(d => d.slug === slug);
+          if (dest) {
+            setSelectedDestination(dest);
+            // Keep drawer open to show the new destination
+          }
+        }}
       />
       <Footer />
     </div>

@@ -9,9 +9,10 @@ interface SmartSearchProps {
   destinations: Destination[];
   onSearchResults: (slugs: string[], explanation: string) => void;
   onClear: () => void;
+  onTextSearch?: (query: string) => void;
 }
 
-export function SmartSearch({ destinations, onSearchResults, onClear }: SmartSearchProps) {
+export function SmartSearch({ destinations, onSearchResults, onClear, onTextSearch }: SmartSearchProps) {
   const [query, setQuery] = useState("");
   const [isAIMode, setIsAIMode] = useState(false);
   const [aiExplanation, setAiExplanation] = useState("");
@@ -39,6 +40,9 @@ export function SmartSearch({ destinations, onSearchResults, onClear }: SmartSea
     setQuery("");
     setIsAIMode(false);
     setAiExplanation("");
+    if (onTextSearch) {
+      onTextSearch("");
+    }
     onClear();
   };
 
@@ -47,9 +51,14 @@ export function SmartSearch({ destinations, onSearchResults, onClear }: SmartSea
       <div className="relative">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         <Input
-          placeholder="Try: 'romantic restaurants in Paris' or 'budget cafes in Tokyo'"
+          placeholder="Search destinations or try AI: 'romantic restaurants in Paris'"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (onTextSearch && !isAIMode) {
+              onTextSearch(e.target.value);
+            }
+          }}
           onKeyPress={(e) => e.key === "Enter" && handleAISearch()}
           className="pl-12 pr-32 h-12 text-base border-gray-300"
         />

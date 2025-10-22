@@ -14,9 +14,10 @@ interface DestinationDrawerProps {
   destination: Destination | null;
   isOpen: boolean;
   onClose: () => void;
+  onSelectDestination?: (slug: string) => void;
 }
 
-export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {
+export function DestinationDrawer({ destination, isOpen, onClose, onSelectDestination }: DestinationDrawerProps) {
   const [showVisitedForm, setShowVisitedForm] = useState(false);
   const [visitDate, setVisitDate] = useState("");
   const [rating, setRating] = useState(0);
@@ -355,11 +356,12 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           </div>
 
           {/* AI Suggestions */}
-          <AISuggestions 
+          <AISuggestions
             destination={destination}
             onSelectDestination={(slug: string) => {
-              // This will be handled by parent component
-              console.log('Selected suggestion:', slug);
+              if (onSelectDestination) {
+                onSelectDestination(slug);
+              }
             }}
           />
 
