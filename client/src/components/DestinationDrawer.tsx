@@ -193,8 +193,9 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           <div className="relative h-64 sm:h-80 md:h-96 w-full overflow-hidden">
             <img 
               src={destination.mainImage} 
-              alt={destination.name}
+              alt={`${destination.name} in ${destination.city} - ${destination.category}`}
               className="w-full h-full object-cover"
+              loading="lazy"
             />
           </div>
         )}
@@ -227,8 +228,9 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                     <img 
                       key={i}
                       src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
-                      alt="Michelin Star"
+                      alt={`Michelin Star ${i + 1}`}
                       className="h-6 w-6"
+                      loading="lazy"
                     />
                   ))}
                 </div>

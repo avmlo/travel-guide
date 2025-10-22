@@ -237,6 +237,7 @@ export default function Account() {
                       src={profilePicture} 
                       alt={name || "Profile"}
                       className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-3xl font-bold">
@@ -344,8 +345,9 @@ export default function Account() {
                           <div className="relative h-48 overflow-hidden">
                             <img 
                               src={vp.destination.image} 
-                              alt={vp.destination.name}
+                              alt={`${vp.destination.name} - Visited place`}
                               className="w-full h-full object-cover"
+                              loading="lazy"
                             />
                           </div>
                         )}
@@ -404,8 +406,9 @@ export default function Account() {
                           <div className="relative h-48 overflow-hidden">
                             <img 
                               src={sp.destination.image} 
-                              alt={sp.destination.name}
+                              alt={`${sp.destination.name} - Saved place`}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              loading="lazy"
                             />
                             {sp.destination.michelin_stars > 0 && (
                               <div className="absolute top-2 left-2 flex gap-0.5">
@@ -413,8 +416,9 @@ export default function Account() {
                                   <img 
                                     key={i}
                                     src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
-                                    alt="Michelin Star"
+                                    alt={`Michelin Star ${i + 1}`}
                                     className="h-5 w-5"
+                                    loading="lazy"
                                   />
                                 ))}
                               </div>
@@ -451,8 +455,9 @@ export default function Account() {
                       {profilePicture ? (
                         <img 
                           src={profilePicture} 
-                          alt="Profile"
+                          alt="Profile picture preview"
                           className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl font-bold">

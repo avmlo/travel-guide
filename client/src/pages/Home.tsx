@@ -11,6 +11,7 @@ import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
+import { SEO } from "@/components/SEO";
 
 
 export default function Home() {
@@ -204,6 +205,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+      <SEO destination={selectedDestination} />
       <Navigation cities={cities} />
 
       {/* Hero Section */}

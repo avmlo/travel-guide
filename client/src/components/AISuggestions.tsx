@@ -177,8 +177,9 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
                   <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
                     <img 
                       src={dest.mainImage} 
-                      alt={dest.name}
+                      alt={`${dest.name} - AI suggested destination`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      loading="lazy"
                     />
                   </div>
                 )}
@@ -193,8 +194,9 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
                           <img 
                             key={i}
                             src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
-                            alt="Michelin Star"
+                            alt={`Michelin Star ${i + 1}`}
                             className="h-4 w-4"
+                            loading="lazy"
                           />
                         ))}
                       </div>
