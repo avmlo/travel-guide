@@ -223,15 +223,7 @@ export function GoogleMap({ destination }: GoogleMapProps) {
         </a>
       </div>
 
-      {/* Additional Info Section */}
-      {destination.content && (
-        <div className="pt-4 border-t border-gray-200">
-          <h4 className="font-semibold text-sm text-gray-700 mb-2">About</h4>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            {destination.content}
-          </p>
-        </div>
-      )}
+
     </div>
   );
 }

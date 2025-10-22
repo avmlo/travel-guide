@@ -205,8 +205,6 @@ export default function City() {
         destination={selectedDestination}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        isSaved={selectedDestination ? savedPlaces.includes(selectedDestination.slug) : false}
-        isVisited={selectedDestination ? visitedPlaces.includes(selectedDestination.slug) : false}
       />
     </div>
   );

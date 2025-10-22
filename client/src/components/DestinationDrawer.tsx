@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, Share2, Check, Navigation } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Share2, Check, Navigation, Heart, CheckCircle2 } from "lucide-react";
 import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -9,8 +9,6 @@ interface DestinationDrawerProps {
   destination: Destination | null;
   isOpen: boolean;
   onClose: () => void;
-  isSaved?: boolean;
-  isVisited?: boolean;
 }
 
 // Helper function to capitalize city names
@@ -21,8 +19,60 @@ function capitalizeCity(city: string): string {
     .join(' ');
 }
 
+// Category color mapping
+const categoryColors: Record<string, string> = {
+  'Hotel': 'bg-blue-100 text-blue-800',
+  'Restaurant': 'bg-red-100 text-red-800',
+  'Cafe': 'bg-yellow-100 text-yellow-800',
+  'Bar': 'bg-purple-100 text-purple-800',
+  'Museum': 'bg-green-100 text-green-800',
+  'Gallery': 'bg-pink-100 text-pink-800',
+  'Shop': 'bg-orange-100 text-orange-800',
+  'Park': 'bg-teal-100 text-teal-800',
+  'default': 'bg-gray-100 text-gray-800'
+};
+
 export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {
   const [copied, setCopied] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isVisited, setIsVisited] = useState(false);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    }
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    async function checkSavedAndVisited() {
+      if (!user || !destination) return;
+
+      // Check if saved
+      const { data: savedData } = await supabase
+        .from('saved_places')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('destination_slug', destination.slug)
+        .single();
+      
+      setIsSaved(!!savedData);
+
+      // Check if visited
+      const { data: visitedData } = await supabase
+        .from('visited_places')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('destination_slug', destination.slug)
+        .single();
+      
+      setIsVisited(!!visitedData);
+    }
+
+    checkSavedAndVisited();
+  }, [user, destination]);
 
   if (!destination) return null;
 
@@ -34,16 +84,14 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
       url: shareUrl,
     };
 
-    // Try native share first (mobile)
     if (navigator.share) {
       try {
         await navigator.share(shareData);
         toast.success("Shared successfully!");
       } catch (err) {
-        // User cancelled or error occurred
+        // User cancelled
       }
     } else {
-      // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(shareUrl);
         setCopied(true);
@@ -54,6 +102,89 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
       }
     }
   };
+
+  const handleToggleSaved = async () => {
+    if (!user) {
+      toast.error("Please sign in to save places");
+      return;
+    }
+
+    if (isSaved) {
+      // Remove from saved
+      await supabase
+        .from('saved_places')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('destination_slug', destination.slug);
+      
+      setIsSaved(false);
+      toast.success("Removed from saved");
+    } else {
+      // Add to saved
+      const { data: destData } = await supabase
+        .from('destinations')
+        .select('id')
+        .eq('slug', destination.slug)
+        .single();
+
+      if (destData) {
+        await supabase
+          .from('saved_places')
+          .insert({
+            user_id: user.id,
+            destination_id: destData.id,
+            destination_slug: destination.slug
+          });
+        
+        setIsSaved(true);
+        toast.success("Added to saved");
+      }
+    }
+  };
+
+  const handleToggleVisited = async () => {
+    if (!user) {
+      toast.error("Please sign in to mark as visited");
+      return;
+    }
+
+    if (isVisited) {
+      // Remove from visited
+      await supabase
+        .from('visited_places')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('destination_slug', destination.slug);
+      
+      setIsVisited(false);
+      toast.success("Removed from visited");
+    } else {
+      // Add to visited
+      const { data: destData } = await supabase
+        .from('destinations')
+        .select('id')
+        .eq('slug', destination.slug)
+        .single();
+
+      if (destData) {
+        await supabase
+          .from('visited_places')
+          .insert({
+            user_id: user.id,
+            destination_id: destData.id,
+            destination_slug: destination.slug,
+            visited_date: new Date().toISOString().split('T')[0],
+            rating: 0,
+            notes: ''
+          });
+        
+        setIsVisited(true);
+        toast.success("Marked as visited");
+      }
+    }
+  };
+
+  const categoryColor = categoryColors[destination.category] || categoryColors['default'];
 
   return (
     <>
@@ -95,24 +226,49 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         <div className="px-8 py-12 max-w-3xl">
           
           {/* Title */}
-          <h1 className="text-3xl sm:text-4xl font-normal mb-8 leading-tight">
+          <h1 className="text-3xl sm:text-4xl font-normal mb-4 leading-tight">
             {destination.name}
           </h1>
 
+          {/* Location & Category Pills */}
+          <div className="flex flex-wrap items-center gap-2 mb-8">
+            <span className="text-sm text-gray-600">{capitalizeCity(destination.city)}</span>
+            <span className="text-gray-300">•</span>
+            <span className={`px-2 py-1 text-xs font-medium ${categoryColor}`}>
+              {destination.category}
+            </span>
+          </div>
+
+          {/* Action Buttons */}
+          {user && (
+            <div className="flex gap-3 mb-8">
+              <button
+                onClick={handleToggleSaved}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+                  isSaved 
+                    ? 'bg-black text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Heart className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+                {isSaved ? 'Saved' : 'Save'}
+              </button>
+              <button
+                onClick={handleToggleVisited}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+                  isVisited 
+                    ? 'bg-black text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <CheckCircle2 className={`h-4 w-4 ${isVisited ? 'fill-current' : ''}`} />
+                {isVisited ? 'Visited' : 'Mark as Visited'}
+              </button>
+            </div>
+          )}
+
           {/* Divider */}
           <div className="border-t border-gray-200 my-8"></div>
-
-          {/* Location & Category */}
-          <div className="mb-8">
-            <div className="flex flex-col gap-2 text-base text-gray-600">
-              <div>
-                <span className="text-gray-900">{capitalizeCity(destination.city)}</span>
-              </div>
-              <div>
-                <span className="text-gray-900">{destination.category}</span>
-              </div>
-            </div>
-          </div>
 
           {/* Directions Button */}
           <div className="mb-12">
@@ -128,7 +284,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           </div>
 
           {/* Michelin Stars */}
-          {destination.michelinStars && destination.michelinStars > 0 && (
+          {destination.michelinStars > 0 && (
             <div className="mb-12">
               <div className="flex items-center gap-2">
                 {[...Array(destination.michelinStars)].map((_, i) => (

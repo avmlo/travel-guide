@@ -334,8 +334,6 @@ export default function Home() {
             setIsDrawerOpen(false);
             setSelectedDestination(null);
           }}
-          isSaved={savedPlaces.includes(selectedDestination.slug)}
-          isVisited={visitedPlaces.includes(selectedDestination.slug)}
         />
       )}
     </div>

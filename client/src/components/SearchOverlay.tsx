@@ -36,8 +36,8 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
 
       // Generate intro text based on query
       if (results.length > 0) {
-        const cities = [...new Set(results.map(r => capitalizeCity(r.city)))];
-        const categories = [...new Set(results.map(r => r.category))];
+        const cities = Array.from(new Set(results.map(r => capitalizeCity(r.city))));
+        const categories = Array.from(new Set(results.map(r => r.category)));
         
         let intro = `Here are some great ${categories[0]?.toLowerCase() || 'places'}`;
         if (cities.length === 1) {
