@@ -15,5 +15,6 @@ export interface Destination {
   reviewed: boolean;
   slug: string;
   subline: string;
+  website?: string;
 }
 

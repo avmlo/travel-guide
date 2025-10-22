@@ -5,7 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import DestinationDetail from "./pages/DestinationDetail";
+import Destination from "./pages/Destination";
 import SavedPlaces from "./pages/SavedPlaces";
 import CityPage from "./pages/CityPage";
 import Cities from "./pages/Cities";
@@ -19,7 +19,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path="/auth/login" component={Login} />
-      <Route path="/destination/:slug" component={DestinationDetail} />
+      <Route path="/destination/:slug" component={Destination} />
       <Route path="/cities" component={Cities} />
       <Route path="/city/:city" component={City} />
       <Route path="/saved" component={SavedPlaces} />
