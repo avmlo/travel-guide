@@ -204,7 +204,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         )}
 
         {/* Content */}
-        <div className="p-8 sm:p-12 md:p-16">
+        <div className="p-6 sm:p-8 md:p-10">
           {/* Header with new design */}
           <div className="mb-12">
             {/* Title */}
