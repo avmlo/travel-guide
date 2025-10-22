@@ -10,14 +10,162 @@ function capitalizeCity(city: string): string {
     .join(' ');
 }
 
+// Map cities to countries (you can expand this)
+const cityToCountry: Record<string, string> = {
+  'new-york': 'United States',
+  'los-angeles': 'United States',
+  'san-francisco': 'United States',
+  'chicago': 'United States',
+  'miami': 'United States',
+  'washington-dc': 'United States',
+  'boston': 'United States',
+  'seattle': 'United States',
+  'austin': 'United States',
+  'denver': 'United States',
+  'portland': 'United States',
+  'las-vegas': 'United States',
+  'nashville': 'United States',
+  'colorado': 'United States',
+  'hudson-valley': 'United States',
+  
+  'london': 'United Kingdom',
+  'edinburgh': 'United Kingdom',
+  'manchester': 'United Kingdom',
+  
+  'paris': 'France',
+  'lyon': 'France',
+  'marseille': 'France',
+  'nice': 'France',
+  'provence-alpes-côte-d-azur': 'France',
+  'auvergne-rhône-alpes': 'France',
+  
+  'tokyo': 'Japan',
+  'kyoto': 'Japan',
+  'osaka': 'Japan',
+  'yokohama': 'Japan',
+  'kyushu': 'Japan',
+  
+  'barcelona': 'Spain',
+  'madrid': 'Spain',
+  'valencia': 'Spain',
+  'seville': 'Spain',
+  
+  'rome': 'Italy',
+  'milan': 'Italy',
+  'venice': 'Italy',
+  'florence': 'Italy',
+  'naples': 'Italy',
+  
+  'berlin': 'Germany',
+  'munich': 'Germany',
+  'hamburg': 'Germany',
+  'frankfurt': 'Germany',
+  
+  'amsterdam': 'Netherlands',
+  'rotterdam': 'Netherlands',
+  
+  'brussels': 'Belgium',
+  'antwerp': 'Belgium',
+  
+  'zurich': 'Switzerland',
+  'geneva': 'Switzerland',
+  'basel': 'Switzerland',
+  'valais': 'Switzerland',
+  
+  'vienna': 'Austria',
+  
+  'copenhagen': 'Denmark',
+  
+  'stockholm': 'Sweden',
+  
+  'oslo': 'Norway',
+  
+  'helsinki': 'Finland',
+  
+  'lisbon': 'Portugal',
+  'porto': 'Portugal',
+  
+  'athens': 'Greece',
+  
+  'istanbul': 'Turkey',
+  
+  'dubai': 'United Arab Emirates',
+  'abu-dhabi': 'United Arab Emirates',
+  
+  'singapore': 'Singapore',
+  
+  'hong-kong': 'Hong Kong',
+  
+  'bangkok': 'Thailand',
+  'phuket': 'Thailand',
+  'chiang-mai': 'Thailand',
+  
+  'seoul': 'South Korea',
+  'busan': 'South Korea',
+  
+  'taipei': 'Taiwan',
+  'kaohsiung': 'Taiwan',
+  'taichung': 'Taiwan',
+  'tainan': 'Taiwan',
+  'chiayi': 'Taiwan',
+  'pingtung': 'Taiwan',
+  
+  'shanghai': 'China',
+  'beijing': 'China',
+  'shenzhen': 'China',
+  'guangzhou': 'China',
+  
+  'mumbai': 'India',
+  'delhi': 'India',
+  'bangalore': 'India',
+  
+  'sydney': 'Australia',
+  'melbourne': 'Australia',
+  'brisbane': 'Australia',
+  
+  'auckland': 'New Zealand',
+  
+  'toronto': 'Canada',
+  'vancouver': 'Canada',
+  'montreal': 'Canada',
+  
+  'mexico-city': 'Mexico',
+  'cancun': 'Mexico',
+  
+  'buenos-aires': 'Argentina',
+  
+  'rio-de-janeiro': 'Brazil',
+  'sao-paulo': 'Brazil',
+  
+  'santiago': 'Chile',
+  
+  'lima': 'Peru',
+  
+  'cape-town': 'South Africa',
+  
+  'marrakech': 'Morocco',
+  
+  'cairo': 'Egypt',
+  
+  'saigon': 'Vietnam',
+  'hanoi': 'Vietnam',
+};
+
 interface CityData {
   city: string;
   count: number;
+  country: string;
+}
+
+interface CountryGroup {
+  country: string;
+  cities: CityData[];
+  totalCount: number;
 }
 
 export default function Cities() {
   const [, setLocation] = useLocation();
-  const [cities, setCities] = useState<CityData[]>([]);
+  const [countryGroups, setCountryGroups] = useState<CountryGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,12 +181,33 @@ export default function Cities() {
           return acc;
         }, {});
 
-        // Convert to array and sort by count
-        const citiesArray = Object.entries(cityCount)
-          .map(([city, count]) => ({ city, count }))
-          .sort((a, b) => b.count - a.count);
+        // Convert to array with country info
+        const citiesArray: CityData[] = Object.entries(cityCount)
+          .map(([city, count]) => ({
+            city,
+            count,
+            country: cityToCountry[city] || 'Other'
+          }));
 
-        setCities(citiesArray);
+        // Group by country
+        const grouped = citiesArray.reduce((acc: Record<string, CityData[]>, city) => {
+          if (!acc[city.country]) {
+            acc[city.country] = [];
+          }
+          acc[city.country].push(city);
+          return acc;
+        }, {});
+
+        // Convert to array and sort
+        const groupsArray: CountryGroup[] = Object.entries(grouped)
+          .map(([country, cities]) => ({
+            country,
+            cities: cities.sort((a, b) => b.count - a.count),
+            totalCount: cities.reduce((sum, city) => sum + city.count, 0)
+          }))
+          .sort((a, b) => b.totalCount - a.totalCount);
+
+        setCountryGroups(groupsArray);
       }
 
       setLoading(false);
@@ -54,6 +223,8 @@ export default function Cities() {
       </div>
     );
   }
+
+  const totalCities = countryGroups.reduce((sum, group) => sum + group.cities.length, 0);
 
   return (
     <div className="min-h-screen bg-white">
@@ -98,25 +269,40 @@ export default function Cities() {
           <div className="mb-12">
             <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4">Cities</h1>
             <p className="text-sm text-gray-600">
-              Explore {cities.length} cities around the world
+              {totalCities} cities across {countryGroups.length} countries
             </p>
           </div>
 
-          {/* Cities Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {cities.map((cityData) => (
-              <button
-                key={cityData.city}
-                onClick={() => setLocation(`/city/${cityData.city}`)}
-                className="border border-gray-200 p-6 hover:border-black transition-colors text-left group"
-              >
-                <h2 className="text-lg font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity">
-                  {capitalizeCity(cityData.city)}
-                </h2>
-                <p className="text-xs text-gray-500">
-                  {cityData.count} {cityData.count === 1 ? 'place' : 'places'}
-                </p>
-              </button>
+          {/* Countries and Cities */}
+          <div className="space-y-12">
+            {countryGroups.map((group) => (
+              <div key={group.country}>
+                {/* Country Header */}
+                <div className="mb-6 pb-2 border-b border-gray-200">
+                  <h2 className="text-xl font-bold uppercase">{group.country}</h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {group.cities.length} {group.cities.length === 1 ? 'city' : 'cities'} · {group.totalCount} {group.totalCount === 1 ? 'place' : 'places'}
+                  </p>
+                </div>
+
+                {/* Cities Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {group.cities.map((cityData) => (
+                    <button
+                      key={cityData.city}
+                      onClick={() => setLocation(`/city/${cityData.city}`)}
+                      className="border border-gray-200 p-6 hover:border-black transition-colors text-left group"
+                    >
+                      <h3 className="text-base font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity">
+                        {capitalizeCity(cityData.city)}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {cityData.count} {cityData.count === 1 ? 'place' : 'places'}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
