@@ -5,9 +5,9 @@ let genAI: GoogleGenerativeAI | null = null;
 
 function getGeminiClient() {
   if (!genAI) {
-    const apiKey = ENV.geminiApiKey || process.env.GEMINI_API_KEY;
+    const apiKey = ENV.geminiApiKey || process.env.GOOGLE_CLOUD_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not configured");
+      throw new Error("GOOGLE_CLOUD_API_KEY or GEMINI_API_KEY is not configured");
     }
     genAI = new GoogleGenerativeAI(apiKey);
   }
