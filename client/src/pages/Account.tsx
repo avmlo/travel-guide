@@ -224,39 +224,42 @@ export default function Account() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* Header */}
-      <header className="px-4 py-6 border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between">
-          <button 
-            onClick={() => setLocation("/")}
-            className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
-          >
-            The Urban Manual
-          </button>
-          <button 
-            onClick={handleSignOut}
-            className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black"
-          >
-            Sign Out
-          </button>
+      {/* Header - Magazine Style */}
+      <header className="border-b border-gray-200">
+        {/* Title Bar */}
+        <div className="px-6 md:px-10 py-4">
+          <div className="max-w-[1920px] mx-auto">
+            <button 
+              onClick={() => setLocation("/")}
+              className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
+            >
+              The Urban Manual
+            </button>
+          </div>
+        </div>
+        
+        {/* Navigation Bar - Closer to Title */}
+        <div className="px-6 md:px-10 border-t border-gray-200">
+          <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
+            <div className="flex items-center gap-6">
+              <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
+              <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
+              <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
+              <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-bold uppercase">New York</span>
+              <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+              <button 
+                onClick={handleSignOut}
+                className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
         </div>
       </header>
-
-      {/* Navigation Bar */}
-      <nav className="px-4 border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
-          <div className="flex items-center gap-6">
-            <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Info</a>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-bold uppercase">New York</span>
-            <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-          </div>
-        </div>
-      </nav>
 
       <main className="flex-1 py-12">
         <div className="max-w-[1920px] mx-auto px-4">
