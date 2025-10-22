@@ -1,13 +1,8 @@
 import { useState } from "react";
-import { X, Calendar, Star, StickyNote, Share2, Link2, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { X, Share2, Check } from "lucide-react";
 import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { AISuggestions } from "@/components/AISuggestions";
 import { GoogleMap } from "@/components/GoogleMap";
 
 interface DestinationDrawerProps {
@@ -18,13 +13,15 @@ interface DestinationDrawerProps {
   isVisited?: boolean;
 }
 
+// Helper function to capitalize city names
+function capitalizeCity(city: string): string {
+  return city
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {
-  const [showVisitedForm, setShowVisitedForm] = useState(false);
-  const [visitDate, setVisitDate] = useState("");
-  const [rating, setRating] = useState(0);
-  const [notes, setNotes] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [isVisited, setIsVisited] = useState(false);
   const [copied, setCopied] = useState(false);
 
   if (!destination) return null;
@@ -58,99 +55,6 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
     }
   };
 
-  const handleQuickMarkAsVisited = async () => {
-    setSaving(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast.error("Please sign in to mark places as visited");
-        return;
-      }
-
-      const { data: destData } = await supabase
-        .from('destinations')
-        .select('id')
-        .eq('slug', destination.slug)
-        .single();
-
-      if (!destData) {
-        toast.error("Destination not found");
-        return;
-      }
-
-      const { error } = await supabase
-        .from('visited_places')
-        .upsert({
-          user_id: session.user.id,
-          destination_id: destData.id,
-          visited_date: null,
-          rating: null,
-          notes: null
-        }, {
-          onConflict: 'user_id,destination_id'
-        });
-
-      if (error) throw error;
-
-      setIsVisited(true);
-      toast.success("Marked as visited! Add details below if you'd like.");
-      setShowVisitedForm(true);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to mark as visited");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleUpdateVisitDetails = async () => {
-    setSaving(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast.error("Please sign in to mark places as visited");
-        return;
-      }
-
-      // Get destination ID from Supabase
-      const { data: destData } = await supabase
-        .from('destinations')
-        .select('id')
-        .eq('slug', destination.slug)
-        .single();
-
-      if (!destData) {
-        toast.error("Destination not found");
-        return;
-      }
-
-      const { error } = await supabase
-        .from('visited_places')
-        .upsert({
-          user_id: session.user.id,
-          destination_id: destData.id,
-          visited_date: visitDate || null,
-          rating: rating || null,
-          notes
-        }, {
-          onConflict: 'user_id,destination_id'
-        });
-
-      if (error) throw error;
-
-      toast.success("Place marked as visited!");
-      setShowVisitedForm(false);
-      setVisitDate("");
-      setRating(0);
-      setNotes("");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to mark as visited");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
     <>
       {/* Overlay */}
@@ -167,230 +71,110 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* Header Buttons */}
-        <div className="absolute top-6 right-6 z-10 flex gap-3">
-          {/* Share Button */}
-          <button
-            onClick={handleShare}
-            className="w-12 h-12 border-2 border-black bg-white flex items-center justify-center hover:bg-black hover:text-white transition-colors"
-            title="Share destination"
-          >
-            {copied ? (
-              <Check className="h-5 w-5" />
-            ) : (
-              <Share2 className="h-5 w-5" />
-            )}
-          </button>
-          
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="w-12 h-12 border-2 border-black bg-white flex items-center justify-center hover:bg-black hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+        {/* Close Button - Top Right */}
+        <button
+          onClick={onClose}
+          className="absolute top-8 right-8 z-10 w-10 h-10 flex items-center justify-center hover:opacity-60 transition-opacity"
+        >
+          <X className="h-6 w-6" />
+        </button>
 
-        {/* Image */}
+        {/* Hero Image - Full Width */}
         {destination.mainImage && (
-          <div className="relative h-80 sm:h-96 md:h-[28rem] w-full overflow-hidden">
+          <div className="relative w-full h-[60vh] overflow-hidden">
             <img 
               src={destination.mainImage} 
-              alt={`${destination.name} in ${destination.city} - ${destination.category}`}
+              alt={destination.name}
               className="w-full h-full object-cover"
               loading="lazy"
             />
           </div>
         )}
 
-        {/* Content */}
-        <div className="p-6 sm:p-8 md:p-10">
-          {/* Header with new design */}
+        {/* Content - Generous Padding */}
+        <div className="px-8 py-12 max-w-3xl">
+          
+          {/* Title */}
+          <h1 className="text-3xl sm:text-4xl font-normal mb-8 leading-tight">
+            {destination.name}
+          </h1>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 my-8"></div>
+
+          {/* Location & Category */}
           <div className="mb-12">
-            {/* Title */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl mb-6 leading-tight font-bold">
-              {destination.name}
-            </h1>
-            
-            {/* Pills and Michelin Stars */}
-            <div className="flex flex-wrap items-center gap-4">
-              {/* City Pill - Black Border */}
-              <span className="inline-flex items-center px-3 py-1.5 border border-black bg-white text-black text-xs font-bold uppercase tracking-wide">
-                {destination.city}
-              </span>
-              
-              {/* Category Pill - Black Border */}
-              <span className="inline-flex items-center px-3 py-1.5 border border-black bg-white text-black text-xs font-bold uppercase tracking-wide">
-                {destination.category}
-              </span>
-              
-              {/* Michelin Stars - Black Border */}
-              {destination.michelinStars && destination.michelinStars > 0 && (
-                <div className="flex items-center gap-2 border border-black bg-white px-3 py-1.5">
-                  {[...Array(destination.michelinStars)].map((_, i) => (
-                    <img 
-                      key={i}
-                      src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
-                      alt={`Michelin Star ${i + 1}`}
-                      className="h-5 w-5"
-                      loading="lazy"
-                    />
-                  ))}
-                </div>
-              )}
+            <div className="flex flex-col gap-2 text-base text-gray-600">
+              <div>
+                <span className="text-gray-900">{capitalizeCity(destination.city)}</span>
+              </div>
+              <div>
+                <span className="text-gray-900">{destination.category}</span>
+              </div>
             </div>
           </div>
 
-          {/* Subline */}
-          {destination.subline && (
+          {/* Michelin Stars */}
+          {destination.michelinStars && destination.michelinStars > 0 && (
             <div className="mb-12">
-              <p className="text-sm text-gray-700 leading-relaxed">
-                {destination.subline.replace(/<[^>]*>/g, '')}
-              </p>
+              <div className="flex items-center gap-2">
+                {[...Array(destination.michelinStars)].map((_, i) => (
+                  <img 
+                    key={i}
+                    src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                    alt={`Michelin Star ${i + 1}`}
+                    className="h-6 w-6"
+                    loading="lazy"
+                  />
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Content */}
+          {/* Description Section */}
           {destination.content && (
-            <div className="mb-12 prose prose-gray max-w-none">
-              <div className="text-gray-600 leading-relaxed whitespace-pre-line text-sm">
-                {destination.content.replace(/<[^>]*>/g, '')}
+            <>
+              <h2 className="text-lg font-normal mb-6">About</h2>
+              <div className="mb-12">
+                <p className="text-base text-gray-700 leading-relaxed">
+                  {destination.content.replace(/<[^>]*>/g, '')}
+                </p>
               </div>
-            </div>
+            </>
           )}
 
-          {/* Actions */}
-          <div className="pt-8 border-t-2 border-black space-y-6">
-            {!showVisitedForm ? (
-              <div className="flex gap-4">
-                <Button className="flex-1 bg-black hover:bg-gray-800 text-white h-10 text-xs font-bold uppercase tracking-wide rounded-none">
-                  Save Place
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="flex-1 border-2 border-black hover:bg-black hover:text-white h-10 text-xs font-bold uppercase tracking-wide rounded-none"
-                  onClick={handleQuickMarkAsVisited}
-                  disabled={saving || isVisited}
-                >
-                  {isVisited ? "✓ Visited" : "Mark as Visited"}
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-6 p-8 bg-gray-50 border-2 border-black">
-                <h3 className="font-bold text-sm uppercase tracking-wide">
-                  {isVisited ? "Update Visit Details (Optional)" : "Add Visit Details"}
-                </h3>
-                
-                <div>
-                  <Label htmlFor="visit-date" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-                    <Calendar className="h-4 w-4" />
-                    Visit Date (optional)
-                  </Label>
-                  <Input
-                    id="visit-date"
-                    type="date"
-                    value={visitDate}
-                    onChange={(e) => setVisitDate(e.target.value)}
-                    className="mt-2 bg-white border-2 border-black rounded-none h-12"
-                  />
-                </div>
+          {/* Divider */}
+          <div className="border-t border-gray-200 my-12"></div>
 
-                <div>
-                  <Label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-                    <Star className="h-4 w-4" />
-                    Rating (optional)
-                  </Label>
-                  <div className="flex gap-3 mt-2">
-                    {[1, 2, 3, 4, 5].map((r) => (
-                      <button
-                        key={r}
-                        onClick={() => setRating(r)}
-                        className={`w-12 h-12 border-2 transition-all ${
-                          r <= rating
-                            ? "bg-black border-black text-white"
-                            : "bg-white border-black text-gray-400 hover:bg-black hover:text-white"
-                        }`}
-                      >
-                        <Star className={`h-5 w-5 mx-auto ${
-                          r <= rating ? "fill-current" : ""
-                        }`} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="notes" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-                    <StickyNote className="h-4 w-4" />
-                    Notes (optional)
-                  </Label>
-                  <Textarea
-                    id="notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Share your experience..."
-                    rows={3}
-                    className="mt-2 bg-white border-2 border-black rounded-none"
-                  />
-                </div>
-
-                <div className="flex gap-4">
-                  <Button 
-                    onClick={handleUpdateVisitDetails}
-                    disabled={saving}
-                    className="flex-1 bg-black hover:bg-gray-800 text-white h-12 font-bold uppercase tracking-wide rounded-none"
-                  >
-                    {saving ? "Saving..." : "Update Details"}
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setShowVisitedForm(false)}
-                    disabled={saving}
-                    className="border-2 border-black hover:bg-black hover:text-white h-12 font-bold uppercase tracking-wide rounded-none"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* AI Suggestions */}
-          <AISuggestions 
-            destination={destination}
-            onSelectDestination={(slug: string) => {
-              // This will be handled by parent component
-              console.log('Selected suggestion:', slug);
-            }}
-          />
-
-          {/* Google Map & Location */}
-          <div className="mt-12 pt-8 border-t-2 border-black">
-            <h3 className="text-xl font-bold mb-6 uppercase tracking-wide">Location & Map</h3>
+          {/* Map Section */}
+          <div className="mb-12">
+            <h2 className="text-lg font-normal mb-6">Location</h2>
             <GoogleMap destination={destination} />
           </div>
 
-          {/* Additional Info */}
-          <div className="mt-12 pt-8 border-t-2 border-black">
-            <h3 className="font-bold text-xl mb-6 uppercase tracking-wide">Details</h3>
-            <div className="space-y-4 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 font-medium uppercase tracking-wide">Category</span>
-                <span className="font-bold uppercase tracking-wide">{destination.category}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 font-medium uppercase tracking-wide">Location</span>
-                <span className="font-bold uppercase tracking-wide">{destination.city}</span>
-              </div>
-              {destination.crown && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 font-medium uppercase tracking-wide">Featured</span>
-                  <span className="font-bold">👑 Crown Selection</span>
-                </div>
+          {/* Divider */}
+          <div className="border-t border-gray-200 my-12"></div>
+
+          {/* Share Section */}
+          <div className="mb-12">
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-3 text-base hover:opacity-60 transition-opacity"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-5 w-5" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 className="h-5 w-5" />
+                  <span>Share</span>
+                </>
               )}
-            </div>
+            </button>
           </div>
+
         </div>
       </div>
     </>
