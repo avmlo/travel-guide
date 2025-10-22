@@ -312,25 +312,6 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
             </>
           )}
 
-          {/* Additional Images Gallery */}
-          {destination.additionalImages && destination.additionalImages.length > 0 && (
-            <>
-              <h2 className="text-lg font-normal mb-6">Gallery</h2>
-              <div className="grid grid-cols-2 gap-4 mb-12">
-                {destination.additionalImages.map((image, index) => (
-                  <div key={index} className="aspect-[4/3] overflow-hidden">
-                    <img 
-                      src={image} 
-                      alt={`${destination.name} - Image ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
           {/* Divider */}
           <div className="border-t border-gray-200 my-12"></div>
 
