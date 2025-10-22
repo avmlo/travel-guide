@@ -8,6 +8,8 @@ import Home from "./pages/Home";
 import DestinationDetail from "./pages/DestinationDetail";
 import SavedPlaces from "./pages/SavedPlaces";
 import CityPage from "./pages/CityPage";
+import Cities from "./pages/Cities";
+import City from "./pages/City";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
 
@@ -18,7 +20,8 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path="/auth/login" component={Login} />
       <Route path="/destination/:slug" component={DestinationDetail} />
-      <Route path="/city/:city" component={CityPage} />
+      <Route path="/cities" component={Cities} />
+      <Route path="/city/:city" component={City} />
       <Route path="/saved" component={SavedPlaces} />
       <Route path="/preferences" component={Account} />
       <Route path="/account" component={Account} />

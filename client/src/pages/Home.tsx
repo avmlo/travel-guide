@@ -175,8 +175,8 @@ export default function Home() {
       <nav className="px-6 md:px-10 border-b border-gray-200">
         <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
           <div className="flex items-center gap-6">
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</a>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Info</a>
+            <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase text-black">Catalogue</button>
+            <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
           </div>
