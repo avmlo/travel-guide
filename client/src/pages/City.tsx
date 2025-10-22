@@ -5,6 +5,8 @@ import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 
+import { Header } from "@/components/Header";
+import { SimpleFooter } from "@/components/SimpleFooter";
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
   return city

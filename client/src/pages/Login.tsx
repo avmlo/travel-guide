@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import { Header } from "@/components/Header";
+import { SimpleFooter } from "@/components/SimpleFooter";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 

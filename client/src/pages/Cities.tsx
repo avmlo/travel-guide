@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
   return city
+import { Header } from "@/components/Header";
+import { SimpleFooter } from "@/components/SimpleFooter";
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
