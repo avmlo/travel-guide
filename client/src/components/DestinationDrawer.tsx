@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Share2, Check } from "lucide-react";
+import { X, Share2, Check, Navigation } from "lucide-react";
 import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -103,7 +103,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           <div className="border-t border-gray-200 my-8"></div>
 
           {/* Location & Category */}
-          <div className="mb-12">
+          <div className="mb-8">
             <div className="flex flex-col gap-2 text-base text-gray-600">
               <div>
                 <span className="text-gray-900">{capitalizeCity(destination.city)}</span>
@@ -112,6 +112,19 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                 <span className="text-gray-900">{destination.category}</span>
               </div>
             </div>
+          </div>
+
+          {/* Directions Button */}
+          <div className="mb-12">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
+            >
+              <Navigation className="h-4 w-4" />
+              <span>Directions</span>
+            </a>
           </div>
 
           {/* Michelin Stars */}
