@@ -51,33 +51,33 @@ export function DestinationCard({ destination, onClick, colorIndex = 0 }: Destin
         )}
         
         {/* Number Badge - Top Right */}
-        <div className="absolute top-4 right-4 bg-black text-white px-3 py-1.5 font-black text-sm">
+        <div className="absolute top-4 right-4 bg-black text-white px-4 py-2 font-black text-base">
           {colorIndex + 1}
         </div>
         
         {destination.crown && (
-          <div className="absolute top-4 left-4 bg-yellow-400 text-yellow-900 p-2">
-            <Crown className="h-4 w-4" />
+          <div className="absolute top-4 left-4 bg-yellow-400 text-yellow-900 p-3 border-2 border-black">
+            <Crown className="h-5 w-5" />
           </div>
         )}
         {destination.michelinStars > 0 && (
-          <div className="absolute bottom-4 left-4 bg-white text-gray-900 px-3 py-2 text-xs font-bold flex items-center gap-1.5 border border-black">
+          <div className="absolute bottom-4 left-4 bg-white text-gray-900 px-4 py-3 text-sm font-bold flex items-center gap-2 border-2 border-black">
             <img 
               src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg" 
               alt="Michelin Star" 
-              className="h-4 w-4 inline-block"
+              className="h-5 w-5 inline-block"
             />
             <span>{destination.michelinStars}</span>
           </div>
         )}
       </div>
       
-      <div className="p-4 space-y-2 bg-white">
-        <h3 className="font-bold text-lg leading-tight line-clamp-2 text-black">
+      <div className="p-6 space-y-3 bg-white">
+        <h3 className="font-black text-xl leading-tight line-clamp-2 text-black">
           {destination.name}
         </h3>
         
-        <p className="text-sm text-gray-600 uppercase font-medium tracking-wide">
+        <p className="text-base text-gray-600 uppercase font-bold tracking-wider">
           {destination.city}
         </p>
       </div>

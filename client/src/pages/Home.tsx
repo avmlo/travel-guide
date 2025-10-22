@@ -219,37 +219,37 @@ export default function Home() {
             destination={selectedDestination}
           />
           
-          {/* Search Bar - Square Design */}
-          <div className="mb-8 sm:mb-12">
-            <div className="relative w-full max-w-lg">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+          {/* Search Bar - Urban Manual Square Design */}
+          <div className="mb-12 sm:mb-16">
+            <div className="relative w-full max-w-2xl">
+              <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-600" />
               <Input
                 type="text"
                 placeholder="Search destinations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 h-14 bg-white border-2 border-black rounded-none text-base font-medium focus:border-black focus:ring-0 placeholder:text-gray-500"
+                className="pl-16 pr-6 h-16 bg-white border-2 border-black rounded-none text-lg font-medium focus:border-black focus:ring-0 placeholder:text-gray-600"
               />
             </div>
           </div>
 
           {/* Filter Section */}
           <div className="mb-8 sm:mb-12">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-8 sm:mb-12 uppercase tracking-tight">PLACES</h1>
+            <h1 className="text-6xl sm:text-7xl md:text-8xl font-black mb-12 sm:mb-16 uppercase tracking-tight leading-none">PLACES</h1>
 
 
 
 
 
-            {/* City Filter - Clean Typography */}
+            {/* City Filter - Urban Manual Typography */}
             <div>
-              <div className={`flex flex-wrap gap-6 sm:gap-8 ${!showAllCities ? 'max-h-[48px] overflow-hidden' : ''}`}>
+              <div className={`flex flex-wrap gap-8 sm:gap-12 ${!showAllCities ? 'max-h-[56px] overflow-hidden' : ''}`}>
                 <button
                   onClick={() => setSelectedCity("")}
-                  className={`text-sm font-medium transition-all uppercase tracking-wide ${
+                  className={`text-lg font-bold transition-all uppercase tracking-wider ${
                     !selectedCity 
-                      ? "text-black font-bold" 
-                      : "text-gray-500 hover:text-black"
+                      ? "text-black" 
+                      : "text-gray-600 hover:text-black"
                   }`}
                 >
                   all
@@ -260,10 +260,10 @@ export default function Home() {
                     <button
                       key={city}
                       onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                      className={`text-sm font-medium transition-all uppercase tracking-wide ${
+                      className={`text-lg font-bold transition-all uppercase tracking-wider ${
                         selectedCity === city 
-                          ? "text-black font-bold" 
-                          : "text-gray-500 hover:text-black"
+                          ? "text-black" 
+                          : "text-gray-600 hover:text-black"
                       }`}
                     >
                       {city}
@@ -274,20 +274,20 @@ export default function Home() {
               {cities.length > 10 && (
                 <button
                   onClick={() => setShowAllCities(!showAllCities)}
-                  className="mt-6 text-sm font-medium text-gray-600 hover:text-black transition-colors uppercase tracking-wide"
+                  className="mt-8 text-base font-bold text-gray-600 hover:text-black transition-colors uppercase tracking-wider"
                 >  
                   {showAllCities ? '− Show Less' : '+ Show More'}
                 </button>
               )}
             </div>
 
-            {/* User Filters - Only show if logged in */}
+            {/* User Filters - Urban Manual Style */}
             {user && (savedPlaces.length > 0 || visitedPlaces.length > 0) && (
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div className="mt-12 flex flex-wrap gap-6">
                 {savedPlaces.length > 0 && (
                   <button
                     onClick={() => setShowFavoritesFirst(!showFavoritesFirst)}
-                    className={`px-4 py-2 border-2 border-black text-sm font-medium transition-all inline-flex items-center gap-2 uppercase tracking-wide ${
+                    className={`px-6 py-3 border-2 border-black text-base font-bold transition-all inline-flex items-center gap-3 uppercase tracking-wider ${
                       showFavoritesFirst
                         ? "bg-black text-white"
                         : "bg-white text-black hover:bg-black hover:text-white"
@@ -300,7 +300,7 @@ export default function Home() {
                 {visitedPlaces.length > 0 && (
                   <button
                     onClick={() => setHideVisited(!hideVisited)}
-                    className={`px-4 py-2 border-2 border-black text-sm font-medium transition-all inline-flex items-center gap-2 uppercase tracking-wide ${
+                    className={`px-6 py-3 border-2 border-black text-base font-bold transition-all inline-flex items-center gap-3 uppercase tracking-wider ${
                       hideVisited
                         ? "bg-black text-white"
                         : "bg-white text-black hover:bg-black hover:text-white"
@@ -319,15 +319,15 @@ export default function Home() {
       {/* Main Content */}
       <section className="pb-12 sm:pb-16">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
-          <div className="mb-8">
-            <p className="text-sm text-gray-600 font-medium uppercase tracking-wide">
+          <div className="mb-12">
+            <p className="text-lg text-gray-600 font-bold uppercase tracking-wider">
               {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
             </p>
           </div>
 
           {filteredDestinations.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-xl text-gray-600 mb-8 font-medium">
+            <div className="text-center py-24">
+              <p className="text-2xl text-gray-600 mb-12 font-bold uppercase tracking-wider">
                 No destinations found.
               </p>
               <Button
@@ -336,14 +336,14 @@ export default function Home() {
                   setSelectedCategory("all");
                   setSelectedCity("");
                 }}
-                className="px-8 py-3 bg-black text-white hover:bg-gray-800 rounded-none border-2 border-black font-medium uppercase tracking-wide"
+                className="px-12 py-4 bg-black text-white hover:bg-gray-800 rounded-none border-2 border-black font-bold uppercase tracking-wider text-lg"
               >
                 Clear filters
               </Button>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 sm:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6 sm:gap-8">
                 {displayedDestinations.map((destination, index) => (
                   <DestinationCard
                     key={destination.slug}
@@ -358,12 +358,12 @@ export default function Home() {
               </div>
               
               {hasMore && (
-                <div className="flex justify-center mt-12 sm:mt-16">
+                <div className="flex justify-center mt-16 sm:mt-20">
                   <Button
                     onClick={() => setDisplayCount(prev => prev + 40)}
                     size="lg"
                     variant="outline"
-                    className="px-8 py-3 border-2 border-black hover:bg-black hover:text-white rounded-none font-medium uppercase tracking-wide"
+                    className="px-12 py-4 border-2 border-black hover:bg-black hover:text-white rounded-none font-bold uppercase tracking-wider text-lg"
                   >
                     Load More
                   </Button>

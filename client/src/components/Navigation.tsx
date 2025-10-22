@@ -36,7 +36,7 @@ export function Navigation({ cities, currentCity }: NavigationProps) {
             onClick={() => setLocation("/")}
             className="hover:opacity-70 transition-opacity"
           >
-            <h1 className="text-3xl font-black uppercase tracking-tighter">
+            <h1 className="text-4xl font-black uppercase tracking-tighter">
               THE URBAN MANUAL
             </h1>
           </button>
@@ -56,31 +56,31 @@ export function Navigation({ cities, currentCity }: NavigationProps) {
           <div className="md:hidden border-t border-black pt-4 pb-2 space-y-3">
             <button 
               onClick={() => { setLocation("/"); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-4 py-2 bg-blue-600 text-white font-bold uppercase text-sm tracking-wide rounded-full hover:bg-blue-700 transition-colors"
+              className="block w-full text-left px-6 py-3 bg-blue-600 text-white font-black uppercase text-base tracking-wider rounded-full hover:bg-blue-700 transition-colors"
             >
               CATALOGUE
             </button>
             <button 
               onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-left px-4 py-2 bg-orange-500 text-white font-bold uppercase text-sm tracking-wide rounded-full hover:bg-orange-600 transition-colors"
+              className="block w-full text-left px-6 py-3 bg-orange-500 text-white font-black uppercase text-base tracking-wider rounded-full hover:bg-orange-600 transition-colors"
             >
               INFO
             </button>
             <button 
               onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-left px-4 py-2 bg-purple-600 text-white font-bold uppercase text-sm tracking-wide rounded-full hover:bg-purple-700 transition-colors"
+              className="block w-full text-left px-6 py-3 bg-purple-600 text-white font-black uppercase text-base tracking-wider rounded-full hover:bg-purple-700 transition-colors"
             >
               ARCHIVE
             </button>
             <button 
               onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-left px-4 py-2 bg-teal-500 text-white font-bold uppercase text-sm tracking-wide rounded-full hover:bg-teal-600 transition-colors"
+              className="block w-full text-left px-6 py-3 bg-teal-500 text-white font-black uppercase text-base tracking-wider rounded-full hover:bg-teal-600 transition-colors"
             >
               EDITORIAL
             </button>
             <div className="pt-3 border-t border-black">
-              <div className="text-xs font-bold text-black">NEW YORK</div>
-              <div className="text-xs font-bold text-black">{formatTime(currentTime)}</div>
+              <div className="text-sm font-black text-black uppercase tracking-wider">NEW YORK</div>
+              <div className="text-sm font-black text-black uppercase tracking-wider">{formatTime(currentTime)}</div>
             </div>
           </div>
         )}
@@ -93,7 +93,7 @@ export function Navigation({ cities, currentCity }: NavigationProps) {
               onClick={() => setLocation("/")}
               className="hover:opacity-70 transition-opacity"
             >
-              <h1 className="text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tighter leading-none">
+              <h1 className="text-7xl lg:text-8xl xl:text-9xl font-black uppercase tracking-tighter leading-none">
                 THE URBAN MANUAL
               </h1>
             </button>
@@ -104,24 +104,24 @@ export function Navigation({ cities, currentCity }: NavigationProps) {
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setLocation("/")}
-                className="px-4 py-1.5 bg-blue-600 text-white font-bold uppercase text-xs tracking-wide rounded-full hover:bg-blue-700 transition-colors"
+                className="px-6 py-2 bg-blue-600 text-white font-black uppercase text-sm tracking-wider rounded-full hover:bg-blue-700 transition-colors"
               >
                 CATALOGUE
               </button>
-              <button className="px-4 py-1.5 bg-orange-500 text-white font-bold uppercase text-xs tracking-wide rounded-full hover:bg-orange-600 transition-colors">
+              <button className="px-6 py-2 bg-orange-500 text-white font-black uppercase text-sm tracking-wider rounded-full hover:bg-orange-600 transition-colors">
                 INFO
               </button>
-              <button className="px-4 py-1.5 bg-purple-600 text-white font-bold uppercase text-xs tracking-wide rounded-full hover:bg-purple-700 transition-colors">
+              <button className="px-6 py-2 bg-purple-600 text-white font-black uppercase text-sm tracking-wider rounded-full hover:bg-purple-700 transition-colors">
                 ARCHIVE
               </button>
-              <button className="px-4 py-1.5 bg-teal-500 text-white font-bold uppercase text-xs tracking-wide rounded-full hover:bg-teal-600 transition-colors">
+              <button className="px-6 py-2 bg-teal-500 text-white font-black uppercase text-sm tracking-wider rounded-full hover:bg-teal-600 transition-colors">
                 EDITORIAL
               </button>
             </div>
             
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <div className="text-xs font-bold uppercase">NEW YORK {formatTime(currentTime)}</div>
+                <div className="text-sm font-black uppercase tracking-wider">NEW YORK {formatTime(currentTime)}</div>
               </div>
               <UserMenuSupabase />
             </div>
