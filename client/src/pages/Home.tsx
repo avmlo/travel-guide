@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { CookieBanner } from "@/components/CookieBanner";
 import { SearchOverlay } from "@/components/SearchOverlay";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -149,11 +150,7 @@ export default function Home() {
   const displayedCities = showAllCities ? cities : cities.slice(0, 20);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-lg text-gray-400">Loading...</div>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   return (
