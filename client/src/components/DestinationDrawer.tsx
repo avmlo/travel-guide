@@ -14,6 +14,8 @@ interface DestinationDrawerProps {
   destination: Destination | null;
   isOpen: boolean;
   onClose: () => void;
+  isSaved?: boolean;
+  isVisited?: boolean;
 }
 
 export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {

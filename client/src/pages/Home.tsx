@@ -2,18 +2,12 @@ import { useEffect, useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin } from "lucide-react";
+import { Search } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
-import { AIAssistant } from "@/components/AIAssistant";
-import { SmartSearch } from "@/components/SmartSearch";
-import { Navigation } from "@/components/Navigation";
-import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
-import { SEO } from "@/components/SEO";
-import { Breadcrumbs, getHomeBreadcrumbs, getDestinationBreadcrumbs } from "@/components/Breadcrumbs";
-
+import { CookieBanner } from "@/components/CookieBanner";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -21,15 +15,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [displayCount, setDisplayCount] = useState(40);
-  const [aiSearchResults, setAiSearchResults] = useState<string[]>([]);
-  const [isAISearch, setIsAISearch] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showAllCities, setShowAllCities] = useState(false);
-  const [hideVisited, setHideVisited] = useState(false);
-  const [showFavoritesFirst, setShowFavoritesFirst] = useState(false);
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -73,7 +62,6 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-
   useEffect(() => {
     async function loadDestinations() {
       try {
@@ -100,7 +88,7 @@ export default function Home() {
           long: 0,
           myRating: 0,
           reviewed: false,
-          subline: d.description || ''
+          subline: '',
         }));
         
         setDestinations(transformedData);
@@ -116,66 +104,24 @@ export default function Home() {
 
   const cities = useMemo(() => {
     const citySet = new Set(destinations.map((d) => d.city).filter(Boolean));
-    const cityArray = Array.from(citySet);
-    
-    // Sort cities by number of destinations (descending)
-    return cityArray.sort((a, b) => {
-      const countA = destinations.filter(d => d.city === a).length;
-      const countB = destinations.filter(d => d.city === b).length;
-      return countB - countA; // Descending order
-    });
-  }, [destinations]);
-
-  const categories = useMemo(() => {
-    const cats = new Set(destinations.map((d) => d.category).filter(Boolean));
-    const sorted = Array.from(cats).sort();
-    // Move "Other" to the end
-    const otherIndex = sorted.indexOf("Other");
-    if (otherIndex > -1) {
-      sorted.splice(otherIndex, 1);
-      sorted.push("Other");
-    }
-    return sorted;
+    return Array.from(citySet).sort();
   }, [destinations]);
 
   const filteredDestinations = useMemo(() => {
-    let filtered = destinations;
+    return destinations.filter((dest) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dest.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dest.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dest.category.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (isAISearch && aiSearchResults.length > 0) {
-      filtered = destinations.filter((dest) => aiSearchResults.includes(dest.slug));
-    } else {
-      filtered = destinations.filter((dest) => {
-        const matchesSearch =
-          searchQuery === "" ||
-          dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          dest.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          dest.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          dest.category.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCity =
+        !selectedCity || dest.city === selectedCity;
 
-        const matchesCity =
-          !selectedCity || dest.city === selectedCity;
-
-        const matchesCategory =
-          selectedCategory === "all" || dest.category === selectedCategory;
-
-        return matchesSearch && matchesCity && matchesCategory;
-      });
-    }
-
-    // Apply hide visited filter
-    if (hideVisited && visitedPlaces.length > 0) {
-      filtered = filtered.filter((dest) => !visitedPlaces.includes(dest.slug));
-    }
-
-    // Apply favorites first sorting
-    if (showFavoritesFirst && savedPlaces.length > 0) {
-      const favorites = filtered.filter((dest) => savedPlaces.includes(dest.slug));
-      const others = filtered.filter((dest) => !savedPlaces.includes(dest.slug));
-      filtered = [...favorites, ...others];
-    }
-
-    return filtered;
-  }, [destinations, searchQuery, selectedCity, selectedCategory, isAISearch, aiSearchResults, hideVisited, visitedPlaces, showFavoritesFirst, savedPlaces]);
+      return matchesSearch && matchesCity;
+    });
+  }, [destinations, searchQuery, selectedCity]);
 
   const displayedDestinations = filteredDestinations.slice(0, displayCount);
   const hasMore = displayCount < filteredDestinations.length;
@@ -183,187 +129,146 @@ export default function Home() {
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(40);
-  }, [searchQuery, selectedCity, selectedCategory, isAISearch]);
+  }, [searchQuery, selectedCity]);
 
-  const handleAISearchResults = (slugs: string[], explanation: string) => {
-    setAiSearchResults(slugs);
-    setIsAISearch(true);
-    setDisplayCount(40);
+  const handleCardClick = (destination: Destination) => {
+    setSelectedDestination(destination);
+    setIsDrawerOpen(true);
   };
 
-  const handleClearAISearch = () => {
-    setAiSearchResults([]);
-    setIsAISearch(false);
-  };
+  const displayedCities = showAllCities ? cities : cities.slice(0, 50);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-lg text-gray-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      <SEO destination={selectedDestination} />
-      <Navigation cities={cities} />
+    <div className="min-h-screen bg-white">
+      {/* Massive Header */}
+      <header className="px-4 py-8 overflow-hidden">
+        <div className="max-w-[1920px] mx-auto">
+          <h1 className="text-[clamp(48px,10vw,180px)] font-bold uppercase leading-none tracking-tight">
+            The Urban Manual
+          </h1>
+        </div>
+      </header>
 
-      {/* Hero Section */}
-      <section className="py-4 sm:py-6">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
-          
-          {/* Breadcrumbs */}
-          <Breadcrumbs 
-            items={selectedDestination ? getDestinationBreadcrumbs(selectedDestination) : getHomeBreadcrumbs()}
-            destination={selectedDestination}
-          />
-          
-          {/* Search Bar - Urban Manual Square Design */}
-          <div className="mb-12 sm:mb-16">
-            <div className="relative w-full max-w-2xl">
-              <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-600" />
+      {/* Navigation Bar */}
+      <nav className="px-4 border-b border-gray-200">
+        <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
+          <div className="flex items-center gap-6">
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</a>
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Info</a>
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-bold uppercase">New York</span>
+            <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="px-4 py-12">
+        <div className="max-w-[1920px] mx-auto">
+          {/* Search Bar */}
+          <div className="mb-8">
+            <div className="relative max-w-[500px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                type="text"
-                placeholder="Search destinations..."
+                placeholder={`Search ${destinations.length} items...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-16 pr-6 h-16 bg-white border-2 border-black rounded-none text-lg font-medium focus:border-black focus:ring-0 placeholder:text-gray-600"
+                className="pl-10 bg-[#efefef] border-none h-[42px] focus-visible:ring-2 focus-visible:ring-blue-500"
               />
             </div>
           </div>
 
-          {/* Filter Section */}
-          <div className="mb-8 sm:mb-12">
-            <h1 className="text-6xl sm:text-7xl md:text-8xl font-black mb-12 sm:mb-16 uppercase tracking-tight leading-none">PLACES</h1>
-
-
-
-
-
-            {/* City Filter - Urban Manual Typography */}
-            <div>
-              <div className={`flex flex-wrap gap-8 sm:gap-12 ${!showAllCities ? 'max-h-[56px] overflow-hidden' : ''}`}>
+          {/* City Filter */}
+          <div className="mb-8">
+            <div className="mb-3">
+              <h2 className="text-xs font-bold uppercase">Places</h2>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+              <button
+                onClick={() => setSelectedCity("")}
+                className={`transition-colors ${
+                  !selectedCity ? "font-medium text-black" : "font-medium text-black/30 hover:text-black/60"
+                }`}
+              >
+                All
+              </button>
+              {displayedCities.map((city) => (
                 <button
-                  onClick={() => setSelectedCity("")}
-                  className={`text-lg font-bold transition-all uppercase tracking-wider ${
-                    !selectedCity 
-                      ? "text-black" 
-                      : "text-gray-600 hover:text-black"
+                  key={city}
+                  onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
+                  className={`transition-colors ${
+                    selectedCity === city ? "font-medium text-black" : "font-medium text-black/30 hover:text-black/60"
                   }`}
                 >
-                  all
+                  {city}
                 </button>
-                {cities.map((city) => {
-                  const count = destinations.filter(d => d.city === city).length;
-                  return (
-                    <button
-                      key={city}
-                      onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                      className={`text-lg font-bold transition-all uppercase tracking-wider ${
-                        selectedCity === city 
-                          ? "text-black" 
-                          : "text-gray-600 hover:text-black"
-                      }`}
-                    >
-                      {city}
-                    </button>
-                  );
-                })}
-              </div>
-              {cities.length > 10 && (
+              ))}
+              {cities.length > 50 && (
                 <button
                   onClick={() => setShowAllCities(!showAllCities)}
-                  className="mt-8 text-base font-bold text-gray-600 hover:text-black transition-colors uppercase tracking-wider"
-                >  
-                  {showAllCities ? '− Show Less' : '+ Show More'}
+                  className="font-medium text-black/30 hover:text-black/60 transition-colors"
+                >
+                  {showAllCities ? '- Show Less' : '+ Show More'}
                 </button>
               )}
             </div>
-
-            {/* User Filters - Urban Manual Style */}
-            {user && (savedPlaces.length > 0 || visitedPlaces.length > 0) && (
-              <div className="mt-12 flex flex-wrap gap-6">
-                {savedPlaces.length > 0 && (
-                  <button
-                    onClick={() => setShowFavoritesFirst(!showFavoritesFirst)}
-                    className={`px-6 py-3 border-2 border-black text-base font-bold transition-all inline-flex items-center gap-3 uppercase tracking-wider ${
-                      showFavoritesFirst
-                        ? "bg-black text-white"
-                        : "bg-white text-black hover:bg-black hover:text-white"
-                    }`}
-                  >
-                    <span>❤️</span>
-                    <span>{showFavoritesFirst ? 'Favorites First' : 'Show Favorites First'}</span>
-                  </button>
-                )}
-                {visitedPlaces.length > 0 && (
-                  <button
-                    onClick={() => setHideVisited(!hideVisited)}
-                    className={`px-6 py-3 border-2 border-black text-base font-bold transition-all inline-flex items-center gap-3 uppercase tracking-wider ${
-                      hideVisited
-                        ? "bg-black text-white"
-                        : "bg-white text-black hover:bg-black hover:text-white"
-                    }`}
-                  >
-                    <span>✓</span>
-                    <span>{hideVisited ? 'Visited Hidden' : 'Hide Visited'}</span>
-                  </button>
-                )}
-              </div>
-            )}
           </div>
-        </div>
-      </section>
 
-      {/* Main Content */}
-      <section className="pb-12 sm:pb-16">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
-          <div className="mb-12">
-            <p className="text-lg text-gray-600 font-bold uppercase tracking-wider">
+          {/* Results Count */}
+          <div className="mb-6">
+            <p className="text-sm text-gray-500">
               {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
             </p>
           </div>
 
+          {/* Destination Grid */}
           {filteredDestinations.length === 0 ? (
-            <div className="text-center py-24">
-              <p className="text-2xl text-gray-600 mb-12 font-bold uppercase tracking-wider">
+            <div className="text-center py-20">
+              <p className="text-xl text-gray-400 mb-6">
                 No destinations found.
               </p>
               <Button
                 onClick={() => {
                   setSearchQuery("");
-                  setSelectedCategory("all");
                   setSelectedCity("");
                 }}
-                className="px-12 py-4 bg-black text-white hover:bg-gray-800 rounded-none border-2 border-black font-bold uppercase tracking-wider text-lg"
               >
                 Clear filters
               </Button>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6 sm:gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                 {displayedDestinations.map((destination, index) => (
                   <DestinationCard
                     key={destination.slug}
                     destination={destination}
                     colorIndex={index}
-                    onClick={() => {
-                      setSelectedDestination(destination);
-                      setIsDrawerOpen(true);
-                    }}
+                    onClick={() => handleCardClick(destination)}
+                    isSaved={savedPlaces.includes(destination.slug)}
+                    isVisited={visitedPlaces.includes(destination.slug)}
                   />
                 ))}
               </div>
               
               {hasMore && (
-                <div className="flex justify-center mt-16 sm:mt-20">
+                <div className="flex justify-center mt-12">
                   <Button
                     onClick={() => setDisplayCount(prev => prev + 40)}
                     size="lg"
-                    variant="outline"
-                    className="px-12 py-4 border-2 border-black hover:bg-black hover:text-white rounded-none font-bold uppercase tracking-wider text-lg"
+                    variant="default"
+                    className="px-12 py-6 bg-black text-white hover:bg-gray-800 text-sm font-medium"
                   >
                     Load More
                   </Button>
@@ -372,15 +277,40 @@ export default function Home() {
             </>
           )}
         </div>
-      </section>
+      </main>
 
-      <AIAssistant destinations={destinations} />
-      <DestinationDrawer 
-        destination={selectedDestination}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
-      <Footer />
+      {/* Footer */}
+      <footer className="border-t border-gray-200 py-8 mt-20">
+        <div className="max-w-[1920px] mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6 text-xs">
+              <a href="#" className="hover:underline">INSTAGRAM</a>
+              <a href="#" className="hover:underline">TWITTER</a>
+              <a href="#" className="hover:underline">SAVEE</a>
+            </div>
+            <div className="text-xs">
+              © {new Date().getFullYear()} ALL RIGHTS RESERVED
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Cookie Banner */}
+      <CookieBanner />
+
+      {/* Destination Drawer */}
+      {selectedDestination && (
+        <DestinationDrawer
+          destination={selectedDestination}
+          isOpen={isDrawerOpen}
+          onClose={() => {
+            setIsDrawerOpen(false);
+            setSelectedDestination(null);
+          }}
+          isSaved={savedPlaces.includes(selectedDestination.slug)}
+          isVisited={visitedPlaces.includes(selectedDestination.slug)}
+        />
+      )}
     </div>
   );
 }
