@@ -155,36 +155,39 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Massive Header */}
-      <header className="px-6 md:px-10 py-6 overflow-hidden border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between">
-          <h1 className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight">
-            The Urban Manual
-          </h1>
-          <button 
-            onClick={() => setLocation('/account')}
-            className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black"
-          >
-            {user ? 'Account' : 'Sign In'}
-          </button>
+      {/* Header - Magazine Style */}
+      <header className="border-b border-gray-200">
+        {/* Title Bar */}
+        <div className="px-6 md:px-10 py-4">
+          <div className="max-w-[1920px] mx-auto">
+            <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight">
+              The Urban Manual
+            </h1>
+          </div>
+        </div>
+        
+        {/* Navigation Bar - Closer to Title */}
+        <div className="px-6 md:px-10 border-t border-gray-200">
+          <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
+            <div className="flex items-center gap-6">
+              <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase text-black">Catalogue</button>
+              <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
+              <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
+              <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-bold uppercase">New York</span>
+              <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+              <button 
+                onClick={() => setLocation('/account')}
+                className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+              >
+                {user ? 'Account' : 'Sign In'}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
-
-      {/* Navigation Bar */}
-      <nav className="px-6 md:px-10 border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
-          <div className="flex items-center gap-6">
-            <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase text-black">Catalogue</button>
-            <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-bold uppercase">New York</span>
-            <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-          </div>
-        </div>
-      </nav>
 
       {/* Main Content */}
       <main className="px-6 md:px-10 py-12">
