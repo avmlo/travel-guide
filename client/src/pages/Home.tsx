@@ -228,14 +228,14 @@ export default function Home() {
                 placeholder="Search 897 items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-gray-100 border-none rounded-lg text-sm"
+                className="pl-10 bg-white border-2 border-pink-300 rounded-lg text-sm font-medium focus:border-pink-400 focus:ring-0"
               />
             </div>
           </div>
 
           {/* Filter Section */}
           <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">Places</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4 sm:mb-6 uppercase">PLACES</h1>
 
 
 
@@ -246,13 +246,13 @@ export default function Home() {
               <div className={`flex flex-wrap gap-1.5 sm:gap-2 ${!showAllCities ? 'max-h-[72px] overflow-hidden' : ''}`}>
                 <button
                   onClick={() => setSelectedCity("")}
-                  className={`px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-medium transition-all ${
+                  className={`text-xs font-medium transition-all lowercase ${
                     !selectedCity 
-                      ? "bg-black text-white" 
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "text-black font-bold underline" 
+                      : "text-gray-500 hover:text-black"
                   }`}
                 >
-                  All
+                  all
                 </button>
                 {cities.map((city) => {
                   const count = destinations.filter(d => d.city === city).length;
@@ -260,20 +260,13 @@ export default function Home() {
                     <button
                       key={city}
                       onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                      className={`px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] sm:text-xs font-medium transition-all capitalize inline-flex items-center gap-1 sm:gap-1.5 ${
+                      className={`text-xs font-medium transition-all lowercase ${
                         selectedCity === city 
-                          ? "bg-black text-white" 
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          ? "text-black font-bold underline" 
+                          : "text-gray-500 hover:text-black"
                       }`}
                     >
-                      <span className="truncate max-w-[80px] sm:max-w-none">{city}</span>
-                      <span className={`text-[10px] px-1 sm:px-1.5 py-0.5 rounded flex-shrink-0 ${
-                        selectedCity === city
-                          ? "bg-white/20"
-                          : "bg-gray-200"
-                      }`}>
-                        {count}
-                      </span>
+                      {city}
                     </button>
                   );
                 })}
