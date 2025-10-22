@@ -20,6 +20,7 @@ import Explore from "./pages/Explore";
 import Privacy from "./pages/Privacy";
 import Brand from "./pages/Brand";
 import Designer from "./pages/Designer";
+import DestinationShowcase from "./pages/DestinationShowcase";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/brand/:slug" component={Brand} />
       <Route path="/designer/:slug" component={Designer} />
+      <Route path="/showcase/:slug" component={DestinationShowcase} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
