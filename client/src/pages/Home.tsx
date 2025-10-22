@@ -219,36 +219,36 @@ export default function Home() {
             destination={selectedDestination}
           />
           
-          {/* Search Bar */}
-          <div className="mb-4 sm:mb-6">
-            <div className="relative w-full sm:max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          {/* Search Bar - Square Design */}
+          <div className="mb-8 sm:mb-12">
+            <div className="relative w-full max-w-lg">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
               <Input
                 type="text"
-                placeholder="Search 897 items..."
+                placeholder="Search destinations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white border-2 border-pink-300 rounded-lg text-sm font-medium focus:border-pink-400 focus:ring-0"
+                className="pl-12 pr-4 h-14 bg-white border-2 border-black rounded-none text-base font-medium focus:border-black focus:ring-0 placeholder:text-gray-500"
               />
             </div>
           </div>
 
           {/* Filter Section */}
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4 sm:mb-6 uppercase">PLACES</h1>
+          <div className="mb-8 sm:mb-12">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-8 sm:mb-12 uppercase tracking-tight">PLACES</h1>
 
 
 
 
 
-            {/* City Filter - Pill Style with Counts */}
+            {/* City Filter - Clean Typography */}
             <div>
-              <div className={`flex flex-wrap gap-1.5 sm:gap-2 ${!showAllCities ? 'max-h-[72px] overflow-hidden' : ''}`}>
+              <div className={`flex flex-wrap gap-6 sm:gap-8 ${!showAllCities ? 'max-h-[48px] overflow-hidden' : ''}`}>
                 <button
                   onClick={() => setSelectedCity("")}
-                  className={`text-xs font-medium transition-all lowercase ${
+                  className={`text-sm font-medium transition-all uppercase tracking-wide ${
                     !selectedCity 
-                      ? "text-black font-bold underline" 
+                      ? "text-black font-bold" 
                       : "text-gray-500 hover:text-black"
                   }`}
                 >
@@ -260,9 +260,9 @@ export default function Home() {
                     <button
                       key={city}
                       onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                      className={`text-xs font-medium transition-all lowercase ${
+                      className={`text-sm font-medium transition-all uppercase tracking-wide ${
                         selectedCity === city 
-                          ? "text-black font-bold underline" 
+                          ? "text-black font-bold" 
                           : "text-gray-500 hover:text-black"
                       }`}
                     >
@@ -274,7 +274,7 @@ export default function Home() {
               {cities.length > 10 && (
                 <button
                   onClick={() => setShowAllCities(!showAllCities)}
-                  className="mt-3 text-xs font-medium text-gray-600 hover:text-black transition-colors"
+                  className="mt-6 text-sm font-medium text-gray-600 hover:text-black transition-colors uppercase tracking-wide"
                 >  
                   {showAllCities ? '− Show Less' : '+ Show More'}
                 </button>
@@ -283,14 +283,14 @@ export default function Home() {
 
             {/* User Filters - Only show if logged in */}
             {user && (savedPlaces.length > 0 || visitedPlaces.length > 0) && (
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-8 flex flex-wrap gap-4">
                 {savedPlaces.length > 0 && (
                   <button
                     onClick={() => setShowFavoritesFirst(!showFavoritesFirst)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all inline-flex items-center gap-1.5 ${
+                    className={`px-4 py-2 border-2 border-black text-sm font-medium transition-all inline-flex items-center gap-2 uppercase tracking-wide ${
                       showFavoritesFirst
-                        ? "bg-pink-100 text-pink-700 border border-pink-300"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "bg-black text-white"
+                        : "bg-white text-black hover:bg-black hover:text-white"
                     }`}
                   >
                     <span>❤️</span>
@@ -300,10 +300,10 @@ export default function Home() {
                 {visitedPlaces.length > 0 && (
                   <button
                     onClick={() => setHideVisited(!hideVisited)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all inline-flex items-center gap-1.5 ${
+                    className={`px-4 py-2 border-2 border-black text-sm font-medium transition-all inline-flex items-center gap-2 uppercase tracking-wide ${
                       hideVisited
-                        ? "bg-green-100 text-green-700 border border-green-300"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "bg-black text-white"
+                        : "bg-white text-black hover:bg-black hover:text-white"
                     }`}
                   >
                     <span>✓</span>
@@ -317,17 +317,17 @@ export default function Home() {
       </section>
 
       {/* Main Content */}
-      <section className="pb-8 sm:pb-12">
+      <section className="pb-12 sm:pb-16">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
-          <div className="mb-4">
-            <p className="text-sm text-gray-500">
+          <div className="mb-8">
+            <p className="text-sm text-gray-600 font-medium uppercase tracking-wide">
               {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
             </p>
           </div>
 
           {filteredDestinations.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-xl text-gray-400 mb-6">
+              <p className="text-xl text-gray-600 mb-8 font-medium">
                 No destinations found.
               </p>
               <Button
@@ -336,13 +336,14 @@ export default function Home() {
                   setSelectedCategory("all");
                   setSelectedCity("");
                 }}
+                className="px-8 py-3 bg-black text-white hover:bg-gray-800 rounded-none border-2 border-black font-medium uppercase tracking-wide"
               >
                 Clear filters
               </Button>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 sm:gap-6">
                 {displayedDestinations.map((destination, index) => (
                   <DestinationCard
                     key={destination.slug}
@@ -357,12 +358,12 @@ export default function Home() {
               </div>
               
               {hasMore && (
-                <div className="flex justify-center mt-8 sm:mt-12">
+                <div className="flex justify-center mt-12 sm:mt-16">
                   <Button
                     onClick={() => setDisplayCount(prev => prev + 40)}
                     size="lg"
                     variant="outline"
-                    className="px-8 border-gray-300 hover:bg-gray-50"
+                    className="px-8 py-3 border-2 border-black hover:bg-black hover:text-white rounded-none font-medium uppercase tracking-wide"
                   >
                     Load More
                   </Button>

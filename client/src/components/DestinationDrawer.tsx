@@ -161,29 +161,29 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
       {/* Drawer */}
       <div 
-        className={`fixed right-0 top-0 h-full w-full sm:w-[85%] md:w-2/3 lg:w-1/2 bg-[#f5f3f0] z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
+        className={`fixed right-0 top-0 h-full w-full sm:w-[85%] md:w-2/3 lg:w-1/2 bg-white z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header Buttons */}
-        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 flex gap-2">
+        <div className="absolute top-6 right-6 z-10 flex gap-3">
           {/* Share Button */}
           <button
             onClick={handleShare}
-            className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+            className="w-12 h-12 border-2 border-black bg-white flex items-center justify-center hover:bg-black hover:text-white transition-colors"
             title="Share destination"
           >
             {copied ? (
-              <Check className="h-5 w-5 text-green-600" />
+              <Check className="h-5 w-5" />
             ) : (
-              <Share2 className="h-5 w-5 text-gray-700" />
+              <Share2 className="h-5 w-5" />
             )}
           </button>
           
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+            className="w-12 h-12 border-2 border-black bg-white flex items-center justify-center hover:bg-black hover:text-white transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -191,7 +191,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
         {/* Image */}
         {destination.mainImage && (
-          <div className="relative h-64 sm:h-80 md:h-96 w-full overflow-hidden">
+          <div className="relative h-80 sm:h-96 md:h-[28rem] w-full overflow-hidden">
             <img 
               src={destination.mainImage} 
               alt={`${destination.name} in ${destination.city} - ${destination.category}`}
@@ -202,35 +202,35 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         )}
 
         {/* Content */}
-        <div className="p-6 sm:p-8 md:p-12">
+        <div className="p-8 sm:p-12 md:p-16">
           {/* Header with new design */}
-          <div className="mb-8">
+          <div className="mb-12">
             {/* Title */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl mb-6 leading-tight">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl mb-8 leading-tight font-black">
               {destination.name}
             </h1>
             
             {/* Pills and Michelin Stars */}
-            <div className="flex flex-wrap items-center gap-3">
-              {/* City Pill - Yellow/Beige */}
-              <span className="inline-flex items-center px-6 py-2 rounded-full bg-[#E8D5B7] text-black text-sm font-medium uppercase tracking-wide" style={{ fontFamily: '"Sono", monospace' }}>
+            <div className="flex flex-wrap items-center gap-4">
+              {/* City Pill - Black Border */}
+              <span className="inline-flex items-center px-6 py-3 border-2 border-black bg-white text-black text-sm font-bold uppercase tracking-wide">
                 {destination.city}
               </span>
               
-              {/* Category Pill - Light Blue */}
-              <span className="inline-flex items-center px-6 py-2 rounded-full bg-[#B8D8E8] text-black text-sm font-medium uppercase tracking-wide" style={{ fontFamily: '"Sono", monospace' }}>
+              {/* Category Pill - Black Border */}
+              <span className="inline-flex items-center px-6 py-3 border-2 border-black bg-white text-black text-sm font-bold uppercase tracking-wide">
                 {destination.category}
               </span>
               
-              {/* Michelin Stars - Red Flower Icons */}
+              {/* Michelin Stars - Black Border */}
               {destination.michelinStars && destination.michelinStars > 0 && (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2 border-2 border-black bg-white px-4 py-3">
                   {[...Array(destination.michelinStars)].map((_, i) => (
                     <img 
                       key={i}
                       src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
                       alt={`Michelin Star ${i + 1}`}
-                      className="h-6 w-6"
+                      className="h-5 w-5"
                       loading="lazy"
                     />
                   ))}
@@ -241,8 +241,8 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
           {/* Subline */}
           {destination.subline && (
-            <div className="mb-8">
-              <p className="text-lg text-gray-700 leading-relaxed italic" style={{ fontFamily: '"EB Garamond", serif' }}>
+            <div className="mb-12">
+              <p className="text-xl text-gray-700 leading-relaxed font-medium">
                 {destination.subline.replace(/<[^>]*>/g, '')}
               </p>
             </div>
@@ -250,24 +250,24 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
           {/* Content */}
           {destination.content && (
-            <div className="mb-8 prose prose-gray max-w-none">
-              <div className="text-gray-600 leading-relaxed whitespace-pre-line" style={{ fontFamily: '"EB Garamond", serif' }}>
+            <div className="mb-12 prose prose-gray max-w-none">
+              <div className="text-gray-600 leading-relaxed whitespace-pre-line text-lg">
                 {destination.content.replace(/<[^>]*>/g, '')}
               </div>
             </div>
           )}
 
           {/* Actions */}
-          <div className="pt-6 border-t border-gray-300 space-y-4">
+          <div className="pt-8 border-t-2 border-black space-y-6">
             {!showVisitedForm ? (
-              <div className="flex gap-3">
-                <Button className="flex-1 bg-black hover:bg-gray-800 text-white" size="lg">
+              <div className="flex gap-4">
+                <Button className="flex-1 bg-black hover:bg-gray-800 text-white h-14 text-base font-bold uppercase tracking-wide rounded-none" size="lg">
                   Save Place
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="flex-1 border-2 border-black hover:bg-black hover:text-white"
+                  className="flex-1 border-2 border-black hover:bg-black hover:text-white h-14 text-base font-bold uppercase tracking-wide rounded-none"
                   onClick={handleQuickMarkAsVisited}
                   disabled={saving || isVisited}
                 >
@@ -275,13 +275,13 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4 p-6 bg-white rounded-lg border border-gray-300">
-                <h3 className="font-semibold text-lg">
+              <div className="space-y-6 p-8 bg-gray-50 border-2 border-black">
+                <h3 className="font-bold text-xl uppercase tracking-wide">
                   {isVisited ? "Update Visit Details (Optional)" : "Add Visit Details"}
                 </h3>
                 
                 <div>
-                  <Label htmlFor="visit-date" className="flex items-center gap-2">
+                  <Label htmlFor="visit-date" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
                     <Calendar className="h-4 w-4" />
                     Visit Date (optional)
                   </Label>
@@ -290,24 +290,24 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                     type="date"
                     value={visitDate}
                     onChange={(e) => setVisitDate(e.target.value)}
-                    className="mt-1 bg-white"
+                    className="mt-2 bg-white border-2 border-black rounded-none h-12"
                   />
                 </div>
 
                 <div>
-                  <Label className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
                     <Star className="h-4 w-4" />
                     Rating (optional)
                   </Label>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-3 mt-2">
                     {[1, 2, 3, 4, 5].map((r) => (
                       <button
                         key={r}
                         onClick={() => setRating(r)}
-                        className={`w-10 h-10 rounded-full border-2 transition-all ${
+                        className={`w-12 h-12 border-2 transition-all ${
                           r <= rating
-                            ? "bg-yellow-400 border-yellow-500 text-white"
-                            : "bg-white border-gray-300 text-gray-400"
+                            ? "bg-black border-black text-white"
+                            : "bg-white border-black text-gray-400 hover:bg-black hover:text-white"
                         }`}
                       >
                         <Star className={`h-5 w-5 mx-auto ${
@@ -319,7 +319,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                 </div>
 
                 <div>
-                  <Label htmlFor="notes" className="flex items-center gap-2">
+                  <Label htmlFor="notes" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
                     <StickyNote className="h-4 w-4" />
                     Notes (optional)
                   </Label>
@@ -329,15 +329,15 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Share your experience..."
                     rows={3}
-                    className="mt-1 bg-white"
+                    className="mt-2 bg-white border-2 border-black rounded-none"
                   />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-4">
                   <Button 
                     onClick={handleUpdateVisitDetails}
                     disabled={saving}
-                    className="flex-1 bg-black hover:bg-gray-800 text-white"
+                    className="flex-1 bg-black hover:bg-gray-800 text-white h-12 font-bold uppercase tracking-wide rounded-none"
                   >
                     {saving ? "Saving..." : "Update Details"}
                   </Button>
@@ -345,7 +345,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                     variant="outline"
                     onClick={() => setShowVisitedForm(false)}
                     disabled={saving}
-                    className="border-2 border-black hover:bg-black hover:text-white"
+                    className="border-2 border-black hover:bg-black hover:text-white h-12 font-bold uppercase tracking-wide rounded-none"
                   >
                     Cancel
                   </Button>
@@ -364,27 +364,27 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           />
 
           {/* Google Map & Location */}
-          <div className="mt-8 pt-8 border-t border-gray-300">
-            <h3 className="text-lg font-semibold mb-4">Location & Map</h3>
+          <div className="mt-12 pt-8 border-t-2 border-black">
+            <h3 className="text-xl font-bold mb-6 uppercase tracking-wide">Location & Map</h3>
             <GoogleMap destination={destination} />
           </div>
 
           {/* Additional Info */}
-          <div className="mt-8 pt-8 border-t border-gray-300">
-            <h3 className="font-semibold text-lg mb-4">Details</h3>
-            <div className="space-y-3 text-sm text-gray-600">
+          <div className="mt-12 pt-8 border-t-2 border-black">
+            <h3 className="font-bold text-xl mb-6 uppercase tracking-wide">Details</h3>
+            <div className="space-y-4 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Category</span>
-                <span className="font-medium capitalize">{destination.category}</span>
+                <span className="text-gray-600 font-medium uppercase tracking-wide">Category</span>
+                <span className="font-bold uppercase tracking-wide">{destination.category}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Location</span>
-                <span className="font-medium capitalize">{destination.city}</span>
+                <span className="text-gray-600 font-medium uppercase tracking-wide">Location</span>
+                <span className="font-bold uppercase tracking-wide">{destination.city}</span>
               </div>
               {destination.crown && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Featured</span>
-                  <span className="font-medium">👑 Crown Selection</span>
+                  <span className="text-gray-600 font-medium uppercase tracking-wide">Featured</span>
+                  <span className="font-bold">👑 Crown Selection</span>
                 </div>
               )}
             </div>
