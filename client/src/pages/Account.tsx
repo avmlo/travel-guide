@@ -36,7 +36,7 @@ interface VisitedPlace {
     city: string;
     category: string;
     image: string;
-  };
+  } | null;
 }
 
 export default function Account() {
@@ -102,51 +102,67 @@ export default function Account() {
 
       // Load saved places
       const { data: savedData } = await supabase
-        .from('saved_places')
-        .select(`
-          destination_slug,
-          destinations:destination_id (
-            name,
-            city,
-            category,
-            image
-          )
-        `)
+        .from('saved_destinations')
+        .select('destination_slug')
         .eq('user_id', session.user.id);
 
       if (savedData) {
-        setSavedPlaces(savedData.map((item: any) => ({
-          destination_slug: item.destination_slug,
-          destination: item.destinations
-        })));
+        // Fetch destination details
+        const slugs = savedData.map(item => item.destination_slug);
+        if (slugs.length > 0) {
+          const { data: destData } = await supabase
+            .from('destinations')
+            .select('slug, name, city, category, image')
+            .in('slug', slugs);
+          
+          if (destData) {
+            setSavedPlaces(destData.map((dest: any) => ({
+              destination_slug: dest.slug,
+              destination: {
+                name: dest.name,
+                city: dest.city,
+                category: dest.category,
+                image: dest.image
+              }
+            })));
+          }
+        }
       }
 
       // Load visited places
       const { data: visitedData } = await supabase
-        .from('visited_places')
-        .select(`
-          destination_slug,
-          visited_date,
-          rating,
-          notes,
-          destinations:destination_id (
-            name,
-            city,
-            category,
-            image
-          )
-        `)
+        .from('visited_destinations')
+        .select('destination_slug, visited_date, rating, notes')
         .eq('user_id', session.user.id)
         .order('visited_date', { ascending: false });
 
       if (visitedData) {
-        setVisitedPlaces(visitedData.map((item: any) => ({
-          destination_slug: item.destination_slug,
-          visited_date: item.visited_date,
-          rating: item.rating,
-          notes: item.notes,
-          destination: item.destinations
-        })));
+        // Fetch destination details
+        const slugs = visitedData.map(item => item.destination_slug);
+        if (slugs.length > 0) {
+          const { data: destData } = await supabase
+            .from('destinations')
+            .select('slug, name, city, category, image')
+            .in('slug', slugs);
+          
+          if (destData) {
+            setVisitedPlaces(visitedData.map((item: any) => {
+              const dest = destData.find((d: any) => d.slug === item.destination_slug);
+              return {
+                destination_slug: item.destination_slug,
+                visited_date: item.visited_date,
+                rating: item.rating,
+                notes: item.notes,
+                destination: dest ? {
+                  name: dest.name,
+                  city: dest.city,
+                  category: dest.category,
+                  image: dest.image
+                } : null
+              };
+            }).filter(item => item.destination !== null));
+          }
+        }
       }
 
       setLoading(false);
@@ -170,12 +186,12 @@ export default function Account() {
 
   const uniqueCities = new Set([
     ...savedPlaces.map(p => p.destination.city),
-    ...visitedPlaces.map(p => p.destination.city)
+    ...visitedPlaces.filter(p => p.destination).map(p => p.destination!.city)
   ]);
 
   const uniqueCountries = new Set([
     ...savedPlaces.map(p => p.destination.city),
-    ...visitedPlaces.map(p => p.destination.city)
+    ...visitedPlaces.filter(p => p.destination).map(p => p.destination!.city)
   ].map(city => {
     // Simple country mapping for major cities
     const cityCountryMap: Record<string, string> = {
@@ -301,35 +317,37 @@ export default function Account() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                   {visitedPlaces.map((place) => (
-                    <button
-                      key={place.destination_slug}
-                      onClick={() => handleCardClick(place.destination_slug)}
-                      className="group text-left"
-                    >
-                      <div className="aspect-[4/3] bg-gray-100 mb-3 overflow-hidden relative">
-                        {place.destination.image && (
-                          <img
-                            src={place.destination.image}
-                            alt={place.destination.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                        )}
-                        {place.visited_date && (
-                          <div className="absolute bottom-2 left-2 bg-white px-2 py-1 text-xs">
-                            {new Date(place.visited_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    place.destination && (
+                      <button
+                        key={place.destination_slug}
+                        onClick={() => handleCardClick(place.destination_slug)}
+                        className="group text-left"
+                      >
+                        <div className="aspect-[4/3] bg-gray-100 mb-3 overflow-hidden relative">
+                          {place.destination.image && (
+                            <img
+                              src={place.destination.image}
+                              alt={place.destination.name}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                          )}
+                          {place.visited_date && (
+                            <div className="absolute bottom-2 left-2 bg-white px-2 py-1 text-xs">
+                              {new Date(place.visited_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="font-medium text-sm mb-1 line-clamp-2">{place.destination.name}</h3>
+                        <p className="text-xs text-gray-600">{capitalizeCity(place.destination.city)}</p>
+                        {place.rating > 0 && (
+                          <div className="flex gap-0.5 mt-1">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className={`text-xs ${i < place.rating ? 'text-black' : 'text-gray-300'}`}>★</span>
+                            ))}
                           </div>
                         )}
-                      </div>
-                      <h3 className="font-medium text-sm mb-1 line-clamp-2">{place.destination.name}</h3>
-                      <p className="text-xs text-gray-600">{capitalizeCity(place.destination.city)}</p>
-                      {place.rating > 0 && (
-                        <div className="flex gap-0.5 mt-1">
-                          {[...Array(5)].map((_, i) => (
-                            <span key={i} className={`text-xs ${i < place.rating ? 'text-black' : 'text-gray-300'}`}>★</span>
-                          ))}
-                        </div>
-                      )}
-                    </button>
+                      </button>
+                    )
                   ))}
                 </div>
               )}

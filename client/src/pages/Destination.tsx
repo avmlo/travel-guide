@@ -231,6 +231,38 @@ export default function Destination() {
               <div className="text-base">{capitalizeCity(destination.city)}</div>
             </div>
 
+            {/* Brand */}
+            {destination.brand && (
+              <div>
+                <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
+                  Brand
+                </div>
+                <button
+                  onClick={() => setLocation(`/brand/${destination.brand}`)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-sm font-medium transition-colors"
+                >
+                  <span>🏷️</span>
+                  {destination.brand.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                </button>
+              </div>
+            )}
+
+            {/* Designer */}
+            {destination.designer && (
+              <div>
+                <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
+                  Designer
+                </div>
+                <button
+                  onClick={() => setLocation(`/designer/${destination.designer}`)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 hover:bg-purple-200 rounded-full text-sm font-medium transition-colors"
+                >
+                  <span>🎨</span>
+                  {destination.designer.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                </button>
+              </div>
+            )}
+
             {/* Michelin Stars */}
             {destination.michelinStars > 0 && (
               <div>

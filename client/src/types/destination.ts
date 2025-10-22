@@ -1,6 +1,7 @@
 export interface Destination {
   name: string;
   brand: string;
+  designer?: string;
   cardTags: string;
   category: string;
   city: string;
