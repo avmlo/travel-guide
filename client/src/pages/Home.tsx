@@ -8,6 +8,7 @@ import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { CookieBanner } from "@/components/CookieBanner";
+import { SearchOverlay } from "@/components/SearchOverlay";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -30,6 +31,7 @@ export default function Home() {
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Load user's saved and visited places
   useEffect(() => {
@@ -192,15 +194,15 @@ export default function Home() {
         <div className="max-w-[1920px] mx-auto">
           {/* Search Bar */}
           <div className="mb-8">
-            <div className="relative max-w-[500px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder={`Search ${destinations.length} items...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-[#efefef] border-none h-[42px] focus-visible:ring-2 focus-visible:ring-blue-500"
-              />
-            </div>
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="relative max-w-[500px] w-full text-left"
+            >
+              <div className="flex items-center gap-3 px-4 py-3 bg-[#efefef] rounded-lg hover:bg-gray-200 transition-colors">
+                <Search className="h-4 w-4 text-gray-400" />
+                <span className="text-gray-500">Search {destinations.length} items...</span>
+              </div>
+            </button>
           </div>
 
           {/* City Filter */}
@@ -311,6 +313,17 @@ export default function Home() {
 
       {/* Cookie Banner */}
       <CookieBanner />
+
+      {/* Search Overlay */}
+      <SearchOverlay
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        destinations={destinations}
+        onSelectDestination={(dest) => {
+          setSelectedDestination(dest);
+          setIsDrawerOpen(true);
+        }}
+      />
 
       {/* Destination Drawer */}
       {selectedDestination && (
