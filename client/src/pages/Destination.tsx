@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { Navigation, Heart, CheckCircle2, Share2 } from "lucide-react";
 import { GoogleMap } from "@/components/GoogleMap";
+import { ReviewsList } from "@/components/ReviewsList";
 import { toast } from "sonner";
 
 // Helper function to capitalize city names
@@ -361,6 +362,16 @@ export default function Destination() {
             Location
           </h2>
           <GoogleMap destination={destination} />
+        </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="px-8 sm:px-12 lg:px-16 py-24 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <ReviewsList
+            destinationSlug={destination.slug}
+            destinationName={destination.name}
+          />
         </div>
       </div>
 

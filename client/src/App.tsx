@@ -15,6 +15,8 @@ import Account from "./pages/Account";
 import Profile from "./pages/Profile";
 import Lists from "./pages/Lists";
 import ListDetail from "./pages/ListDetail";
+import Feed from "./pages/Feed";
+import Explore from "./pages/Explore";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -31,6 +33,8 @@ function Router() {
       <Route path="/user/:username" component={Profile} />
       <Route path="/lists" component={Lists} />
       <Route path="/list/:id" component={ListDetail} />
+      <Route path="/feed" component={Feed} />
+      <Route path="/explore" component={Explore} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

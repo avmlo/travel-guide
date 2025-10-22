@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 export function Header() {
   const [, setLocation] = useLocation();
@@ -47,12 +48,15 @@ export function Header() {
           <div className="flex items-center gap-6">
             <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
             <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
+            <button onClick={() => setLocation("/explore")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Explore</button>
+            {user && <button onClick={() => setLocation("/feed")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Feed</button>}
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-xs font-bold uppercase">New York</span>
             <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+            {user && <NotificationDropdown />}
             {user ? (
               <button 
                 onClick={handleSignOut}

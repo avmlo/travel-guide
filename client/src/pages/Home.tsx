@@ -12,6 +12,7 @@ import { SearchOverlay } from "@/components/SearchOverlay";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
+import { SimplifiedAIAssistant } from "@/components/SimplifiedAIAssistant";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -292,6 +293,9 @@ export default function Home() {
           }}
         />
       )}
+
+      {/* AI Assistant */}
+      <SimplifiedAIAssistant />
     </div>
   );
 }
