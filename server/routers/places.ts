@@ -25,6 +25,16 @@ interface PlaceDetails {
     };
   };
   url?: string;
+  editorial_summary?: {
+    overview?: string;
+    language?: string;
+  };
+  reviews?: Array<{
+    author_name: string;
+    rating: number;
+    text: string;
+    time: number;
+  }>;
 }
 
 // Search for a place by name and city
@@ -63,7 +73,7 @@ router.get("/api/places/search", async (req, res) => {
     const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json`;
     const detailsParams = {
       place_id: placeId,
-      fields: 'name,formatted_address,formatted_phone_number,international_phone_number,website,opening_hours,rating,user_ratings_total,price_level,geometry,url',
+      fields: 'name,formatted_address,formatted_phone_number,international_phone_number,website,opening_hours,rating,user_ratings_total,price_level,geometry,url,editorial_summary,reviews',
       key: GOOGLE_PLACES_API_KEY,
     };
 
@@ -87,6 +97,8 @@ router.get("/api/places/search", async (req, res) => {
       location: placeDetails.geometry?.location,
       google_maps_url: placeDetails.url,
       place_id: placeId,
+      editorial_summary: placeDetails.editorial_summary?.overview,
+      reviews: placeDetails.reviews,
     });
 
   } catch (error: any) {
