@@ -12,6 +12,7 @@ import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { SEO } from "@/components/SEO";
+import { Breadcrumbs, getHomeBreadcrumbs, getDestinationBreadcrumbs } from "@/components/Breadcrumbs";
 
 
 export default function Home() {
@@ -211,6 +212,12 @@ export default function Home() {
       {/* Hero Section */}
       <section className="py-4 sm:py-6">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
+          
+          {/* Breadcrumbs */}
+          <Breadcrumbs 
+            items={selectedDestination ? getDestinationBreadcrumbs(selectedDestination) : getHomeBreadcrumbs()}
+            destination={selectedDestination}
+          />
           
           {/* Search Bar */}
           <div className="mb-4 sm:mb-6">

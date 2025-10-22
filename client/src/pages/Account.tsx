@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { MapPin, Globe, Star, Calendar, User, Heart, Settings, LogOut, Mail } from "lucide-react";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
+import { Breadcrumbs, getAccountBreadcrumbs } from "@/components/Breadcrumbs";
 import { Destination } from "@/types/destination";
 
 interface VisitedPlace {
@@ -227,6 +228,9 @@ export default function Account() {
 
       <main className="flex-1 py-8">
         <div className="max-w-7xl mx-auto px-6">
+          {/* Breadcrumbs */}
+          <Breadcrumbs items={getAccountBreadcrumbs()} />
+          
           {/* Header Section */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6">
             <div className="flex items-start justify-between">
