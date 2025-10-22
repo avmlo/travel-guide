@@ -27,6 +27,9 @@ const cityToCountry: Record<string, string> = {
   'nashville': 'United States',
   'colorado': 'United States',
   'hudson-valley': 'United States',
+  'hawaii': 'United States',
+  'charleston': 'United States',
+  'orlando': 'United States',
   
   'london': 'United Kingdom',
   'edinburgh': 'United Kingdom',
@@ -44,17 +47,28 @@ const cityToCountry: Record<string, string> = {
   'osaka': 'Japan',
   'yokohama': 'Japan',
   'kyushu': 'Japan',
+  'karuizawa': 'Japan',
+  'nagato': 'Japan',
+  'nara': 'Japan',
+  'hakone': 'Japan',
+  'atami': 'Japan',
+  'okinawa': 'Japan',
+  'kamakura': 'Japan',
+  'kanazawa': 'Japan',
+  'kobe': 'Japan',
   
   'barcelona': 'Spain',
   'madrid': 'Spain',
   'valencia': 'Spain',
   'seville': 'Spain',
+  'bilbao': 'Spain',
   
   'rome': 'Italy',
   'milan': 'Italy',
   'venice': 'Italy',
   'florence': 'Italy',
   'naples': 'Italy',
+  'lake-como': 'Italy',
   
   'berlin': 'Germany',
   'munich': 'Germany',
@@ -71,6 +85,7 @@ const cityToCountry: Record<string, string> = {
   'geneva': 'Switzerland',
   'basel': 'Switzerland',
   'valais': 'Switzerland',
+  'lausanne': 'Switzerland',
   
   'vienna': 'Austria',
   
@@ -99,6 +114,7 @@ const cityToCountry: Record<string, string> = {
   'bangkok': 'Thailand',
   'phuket': 'Thailand',
   'chiang-mai': 'Thailand',
+  'koh-samui': 'Thailand',
   
   'seoul': 'South Korea',
   'busan': 'South Korea',
@@ -147,8 +163,11 @@ const cityToCountry: Record<string, string> = {
   
   'cairo': 'Egypt',
   
+  'jakarta': 'Indonesia',
+  
   'saigon': 'Vietnam',
   'hanoi': 'Vietnam',
+  'da-nang': 'Vietnam',
 };
 
 interface CityData {
