@@ -12,7 +12,7 @@ import { SearchOverlay } from "@/components/SearchOverlay";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
-import { SimplifiedAIAssistant } from "@/components/SimplifiedAIAssistant";
+import { ModernAIChat } from "@/components/ModernAIChat";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -251,14 +251,12 @@ export default function Home() {
               
               {hasMore && (
                 <div className="flex justify-center mt-12">
-                  <Button
+                  <button
                     onClick={() => setDisplayCount(prev => prev + 40)}
-                    size="lg"
-                    variant="default"
-                    className="px-12 py-6 bg-black text-white hover:bg-gray-800 text-sm font-medium"
+                    className="px-8 py-3 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all"
                   >
                     Load More
-                  </Button>
+                  </button>
                 </div>
               )}
             </>
@@ -295,7 +293,7 @@ export default function Home() {
       )}
 
       {/* AI Assistant */}
-      <SimplifiedAIAssistant />
+      <ModernAIChat />
     </div>
   );
 }
