@@ -154,9 +154,29 @@ export default function Home() {
           <h1 className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight">
             The Urban Manual
           </h1>
-          <button className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black">
-            Sign In
-          </button>
+          {user ? (
+            <button 
+              onClick={() => setLocation('/account')}
+              className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black"
+            >
+              Account
+            </button>
+          ) : (
+            <button 
+              onClick={async () => {
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: 'google',
+                  options: {
+                    redirectTo: window.location.origin
+                  }
+                });
+                if (error) console.error('Error signing in:', error);
+              }}
+              className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black"
+            >
+              Sign In
+            </button>
+          )}
         </div>
       </header>
 
