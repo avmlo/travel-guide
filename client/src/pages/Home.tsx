@@ -149,7 +149,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Massive Header */}
-      <header className="px-8 md:px-12 lg:px-16 py-6 overflow-hidden border-b border-gray-200">
+      <header className="px-6 md:px-10 py-6 overflow-hidden border-b border-gray-200">
         <div className="max-w-[1920px] mx-auto flex items-center justify-between">
           <h1 className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight">
             The Urban Manual
@@ -164,7 +164,7 @@ export default function Home() {
       </header>
 
       {/* Navigation Bar */}
-      <nav className="px-8 md:px-12 lg:px-16 border-b border-gray-200">
+      <nav className="px-6 md:px-10 border-b border-gray-200">
         <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
           <div className="flex items-center gap-6">
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</a>
@@ -180,7 +180,7 @@ export default function Home() {
       </nav>
 
       {/* Main Content */}
-      <main className="px-8 md:px-12 lg:px-16 py-12">
+      <main className="px-6 md:px-10 py-12">
         <div className="max-w-[1920px] mx-auto">
           {/* Search Bar */}
           <div className="mb-8">
@@ -287,7 +287,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-gray-200 py-8 mt-20">
-        <div className="max-w-[1920px] mx-auto px-8 md:px-12 lg:px-16">
+        <div className="max-w-[1920px] mx-auto px-6 md:px-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6 text-xs">
               <a href="#" className="hover:underline">INSTAGRAM</a>
