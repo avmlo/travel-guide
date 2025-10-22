@@ -13,6 +13,8 @@ import City from "./pages/City";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
 import Profile from "./pages/Profile";
+import Lists from "./pages/Lists";
+import ListDetail from "./pages/ListDetail";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -27,6 +29,8 @@ function Router() {
       <Route path="/preferences" component={Account} />
       <Route path="/account" component={Account} />
       <Route path="/user/:username" component={Profile} />
+      <Route path="/lists" component={Lists} />
+      <Route path="/list/:id" component={ListDetail} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
