@@ -5,6 +5,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { aiRouter } from "./routers/ai";
 import { userRouter } from "./routers/user";
 import { weatherRouter } from "./routers/weather";
+import { discoveryRouter } from "./routers/discovery";
 
 export const appRouter = router({
   system: systemRouter,
@@ -23,6 +24,7 @@ export const appRouter = router({
   ai: aiRouter,
   user: userRouter,
   weather: weatherRouter,
+  discovery: discoveryRouter,
 });
 
 export type AppRouter = typeof appRouter;

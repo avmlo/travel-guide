@@ -54,25 +54,31 @@ export function Navigation({ cities, currentCity }: NavigationProps) {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 pt-4 pb-2 space-y-3">
-            <button 
+            <button
               onClick={() => { setLocation("/"); setMobileMenuOpen(false); }}
               className="block w-full text-left text-sm font-bold uppercase tracking-wide hover:opacity-70 transition-opacity py-2"
             >
               CATALOGUE
             </button>
-            <button 
+            <button
+              onClick={() => { setLocation("/discover"); setMobileMenuOpen(false); }}
+              className="block w-full text-left text-sm font-bold uppercase tracking-wide hover:opacity-70 transition-opacity py-2"
+            >
+              DISCOVER
+            </button>
+            <button
               onClick={() => setMobileMenuOpen(false)}
               className="block w-full text-left text-sm font-bold uppercase tracking-wide hover:opacity-70 transition-opacity py-2"
             >
               INFO
             </button>
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(false)}
               className="block w-full text-left text-sm font-bold uppercase tracking-wide hover:opacity-70 transition-opacity py-2"
             >
               ARCHIVE
             </button>
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(false)}
               className="block w-full text-left text-sm font-bold uppercase tracking-wide hover:opacity-70 transition-opacity py-2"
             >
@@ -102,11 +108,17 @@ export function Navigation({ cities, currentCity }: NavigationProps) {
           {/* Bottom Row: Navigation Links and Time */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 lg:gap-8">
-              <button 
+              <button
                 onClick={() => setLocation("/")}
                 className="text-xs font-bold uppercase tracking-wide hover:opacity-70 transition-opacity"
               >
                 CATALOGUE
+              </button>
+              <button
+                onClick={() => setLocation("/discover")}
+                className="text-xs font-bold uppercase tracking-wide hover:opacity-70 transition-opacity"
+              >
+                DISCOVER
               </button>
               <button className="text-xs font-bold uppercase tracking-wide hover:opacity-70 transition-opacity">
                 INFO

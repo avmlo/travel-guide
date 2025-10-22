@@ -10,12 +10,14 @@ import SavedPlaces from "./pages/SavedPlaces";
 import CityPage from "./pages/CityPage";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
+import Discovery from "./pages/Discovery";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path="/discover" component={Discovery} />
       <Route path="/auth/login" component={Login} />
       <Route path="/destination/:slug" component={DestinationDetail} />
       <Route path="/city/:city" component={CityPage} />
