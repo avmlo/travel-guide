@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import sitemapRouter from "../routers/sitemap";
+import placesRouter from "../routers/places";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,6 +40,9 @@ async function startServer() {
   
   // Sitemap
   app.use(sitemapRouter);
+  
+  // Google Places API
+  app.use(placesRouter);
   
   // tRPC API
   app.use(
