@@ -251,7 +251,13 @@ Create a realistic, well-paced itinerary. Include breakfast, lunch, dinner, and 
           category: z.string(),
           michelinStars: z.number().optional(),
         }),
-        allDestinations: z.array(DestinationSchema),
+        allDestinations: z.array(z.object({
+          slug: z.string(),
+          name: z.string(),
+          city: z.string(),
+          category: z.string(),
+          michelinStars: z.number().optional(),
+        })),
         savedPlaces: z.array(z.string()).optional(),
         visitedPlaces: z.array(z.string()).optional(),
       })
@@ -300,7 +306,7 @@ ${limitedSaved.length > 0 ? JSON.stringify(limitedSaved.map(d => ({
   name: d.name,
   city: d.city,
   category: d.category,
-  michelinStars: d.michelinStars || d.michelin_stars
+  michelinStars: d.michelinStars
 })), null, 2) : "No saved places yet"}
 
 Available destinations to recommend (excluding visited):
@@ -309,7 +315,7 @@ ${JSON.stringify(limitedAvailable.map(d => ({
   name: d.name,
   city: d.city,
   category: d.category,
-  michelinStars: d.michelinStars || d.michelin_stars
+  michelinStars: d.michelinStars
 })), null, 2)}
 
 Based on the current destination and the user's saved places, suggest ${AI_LIMITS.MAX_SUGGESTIONS} similar destinations they would enjoy.`;
