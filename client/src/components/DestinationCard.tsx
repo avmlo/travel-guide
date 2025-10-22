@@ -23,7 +23,7 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
       className="group cursor-pointer destination-card bg-white overflow-hidden transition-all duration-300 hover:opacity-80"
       onClick={onClick}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+      <div className="relative aspect-square overflow-hidden bg-gray-100">
         {destination.mainImage ? (
           <img 
             src={destination.mainImage} 

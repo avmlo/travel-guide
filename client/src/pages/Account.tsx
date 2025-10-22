@@ -283,7 +283,7 @@ export default function Account() {
                       onClick={() => handleCardClick(place.destination_slug)}
                       className="group text-left"
                     >
-                      <div className="aspect-[4/3] bg-gray-100 mb-3 overflow-hidden">
+                      <div className="aspect-square bg-gray-100 mb-3 overflow-hidden">
                         {place.destination.image && (
                           <img
                             src={place.destination.image}
@@ -323,7 +323,7 @@ export default function Account() {
                         onClick={() => handleCardClick(place.destination_slug)}
                         className="group text-left"
                       >
-                        <div className="aspect-[4/3] bg-gray-100 mb-3 overflow-hidden relative">
+                        <div className="aspect-square bg-gray-100 mb-3 overflow-hidden relative">
                           {place.destination.image && (
                             <img
                               src={place.destination.image}

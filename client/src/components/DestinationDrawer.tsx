@@ -311,7 +311,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               {/* Right Column: Image + Description */}
               <div className="flex flex-col">
                 {/* Hero Image */}
-                <div className="w-full h-[50vh] lg:h-[60vh]">
+                <div className="w-full aspect-square max-h-[60vh]">
                   <img
                     src={destination.mainImage}
                     alt={destination.name}
@@ -340,7 +340,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
             // Collapsed: Original single-column layout
             <div className="px-8 py-12">
               {/* Hero Image */}
-              <div className="w-full h-[60vh] mb-8">
+              <div className="w-full aspect-square max-h-[60vh] mb-8">
                 <img
                   src={destination.mainImage}
                   alt={destination.name}

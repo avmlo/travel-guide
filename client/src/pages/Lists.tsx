@@ -155,7 +155,7 @@ export default function Lists() {
                 onClick={() => setLocation(`/list/${list.id}`)}
               >
                 {/* Cover Image */}
-                <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
+                <div className="aspect-square bg-gray-100 relative overflow-hidden">
                   {list.cover_image ? (
                     <img
                       src={list.cover_image}

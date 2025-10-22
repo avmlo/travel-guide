@@ -117,7 +117,7 @@ export default function Designer() {
                   onClick={() => handleCardClick(dest)}
                   className="group text-left"
                 >
-                  <div className="aspect-[4/3] bg-gray-100 mb-3 overflow-hidden relative">
+                  <div className="aspect-square bg-gray-100 mb-3 overflow-hidden relative">
                     {dest.image && (
                       <img
                         src={dest.image}
