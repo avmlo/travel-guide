@@ -223,16 +223,46 @@ export default function Account() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#f5f3f0' }}>
-      <Navigation cities={[]} />
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* Header */}
+      <header className="px-4 py-6 border-b border-gray-200">
+        <div className="max-w-[1920px] mx-auto flex items-center justify-between">
+          <button 
+            onClick={() => setLocation("/")}
+            className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
+          >
+            The Urban Manual
+          </button>
+          <button 
+            onClick={handleSignOut}
+            className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black"
+          >
+            Sign Out
+          </button>
+        </div>
+      </header>
 
-      <main className="flex-1 py-8">
-        <div className="max-w-7xl mx-auto px-6">
-          {/* Breadcrumbs */}
-          <Breadcrumbs items={getAccountBreadcrumbs()} />
+      {/* Navigation Bar */}
+      <nav className="px-4 border-b border-gray-200">
+        <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
+          <div className="flex items-center gap-6">
+            <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Info</a>
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-bold uppercase">New York</span>
+            <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+          </div>
+        </div>
+      </nav>
+
+      <main className="flex-1 py-12">
+        <div className="max-w-[1920px] mx-auto px-4">
           
           {/* Header Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-6">
+          <div className="border-b border-gray-200 pb-8 mb-8">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-6">
                 <div className="relative">
@@ -258,20 +288,13 @@ export default function Account() {
                   {bio && <p className="text-gray-600 mt-2 max-w-2xl">{bio}</p>}
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                onClick={handleSignOut} 
-                className="gap-2 border-black hover:bg-black hover:text-white"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
+
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="border border-gray-200 p-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full" style={{ backgroundColor: '#E8D5B7' }}>
                   <MapPin className="h-10 w-10 p-2 text-gray-700" />
@@ -283,7 +306,7 @@ export default function Account() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="border border-gray-200 p-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full" style={{ backgroundColor: '#B8D8E8' }}>
                   <Globe className="h-10 w-10 p-2 text-gray-700" />
@@ -295,7 +318,7 @@ export default function Account() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="border border-gray-200 p-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-pink-100">
                   <Heart className="h-10 w-10 p-2 text-pink-600" />
@@ -310,7 +333,7 @@ export default function Account() {
 
           {/* Tabs Section */}
           <Tabs defaultValue="visited" className="space-y-4">
-            <TabsList className="bg-white border border-gray-200 rounded-xl">
+            <TabsList className="bg-white border-b border-gray-200">
               <TabsTrigger value="visited" className="gap-2">
                 <MapPin className="h-4 w-4" />
                 Visited Places
@@ -327,7 +350,7 @@ export default function Account() {
 
             {/* Visited Places Tab */}
             <TabsContent value="visited">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="border border-gray-200 p-6">
                 <h2 className="text-2xl font-bold mb-6">My Travel Journey</h2>
                 
                 {visitedPlaces.length === 0 ? (
@@ -387,7 +410,7 @@ export default function Account() {
 
             {/* Saved Places Tab */}
             <TabsContent value="saved">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="border border-gray-200 p-6">
                 <h2 className="text-2xl font-bold mb-6">Saved for Later</h2>
                 
                 {savedPlaces.length === 0 ? (
@@ -448,7 +471,7 @@ export default function Account() {
 
             {/* Settings Tab */}
             <TabsContent value="settings">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="border border-gray-200 p-6">
                 <h2 className="text-2xl font-bold mb-6">Account Settings</h2>
                 
                 <form onSubmit={handleUpdateProfile} className="max-w-2xl space-y-6">
