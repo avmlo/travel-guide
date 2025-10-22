@@ -208,25 +208,25 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           {/* Header with new design */}
           <div className="mb-12">
             {/* Title */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl mb-8 leading-tight font-black">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl mb-6 leading-tight font-bold">
               {destination.name}
             </h1>
             
             {/* Pills and Michelin Stars */}
             <div className="flex flex-wrap items-center gap-4">
               {/* City Pill - Black Border */}
-              <span className="inline-flex items-center px-6 py-3 border-2 border-black bg-white text-black text-sm font-bold uppercase tracking-wide">
+              <span className="inline-flex items-center px-3 py-1.5 border border-black bg-white text-black text-xs font-bold uppercase tracking-wide">
                 {destination.city}
               </span>
               
               {/* Category Pill - Black Border */}
-              <span className="inline-flex items-center px-6 py-3 border-2 border-black bg-white text-black text-sm font-bold uppercase tracking-wide">
+              <span className="inline-flex items-center px-3 py-1.5 border border-black bg-white text-black text-xs font-bold uppercase tracking-wide">
                 {destination.category}
               </span>
               
               {/* Michelin Stars - Black Border */}
               {destination.michelinStars && destination.michelinStars > 0 && (
-                <div className="flex items-center gap-2 border-2 border-black bg-white px-4 py-3">
+                <div className="flex items-center gap-2 border border-black bg-white px-3 py-1.5">
                   {[...Array(destination.michelinStars)].map((_, i) => (
                     <img 
                       key={i}
@@ -244,7 +244,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           {/* Subline */}
           {destination.subline && (
             <div className="mb-12">
-              <p className="text-xl text-gray-700 leading-relaxed font-medium">
+              <p className="text-sm text-gray-700 leading-relaxed">
                 {destination.subline.replace(/<[^>]*>/g, '')}
               </p>
             </div>
@@ -253,7 +253,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           {/* Content */}
           {destination.content && (
             <div className="mb-12 prose prose-gray max-w-none">
-              <div className="text-gray-600 leading-relaxed whitespace-pre-line text-lg">
+              <div className="text-gray-600 leading-relaxed whitespace-pre-line text-sm">
                 {destination.content.replace(/<[^>]*>/g, '')}
               </div>
             </div>
@@ -263,13 +263,13 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           <div className="pt-8 border-t-2 border-black space-y-6">
             {!showVisitedForm ? (
               <div className="flex gap-4">
-                <Button className="flex-1 bg-black hover:bg-gray-800 text-white h-14 text-base font-bold uppercase tracking-wide rounded-none" size="lg">
+                <Button className="flex-1 bg-black hover:bg-gray-800 text-white h-10 text-xs font-bold uppercase tracking-wide rounded-none">
                   Save Place
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="flex-1 border-2 border-black hover:bg-black hover:text-white h-14 text-base font-bold uppercase tracking-wide rounded-none"
+                  className="flex-1 border-2 border-black hover:bg-black hover:text-white h-10 text-xs font-bold uppercase tracking-wide rounded-none"
                   onClick={handleQuickMarkAsVisited}
                   disabled={saving || isVisited}
                 >
@@ -278,7 +278,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               </div>
             ) : (
               <div className="space-y-6 p-8 bg-gray-50 border-2 border-black">
-                <h3 className="font-bold text-xl uppercase tracking-wide">
+                <h3 className="font-bold text-sm uppercase tracking-wide">
                   {isVisited ? "Update Visit Details (Optional)" : "Add Visit Details"}
                 </h3>
                 

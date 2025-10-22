@@ -136,7 +136,7 @@ export default function Home() {
     setIsDrawerOpen(true);
   };
 
-  const displayedCities = showAllCities ? cities : cities.slice(0, 50);
+  const displayedCities = showAllCities ? cities : cities.slice(0, 20);
 
   if (loading) {
     return (
@@ -149,11 +149,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Massive Header */}
-      <header className="px-4 py-8 overflow-hidden">
-        <div className="max-w-[1920px] mx-auto">
-          <h1 className="text-[clamp(48px,10vw,180px)] font-bold uppercase leading-none tracking-tight">
+      <header className="px-4 py-6 overflow-hidden border-b border-gray-200">
+        <div className="max-w-[1920px] mx-auto flex items-center justify-between">
+          <h1 className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight">
             The Urban Manual
           </h1>
+          <button className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black">
+            Sign In
+          </button>
         </div>
       </header>
 
@@ -214,7 +217,7 @@ export default function Home() {
                   {city}
                 </button>
               ))}
-              {cities.length > 50 && (
+              {cities.length > 20 && (
                 <button
                   onClick={() => setShowAllCities(!showAllCities)}
                   className="font-medium text-black/30 hover:text-black/60 transition-colors"
