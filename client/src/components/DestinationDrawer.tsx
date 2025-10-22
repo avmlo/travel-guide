@@ -361,7 +361,6 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
             destination={destination}
             onSelectDestination={(slug: string) => {
               // This will be handled by parent component
-              console.log('Selected suggestion:', slug);
             }}
           />
 

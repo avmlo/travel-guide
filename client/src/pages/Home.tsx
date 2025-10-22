@@ -1,5 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
-import { useLocation } from "wouter";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -8,6 +7,7 @@ import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { CookieBanner } from "@/components/CookieBanner";
+import { sanitizeSearchQuery, searchQuerySchema } from "@/lib/validation";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -18,10 +18,10 @@ function capitalizeCity(city: string): string {
 }
 
 export default function Home() {
-  const [, setLocation] = useLocation();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string>("");
   const [displayCount, setDisplayCount] = useState(40);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
@@ -34,37 +34,57 @@ export default function Home() {
   // Load user's saved and visited places
   useEffect(() => {
     async function loadUserData() {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-      
-      if (session?.user) {
-        // Load saved places
-        const { data: savedData } = await supabase
-          .from('saved_places')
-          .select('destination_slug')
-          .eq('user_id', session.user.id);
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (savedData) {
-          setSavedPlaces(savedData.map(s => s.destination_slug));
+        if (sessionError) {
+          console.error('Error getting session:', sessionError);
+          return;
         }
+        
+        setUser(session?.user || null);
+        
+        if (session?.user) {
+          // Load saved places
+          const { data: savedData, error: savedError } = await supabase
+            .from('saved_places')
+            .select('destination_slug')
+            .eq('user_id', session.user.id);
+          
+          if (savedError) {
+            console.error('Error loading saved places:', savedError);
+          } else if (savedData) {
+            setSavedPlaces(savedData.map(s => s.destination_slug));
+          }
 
-        // Load visited places
-        const { data: visitedData } = await supabase
-          .from('visited_places')
-          .select('destination_slug')
-          .eq('user_id', session.user.id);
-        
-        if (visitedData) {
-          setVisitedPlaces(visitedData.map(v => v.destination_slug));
+          // Load visited places
+          const { data: visitedData, error: visitedError } = await supabase
+            .from('visited_places')
+            .select('destination_slug')
+            .eq('user_id', session.user.id);
+          
+          if (visitedError) {
+            console.error('Error loading visited places:', visitedError);
+          } else if (visitedData) {
+            setVisitedPlaces(visitedData.map(v => v.destination_slug));
+          }
         }
+      } catch (error) {
+        console.error('Error in loadUserData:', error);
       }
     }
 
     loadUserData();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      loadUserData();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setSavedPlaces([]);
+        setVisitedPlaces([]);
+      } else {
+        loadUserData();
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -78,22 +98,28 @@ export default function Home() {
           .select('*')
           .order('name');
         
-        if (error) throw error;
+        if (error) {
+          throw new Error(`Failed to load destinations: ${error.message}`);
+        }
+        
+        if (!data) {
+          throw new Error('No destination data received');
+        }
         
         // Transform Supabase data to match Destination type
-        const transformedData: Destination[] = (data || []).map(d => ({
-          name: d.name,
-          slug: d.slug,
-          city: d.city,
-          category: d.category,
+        const transformedData: Destination[] = data.map(d => ({
+          name: d.name || 'Unknown Destination',
+          slug: d.slug || '',
+          city: d.city || 'Unknown City',
+          category: d.category || 'Other',
           content: d.content || d.description || '',
           mainImage: d.image || '',
           michelinStars: d.michelin_stars || 0,
           crown: d.crown || false,
           brand: '',
           cardTags: '',
-          lat: 0,
-          long: 0,
+          lat: d.lat || 0,
+          long: d.long || 0,
           myRating: 0,
           reviewed: false,
           subline: '',
@@ -102,6 +128,8 @@ export default function Home() {
         setDestinations(transformedData);
       } catch (error) {
         console.error("Error loading destinations:", error);
+        // Set empty array on error to prevent crashes
+        setDestinations([]);
       } finally {
         setLoading(false);
       }
@@ -131,20 +159,63 @@ export default function Home() {
     });
   }, [destinations, searchQuery, selectedCity]);
 
-  const displayedDestinations = filteredDestinations.slice(0, displayCount);
-  const hasMore = displayCount < filteredDestinations.length;
+  const displayedDestinations = useMemo(() => 
+    filteredDestinations.slice(0, displayCount), 
+    [filteredDestinations, displayCount]
+  );
+  
+  const hasMore = useMemo(() => 
+    displayCount < filteredDestinations.length, 
+    [displayCount, filteredDestinations.length]
+  );
 
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(40);
   }, [searchQuery, selectedCity]);
 
-  const handleCardClick = (destination: Destination) => {
+  const handleCardClick = useCallback((destination: Destination) => {
     setSelectedDestination(destination);
     setIsDrawerOpen(true);
-  };
+  }, []);
 
-  const displayedCities = showAllCities ? cities : cities.slice(0, 20);
+  const handleCloseDrawer = useCallback(() => {
+    setIsDrawerOpen(false);
+    setSelectedDestination(null);
+  }, []);
+
+  const handleSearchChange = useCallback((value: string) => {
+    try {
+      const sanitized = sanitizeSearchQuery(value);
+      setSearchQuery(sanitized);
+      setSearchError(null);
+    } catch (error) {
+      setSearchError("Invalid search query");
+    }
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchQuery("");
+    setSelectedCity("");
+    setSearchError(null);
+  }, []);
+
+  const handleLoadMore = useCallback(() => {
+    setDisplayCount(prev => prev + 40);
+  }, []);
+
+  const handleCityFilter = useCallback((city: string) => {
+    setSelectedCity(city === selectedCity ? "" : city);
+  }, [selectedCity]);
+
+  const handleShowAllCities = useCallback(() => {
+    setShowAllCities(!showAllCities);
+  }, [showAllCities]);
+
+  const displayedCities = useMemo(() => 
+    showAllCities ? cities : cities.slice(0, 20), 
+    [cities, showAllCities]
+  );
 
   if (loading) {
     return (
@@ -197,9 +268,13 @@ export default function Home() {
               <Input
                 placeholder={`Search ${destinations.length} items...`}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 bg-[#efefef] border-none h-[42px] focus-visible:ring-2 focus-visible:ring-blue-500"
+                maxLength={100}
               />
+              {searchError && (
+                <p className="text-red-500 text-xs mt-1">{searchError}</p>
+              )}
             </div>
           </div>
 
@@ -268,7 +343,6 @@ export default function Home() {
                   <DestinationCard
                     key={destination.slug}
                     destination={destination}
-                    colorIndex={index}
                     onClick={() => handleCardClick(destination)}
                     isSaved={savedPlaces.includes(destination.slug)}
                     isVisited={visitedPlaces.includes(destination.slug)}

@@ -8,7 +8,7 @@ interface MapViewProps {
 
 declare global {
   interface Window {
-    mapkit: any;
+    mapkit: typeof window.mapkit;
   }
 }
 

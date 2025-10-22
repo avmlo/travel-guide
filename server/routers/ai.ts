@@ -13,12 +13,21 @@ export const aiRouter = router({
             content: z.string(),
           })
         ),
-        destinations: z.array(z.any()).optional(),
+        destinations: z.array(z.object({
+          name: z.string(),
+          city: z.string(),
+          category: z.string(),
+          description: z.string().optional(),
+          content: z.string().optional(),
+          michelinStars: z.number().optional(),
+          crown: z.boolean().optional(),
+          slug: z.string(),
+        })).optional(),
       })
     )
     .mutation(async ({ input }) => {
       // Format destinations for better context
-      const destinationsContext = input.destinations ? input.destinations.slice(0, 100).map((d: any) => ({
+      const destinationsContext = input.destinations ? input.destinations.slice(0, 100).map((d) => ({
         name: d.name,
         city: d.city,
         category: d.category,
@@ -69,7 +78,16 @@ Be friendly, enthusiastic, and helpful. Provide detailed recommendations and iti
     .input(
       z.object({
         query: z.string(),
-        destinations: z.array(z.any()),
+        destinations: z.array(z.object({
+          name: z.string(),
+          city: z.string(),
+          category: z.string(),
+          description: z.string().optional(),
+          content: z.string().optional(),
+          michelinStars: z.number().optional(),
+          crown: z.boolean().optional(),
+          slug: z.string(),
+        })),
       })
     )
     .mutation(async ({ input }) => {
@@ -146,7 +164,16 @@ Analyze this query and return matching destinations.`;
         city: z.string(),
         days: z.number().min(1).max(14),
         interests: z.array(z.string()),
-        destinations: z.array(z.any()),
+        destinations: z.array(z.object({
+          name: z.string(),
+          city: z.string(),
+          category: z.string(),
+          description: z.string().optional(),
+          content: z.string().optional(),
+          michelinStars: z.number().optional(),
+          crown: z.boolean().optional(),
+          slug: z.string(),
+        })),
       })
     )
     .mutation(async ({ input }) => {
@@ -198,7 +225,7 @@ Analyze this query and return matching destinations.`;
       };
 
       const relevantDestinations = input.destinations.filter(
-        (d: any) => d.city.toLowerCase() === input.city.toLowerCase()
+        (d) => d.city.toLowerCase() === input.city.toLowerCase()
       );
 
       const prompt = `Create a ${input.days}-day itinerary for ${input.city}.
@@ -242,7 +269,16 @@ Create a realistic, well-paced itinerary. Include breakfast, lunch, dinner, and 
           category: z.string(),
           michelinStars: z.number().optional(),
         }),
-        allDestinations: z.array(z.any()),
+        allDestinations: z.array(z.object({
+          name: z.string(),
+          city: z.string(),
+          category: z.string(),
+          description: z.string().optional(),
+          content: z.string().optional(),
+          michelinStars: z.number().optional(),
+          crown: z.boolean().optional(),
+          slug: z.string(),
+        })),
         savedPlaces: z.array(z.string()).optional(),
         visitedPlaces: z.array(z.string()).optional(),
       })

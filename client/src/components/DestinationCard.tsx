@@ -1,4 +1,5 @@
-import { Crown, MapPin } from "lucide-react";
+import { Crown, MapPin, Heart, CheckCircle } from "lucide-react";
+import { memo } from "react";
 import { Destination } from "@/types/destination";
 
 interface DestinationCardProps {
@@ -9,7 +10,13 @@ interface DestinationCardProps {
   isVisited?: boolean;
 }
 
-export function DestinationCard({ destination, onClick }: DestinationCardProps) {
+export const DestinationCard = memo(function DestinationCard({ 
+  destination, 
+  onClick, 
+  colorIndex, 
+  isSaved = false, 
+  isVisited = false 
+}: DestinationCardProps) {
   return (
     <div 
       className="group cursor-pointer destination-card bg-white overflow-hidden transition-all duration-300 hover:opacity-80"
@@ -44,6 +51,20 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
             <span>{destination.michelinStars}</span>
           </div>
         )}
+        
+        {/* Status indicators */}
+        <div className="absolute top-3 right-3 flex flex-col gap-1">
+          {isSaved && (
+            <div className="bg-red-500 text-white p-1.5 rounded-full">
+              <Heart className="h-3 w-3 fill-current" />
+            </div>
+          )}
+          {isVisited && (
+            <div className="bg-green-500 text-white p-1.5 rounded-full">
+              <CheckCircle className="h-3 w-3" />
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="py-3 space-y-0.5 bg-white">
@@ -57,5 +78,5 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
       </div>
     </div>
   );
-}
+});
 

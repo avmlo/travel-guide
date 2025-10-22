@@ -4,6 +4,22 @@ import { getDb } from "../db";
 import { savedPlaces, userPreferences, userActivity } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 
+// Input validation schemas
+const destinationSlugSchema = z.string()
+  .min(1, "Destination slug is required")
+  .max(255, "Destination slug too long")
+  .regex(/^[a-z0-9-]+$/, "Invalid destination slug format");
+
+const userNotesSchema = z.string()
+  .max(1000, "Notes too long")
+  .optional();
+
+const preferencesSchema = z.object({
+  favoriteCategories: z.array(z.string().max(50)).max(20).optional(),
+  favoriteCities: z.array(z.string().max(100)).max(20).optional(),
+  interests: z.array(z.string().max(50)).max(20).optional(),
+});
+
 export const userRouter = router({
   // Get saved places for current user
   getSavedPlaces: protectedProcedure.query(async ({ ctx }) => {
@@ -23,8 +39,8 @@ export const userRouter = router({
   savePlace: protectedProcedure
     .input(
       z.object({
-        destinationSlug: z.string(),
-        notes: z.string().optional(),
+        destinationSlug: destinationSlugSchema,
+        notes: userNotesSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -69,7 +85,7 @@ export const userRouter = router({
   unsavePlace: protectedProcedure
     .input(
       z.object({
-        destinationSlug: z.string(),
+        destinationSlug: destinationSlugSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -129,13 +145,7 @@ export const userRouter = router({
 
   // Update user preferences
   updatePreferences: protectedProcedure
-    .input(
-      z.object({
-        favoriteCategories: z.array(z.string()).optional(),
-        favoriteCities: z.array(z.string()).optional(),
-        interests: z.array(z.string()).optional(),
-      })
-    )
+    .input(preferencesSchema)
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -174,9 +184,9 @@ export const userRouter = router({
   logActivity: protectedProcedure
     .input(
       z.object({
-        destinationSlug: z.string(),
+        destinationSlug: destinationSlugSchema,
         action: z.enum(["view", "search"]),
-        metadata: z.record(z.string(), z.any()).optional(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -198,7 +208,17 @@ export const userRouter = router({
   getPersonalizedRecommendations: protectedProcedure
     .input(
       z.object({
-        destinations: z.array(z.any()),
+        destinations: z.array(z.object({
+          name: z.string(),
+          city: z.string(),
+          category: z.string(),
+          description: z.string().optional(),
+          content: z.string().optional(),
+          michelinStars: z.number().optional(),
+          crown: z.boolean().optional(),
+          slug: z.string(),
+          rating: z.number().optional(),
+        })),
         limit: z.number().default(10),
       })
     )

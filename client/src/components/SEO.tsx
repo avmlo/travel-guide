@@ -108,7 +108,7 @@ function addStructuredData(destination: Destination) {
     schemaType = 'Store';
   }
   
-  const structuredData: any = {
+  const structuredData: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': schemaType,
     'name': destination.name,
