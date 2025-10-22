@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Share2, Check, Navigation, Heart, CheckCircle2 } from "lucide-react";
+import { X, Share2, Navigation, Heart, CheckCircle2, Maximize2, Minimize2 } from "lucide-react";
 import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -37,6 +37,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
   const [user, setUser] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isVisited, setIsVisited] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
@@ -52,298 +53,404 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
       // Check if saved
       const { data: savedData } = await supabase
-        .from('saved_places')
-        .select('id')
+        .from('saved_destinations')
+        .select('*')
         .eq('user_id', user.id)
         .eq('destination_slug', destination.slug)
         .single();
-      
+
       setIsSaved(!!savedData);
 
       // Check if visited
       const { data: visitedData } = await supabase
-        .from('visited_places')
-        .select('id')
+        .from('visited_destinations')
+        .select('*')
         .eq('user_id', user.id)
         .eq('destination_slug', destination.slug)
         .single();
-      
+
       setIsVisited(!!visitedData);
     }
 
     checkSavedAndVisited();
   }, [user, destination]);
 
-  if (!destination) return null;
-
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/?destination=${destination.slug}`;
-    const shareData = {
-      title: destination.name,
-      text: `Check out ${destination.name} in ${destination.city}`,
-      url: shareUrl,
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-        toast.success("Shared successfully!");
-      } catch (err) {
-        // User cancelled
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        setCopied(true);
-        toast.success("Link copied to clipboard!");
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        toast.error("Failed to copy link");
-      }
+    if (!destination) return;
+    
+    const url = `${window.location.origin}?place=${destination.slug}`;
+    
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy link");
     }
   };
 
-  const handleToggleSaved = async () => {
+  const handleSave = async () => {
     if (!user) {
-      toast.error("Please sign in to save places");
+      toast.error("Please sign in to save destinations");
       return;
     }
 
+    if (!destination) return;
+
     if (isSaved) {
       // Remove from saved
-      await supabase
-        .from('saved_places')
+      const { error } = await supabase
+        .from('saved_destinations')
         .delete()
         .eq('user_id', user.id)
         .eq('destination_slug', destination.slug);
-      
-      setIsSaved(false);
-      toast.success("Removed from saved");
+
+      if (error) {
+        toast.error("Failed to remove from saved");
+      } else {
+        setIsSaved(false);
+        toast.success("Removed from saved");
+      }
     } else {
       // Add to saved
-      const { data: destData } = await supabase
-        .from('destinations')
-        .select('id')
-        .eq('slug', destination.slug)
-        .single();
+      const { error } = await supabase
+        .from('saved_destinations')
+        .insert({
+          user_id: user.id,
+          destination_slug: destination.slug
+        });
 
-      if (destData) {
-        await supabase
-          .from('saved_places')
-          .insert({
-            user_id: user.id,
-            destination_id: destData.id,
-            destination_slug: destination.slug
-          });
-        
+      if (error) {
+        toast.error("Failed to save destination");
+      } else {
         setIsSaved(true);
-        toast.success("Added to saved");
+        toast.success("Saved!");
       }
     }
   };
 
-  const handleToggleVisited = async () => {
+  const handleVisited = async () => {
     if (!user) {
       toast.error("Please sign in to mark as visited");
       return;
     }
 
+    if (!destination) return;
+
     if (isVisited) {
       // Remove from visited
-      await supabase
-        .from('visited_places')
+      const { error } = await supabase
+        .from('visited_destinations')
         .delete()
         .eq('user_id', user.id)
         .eq('destination_slug', destination.slug);
-      
-      setIsVisited(false);
-      toast.success("Removed from visited");
+
+      if (error) {
+        toast.error("Failed to remove from visited");
+      } else {
+        setIsVisited(false);
+        toast.success("Removed from visited");
+      }
     } else {
       // Add to visited
-      const { data: destData } = await supabase
-        .from('destinations')
-        .select('id')
-        .eq('slug', destination.slug)
-        .single();
+      const { error } = await supabase
+        .from('visited_destinations')
+        .insert({
+          user_id: user.id,
+          destination_slug: destination.slug,
+          visited_at: new Date().toISOString()
+        });
 
-      if (destData) {
-        await supabase
-          .from('visited_places')
-          .insert({
-            user_id: user.id,
-            destination_id: destData.id,
-            destination_slug: destination.slug,
-            visited_date: new Date().toISOString().split('T')[0],
-            rating: 0,
-            notes: ''
-          });
-        
+      if (error) {
+        toast.error("Failed to mark as visited");
+      } else {
         setIsVisited(true);
-        toast.success("Marked as visited");
+        toast.success("Marked as visited!");
       }
     }
   };
 
-  const categoryColor = categoryColors[destination.category] || categoryColors['default'];
+  if (!destination) return null;
+
+  const categoryColor = categoryColors[destination.category] || categoryColors.default;
 
   return (
     <>
       {/* Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
-          onClick={onClose}
-        />
-      )}
+      <div
+        className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
+          isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
 
       {/* Drawer */}
-      <div 
-        className={`fixed right-0 top-0 h-full w-full sm:w-[85%] md:w-2/3 lg:w-1/2 bg-white z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+      <div
+        className={`fixed top-0 right-0 h-full bg-white shadow-xl transition-all duration-300 z-50 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        } ${isExpanded ? "w-full" : "w-full sm:w-[600px]"}`}
       >
-        {/* Close Button - Top Right */}
-        <button
-          onClick={onClose}
-          className="absolute top-8 right-8 z-10 w-10 h-10 flex items-center justify-center hover:opacity-60 transition-opacity"
-        >
-          <X className="h-6 w-6" />
-        </button>
-
-        {/* Hero Image - Full Width */}
-        {destination.mainImage && (
-          <div className="relative w-full h-[60vh] overflow-hidden">
-            <img 
-              src={destination.mainImage} 
-              alt={destination.name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
-        )}
-
-        {/* Content - Generous Padding */}
-        <div className="px-8 py-12 max-w-3xl">
-          
-          {/* Title */}
-          <h1 className="text-3xl sm:text-4xl font-normal mb-4 leading-tight">
-            {destination.name}
-          </h1>
-
-          {/* Location & Category Pills */}
-          <div className="flex flex-wrap items-center gap-2 mb-8">
-            <span className="text-sm text-gray-600">{capitalizeCity(destination.city)}</span>
-            <span className="text-gray-300">•</span>
-            <span className={`px-2 py-1 text-xs font-medium ${categoryColor}`}>
-              {destination.category}
-            </span>
-          </div>
-
-          {/* Action Buttons */}
-          {user && (
-            <div className="flex gap-3 mb-8">
-              <button
-                onClick={handleToggleSaved}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
-                  isSaved 
-                    ? 'bg-black text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Heart className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
-                {isSaved ? 'Saved' : 'Save'}
-              </button>
-              <button
-                onClick={handleToggleVisited}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
-                  isVisited 
-                    ? 'bg-black text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <CheckCircle2 className={`h-4 w-4 ${isVisited ? 'fill-current' : ''}`} />
-                {isVisited ? 'Visited' : 'Mark as Visited'}
-              </button>
-            </div>
-          )}
-
-          {/* Divider */}
-          <div className="border-t border-gray-200 my-8"></div>
-
-          {/* Directions Button */}
-          <div className="mb-12">
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
-            >
-              <Navigation className="h-4 w-4" />
-              <span>Directions</span>
-            </a>
-          </div>
-
-          {/* Michelin Stars */}
-          {destination.michelinStars > 0 && (
-            <div className="mb-12">
-              <div className="flex items-center gap-2">
-                {[...Array(destination.michelinStars)].map((_, i) => (
-                  <img 
-                    key={i}
-                    src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
-                    alt={`Michelin Star ${i + 1}`}
-                    className="h-6 w-6"
-                    loading="lazy"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Description Section */}
-          {destination.content && (
-            <>
-              <h2 className="text-lg font-normal mb-6">About</h2>
-              <div className="mb-12">
-                <p className="text-base text-gray-700 leading-relaxed">
-                  {destination.content.replace(/<[^>]*>/g, '')}
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* Divider */}
-          <div className="border-t border-gray-200 my-12"></div>
-
-          {/* Map Section */}
-          <div className="mb-12">
-            <h2 className="text-lg font-normal mb-6">Location</h2>
-            <GoogleMap destination={destination} />
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-gray-200 my-12"></div>
-
-          {/* Share Section */}
-          <div className="mb-12">
+        <div className="h-full overflow-y-auto">
+          {/* Header with Close and Expand buttons */}
+          <div className="sticky top-0 bg-white z-10 flex justify-between items-center px-8 py-6 border-b border-gray-200">
             <button
-              onClick={handleShare}
-              className="flex items-center gap-3 text-base hover:opacity-60 transition-opacity"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label={isExpanded ? "Collapse" : "Expand"}
             >
-              {copied ? (
-                <>
-                  <Check className="h-5 w-5" />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="h-5 w-5" />
-                  <span>Share</span>
-                </>
-              )}
+              {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
             </button>
           </div>
 
+          {/* Content */}
+          {isExpanded ? (
+            // Expanded: Two-column layout (Clarity Ventures style)
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-80px)]">
+              {/* Left Column: Metadata */}
+              <div className="px-12 py-16 bg-gray-50">
+                <h1 className="text-4xl lg:text-5xl font-normal mb-12">{destination.name}</h1>
+
+                {/* Metadata Grid */}
+                <div className="space-y-8">
+                  {/* Category */}
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Category</div>
+                    <div className="text-base">{destination.category}</div>
+                  </div>
+
+                  {/* City */}
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Location</div>
+                    <div className="text-base">{capitalizeCity(destination.city)}</div>
+                  </div>
+
+                  {/* Michelin Stars */}
+                  {destination.michelinStars > 0 && (
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Michelin Stars</div>
+                      <div className="flex items-center gap-2">
+                        {[...Array(destination.michelinStars)].map((_, i) => (
+                          <img 
+                            key={i}
+                            src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                            alt={`Michelin Star ${i + 1}`}
+                            className="h-5 w-5"
+                            loading="lazy"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  {user && (
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-gray-500 mb-3">Actions</div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleSave}
+                          className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
+                            isSaved
+                              ? 'bg-black text-white border-black'
+                              : 'bg-white text-black border-gray-300 hover:border-black'
+                          }`}
+                        >
+                          <Heart className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+                          <span>{isSaved ? 'Saved' : 'Save'}</span>
+                        </button>
+
+                        <button
+                          onClick={handleVisited}
+                          className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
+                            isVisited
+                              ? 'bg-black text-white border-black'
+                              : 'bg-white text-black border-gray-300 hover:border-black'
+                          }`}
+                        >
+                          <CheckCircle2 className={`h-4 w-4 ${isVisited ? 'fill-current' : ''}`} />
+                          <span>{isVisited ? 'Visited' : 'Mark as Visited'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Directions */}
+                  <div>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
+                    >
+                      <Navigation className="h-4 w-4" />
+                      <span>Directions</span>
+                    </a>
+                  </div>
+
+                  {/* Share */}
+                  <div>
+                    <button
+                      onClick={handleShare}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span>{copied ? "Copied!" : "Share"}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Image + Description */}
+              <div className="flex flex-col">
+                {/* Hero Image */}
+                <div className="w-full h-[50vh] lg:h-[60vh]">
+                  <img
+                    src={destination.mainImage}
+                    alt={destination.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="px-12 py-16">
+                  {destination.content && (
+                    <p className="text-lg lg:text-xl leading-relaxed text-gray-700">
+                      {destination.content.replace(/<[^>]*>/g, '')}
+                    </p>
+                  )}
+
+                  {/* Map */}
+                  <div className="mt-16">
+                    <div className="text-xs uppercase tracking-wider text-gray-500 mb-4">Location</div>
+                    <GoogleMap destination={destination} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Collapsed: Original single-column layout
+            <div className="px-8 py-12">
+              {/* Hero Image */}
+              <div className="w-full h-[60vh] mb-8">
+                <img
+                  src={destination.mainImage}
+                  alt={destination.name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+
+              {/* Title and Category */}
+              <h1 className="text-3xl sm:text-4xl font-normal mb-4">{destination.name}</h1>
+              
+              <div className="flex items-center gap-3 mb-6">
+                <span className={`px-3 py-1 text-xs font-medium ${categoryColor}`}>
+                  {destination.category}
+                </span>
+                <span className="text-base text-gray-600">{capitalizeCity(destination.city)}</span>
+              </div>
+
+              {/* Action Buttons */}
+              {user && (
+                <div className="flex gap-3 mb-8">
+                  <button
+                    onClick={handleSave}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
+                      isSaved
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-black border-gray-300 hover:border-black'
+                    }`}
+                  >
+                    <Heart className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+                    <span>{isSaved ? 'Saved' : 'Save'}</span>
+                  </button>
+
+                  <button
+                    onClick={handleVisited}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
+                      isVisited
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-black border-gray-300 hover:border-black'
+                    }`}
+                  >
+                    <CheckCircle2 className={`h-4 w-4 ${isVisited ? 'fill-current' : ''}`} />
+                    <span>{isVisited ? 'Visited' : 'Mark as Visited'}</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Directions Button */}
+              <div className="mb-12">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  <Navigation className="h-4 w-4" />
+                  <span>Directions</span>
+                </a>
+              </div>
+
+              {/* Michelin Stars */}
+              {destination.michelinStars > 0 && (
+                <div className="mb-12">
+                  <div className="flex items-center gap-2">
+                    {[...Array(destination.michelinStars)].map((_, i) => (
+                      <img 
+                        key={i}
+                        src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                        alt={`Michelin Star ${i + 1}`}
+                        className="h-6 w-6"
+                        loading="lazy"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Description Section */}
+              {destination.content && (
+                <>
+                  <h2 className="text-lg font-normal mb-6">About</h2>
+                  <div className="mb-12">
+                    <p className="text-base text-gray-700 leading-relaxed">
+                      {destination.content.replace(/<[^>]*>/g, '')}
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* Divider */}
+              <div className="border-t border-gray-200 my-12"></div>
+
+              {/* Map Section */}
+              <div className="mb-12">
+                <h2 className="text-lg font-normal mb-6">Location</h2>
+                <GoogleMap destination={destination} />
+              </div>
+
+              {/* Share Button */}
+              <div className="flex justify-center pt-8 border-t border-gray-200">
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-2 px-6 py-3 bg-black text-white hover:bg-gray-800 transition-colors text-sm"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span>{copied ? "Link Copied!" : "Share"}</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import * as fs from 'fs';
-import * as path from 'path';
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -16,7 +15,26 @@ interface CSVPlace {
   category: string;
   michelinStars: number;
   mainImage: string;
-  additionalImages: string[];
+}
+
+function parseCSVLine(line: string): string[] {
+  const fields: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      fields.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  fields.push(current.trim());
+  return fields;
 }
 
 function parseCSV(filePath: string): CSVPlace[] {
@@ -29,46 +47,24 @@ function parseCSV(filePath: string): CSVPlace[] {
     const line = lines[i].trim();
     if (!line) continue;
 
-    // Parse CSV line (handle quoted fields)
-    const fields: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let j = 0; j < line.length; j++) {
-      const char = line[j];
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        fields.push(current.trim());
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    fields.push(current.trim());
+    const fields = parseCSVLine(line);
 
     const name = fields[0];
     const slug = fields[1];
     const city = fields[11];
-    const category = fields[15];
-    const michelinStars = parseInt(fields[16]) || 0;
-    const mainImage = fields[17];
-    const additionalImagesStr = fields[18] || '';
-    const additionalImages = additionalImagesStr
-      .split(';')
-      .map(img => img.trim())
-      .filter(img => img.length > 0);
+    const category = fields[14];
+    const michelinStars = parseInt(fields[15]) || 0;
+    const mainImage = fields[16];
 
-    // Only add if has main image
-    if (mainImage && mainImage.startsWith('http')) {
+    // Only add if has main image and required fields
+    if (mainImage && mainImage.startsWith('http') && name && slug && city) {
       places.push({
         name,
         slug,
         city: city.toLowerCase().replace(/\s+/g, '-'),
         category: category || 'Other',
         michelinStars,
-        mainImage,
-        additionalImages
+        mainImage
       });
     }
   }
@@ -104,7 +100,6 @@ async function fetchGoogleDescription(name: string, city: string): Promise<strin
     }
     return null;
   } catch (error) {
-    console.error(`Error fetching description for ${name}:`, error);
     return null;
   }
 }
@@ -113,7 +108,7 @@ async function main() {
   console.log('Starting CSV import...\n');
 
   // Parse CSV
-  const csvPath = '/home/ubuntu/upload/TheSpaceManual-Spaces.csv';
+  const csvPath = '/home/ubuntu/upload/TheSpaceManual-Spaces-2.csv';
   const places = parseCSV(csvPath);
   console.log(`Parsed ${places.length} places from CSV (with images)\n`);
 
@@ -154,8 +149,6 @@ async function main() {
           category: place.category,
           michelin_stars: place.michelinStars,
           image: place.mainImage,
-          main_image: place.mainImage,
-          additional_images: place.additionalImages,
           content: description || '',
           created_at: new Date().toISOString()
         });
