@@ -4,6 +4,7 @@ import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GoogleMap } from "@/components/GoogleMap";
+import { trackDestinationView, trackAction } from "@/lib/analytics";
 
 interface DestinationDrawerProps {
   destination: Destination | null;
@@ -48,6 +49,11 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
   }, []);
 
   useEffect(() => {
+    // Track destination view when drawer opens
+    if (destination && isOpen) {
+      trackDestinationView(destination.slug, destination.name);
+    }
+
     async function checkSavedAndVisited() {
       if (!user || !destination) return;
 
@@ -84,6 +90,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
       await navigator.clipboard.writeText(url);
       setCopied(true);
       toast.success("Link copied to clipboard!");
+      trackAction('share', destination.slug, { name: destination.name, method: 'clipboard' });
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error("Failed to copy link");
@@ -111,6 +118,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
       } else {
         setIsSaved(false);
         toast.success("Removed from saved");
+        trackAction('unsave', destination.slug, { name: destination.name });
       }
     } else {
       // Add to saved
@@ -125,7 +133,8 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         toast.error("Failed to save destination");
       } else {
         setIsSaved(true);
-        toast.success("Saved!");
+        toast.success("Saved to your collection");
+        trackAction('save', destination.slug, { name: destination.name });
       }
     }
   };
@@ -151,6 +160,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
       } else {
         setIsVisited(false);
         toast.success("Removed from visited");
+        trackAction('unvisit', destination.slug, { name: destination.name });
       }
     } else {
       // Add to visited
@@ -167,6 +177,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
       } else {
         setIsVisited(true);
         toast.success("Marked as visited!");
+        trackAction('visit', destination.slug, { name: destination.name });
       }
     }
   };

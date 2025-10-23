@@ -22,6 +22,7 @@ import Brand from "./pages/Brand";
 import Designer from "./pages/Designer";
 import DestinationShowcase from "./pages/DestinationShowcase";
 import Editorial from "./pages/Editorial";
+import Analytics from "./pages/Analytics";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/designer/:slug" component={Designer} />
       <Route path="/showcase/:slug" component={DestinationShowcase} />
       <Route path="/editorial" component={Editorial} />
+      <Route path="/analytics" component={Analytics} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
