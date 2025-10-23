@@ -134,7 +134,7 @@ export function ChatGPTStyleAI() {
       {/* Chat History - Floating Above */}
       {messages.length > 0 && (
         <div className="w-full max-w-3xl mb-4 px-4 pointer-events-auto">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 max-h-[60vh] overflow-y-auto">
+          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 max-h-[60vh] overflow-y-auto">
             <div className="p-4 space-y-4">
               {messages.map((message, index) => (
                 <div
@@ -194,7 +194,7 @@ export function ChatGPTStyleAI() {
 
       {/* Input Bar - Bottom Center */}
       <div className="w-full max-w-3xl px-4 pb-6 pointer-events-auto">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 p-4">
+        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 p-4">
           <form onSubmit={handleSubmit} className="flex items-end gap-3">
             <div className="flex-1">
               <textarea
