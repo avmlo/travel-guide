@@ -187,23 +187,23 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full bg-white shadow-xl transition-all duration-300 z-50 ${
+        className={`fixed top-0 right-0 h-full bg-white dark:bg-gray-950 shadow-xl transition-all duration-300 z-50 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } ${isExpanded ? "w-full" : "w-full sm:w-[600px]"}`}
       >
         <div className="h-full overflow-y-auto">
           {/* Header with Close and Expand buttons */}
-          <div className="sticky top-0 bg-white z-10 flex justify-between items-center px-8 py-6 border-b border-gray-200">
+          <div className="sticky top-0 bg-white dark:bg-gray-950 z-10 flex justify-between items-center px-8 py-6 border-b border-gray-200 dark:border-gray-800">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors dark:text-white"
               aria-label={isExpanded ? "Collapse" : "Expand"}
             >
               {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors dark:text-white"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
@@ -215,27 +215,27 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
             // Expanded: Two-column layout (Clarity Ventures style)
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-80px)]">
               {/* Left Column: Metadata */}
-              <div className="px-12 py-16 bg-gray-50">
-                <h1 className="text-4xl lg:text-5xl font-normal mb-12">{destination.name}</h1>
+              <div className="px-12 py-16 bg-gray-50 dark:bg-gray-900">
+                <h1 className="text-4xl lg:text-5xl font-normal mb-12 text-black dark:text-white">{destination.name}</h1>
 
                 {/* Metadata Grid */}
                 <div className="space-y-8">
                   {/* Category */}
                   <div>
-                    <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Category</div>
-                    <div className="text-base">{destination.category}</div>
+                    <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Category</div>
+                    <div className="text-base text-black dark:text-white">{destination.category}</div>
                   </div>
 
                   {/* City */}
                   <div>
-                    <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Location</div>
-                    <div className="text-base">{capitalizeCity(destination.city)}</div>
+                    <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Location</div>
+                    <div className="text-base text-black dark:text-white">{capitalizeCity(destination.city)}</div>
                   </div>
 
                   {/* Michelin Stars */}
                   {destination.michelinStars > 0 && (
                     <div>
-                      <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Michelin Stars</div>
+                      <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Michelin Stars</div>
                       <div className="flex items-center gap-2">
                         {[...Array(destination.michelinStars)].map((_, i) => (
                           <img 
@@ -253,14 +253,14 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                   {/* Actions */}
                   {user && (
                     <div>
-                      <div className="text-xs uppercase tracking-wider text-gray-500 mb-3">Actions</div>
+                      <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Actions</div>
                       <div className="flex gap-3">
                         <button
                           onClick={handleSave}
                           className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
                             isSaved
-                              ? 'bg-black text-white border-black'
-                              : 'bg-white text-black border-gray-300 hover:border-black'
+                              ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
+                              : 'bg-white dark:bg-gray-900 text-black dark:text-white border-gray-300 dark:border-gray-700 hover:border-black dark:hover:border-white'
                           }`}
                         >
                           <Heart className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
@@ -271,8 +271,8 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                           onClick={handleVisited}
                           className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
                             isVisited
-                              ? 'bg-black text-white border-black'
-                              : 'bg-white text-black border-gray-300 hover:border-black'
+                              ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
+                              : 'bg-white dark:bg-gray-900 text-black dark:text-white border-gray-300 dark:border-gray-700 hover:border-black dark:hover:border-white'
                           }`}
                         >
                           <CheckCircle2 className={`h-4 w-4 ${isVisited ? 'fill-current' : ''}`} />
@@ -288,7 +288,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-black dark:text-white"
                     >
                       <Navigation className="h-4 w-4" />
                       <span>Directions</span>
@@ -299,7 +299,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                   <div>
                     <button
                       onClick={handleShare}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-black dark:text-white"
                     >
                       <Share2 className="h-4 w-4" />
                       <span>{copied ? "Copied!" : "Share"}</span>
@@ -323,14 +323,14 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                 {/* Description */}
                 <div className="px-12 py-16">
                   {destination.content && (
-                    <p className="text-lg lg:text-xl leading-relaxed text-gray-700">
+                    <p className="text-lg lg:text-xl leading-relaxed text-gray-700 dark:text-gray-300">
                       {destination.content.replace(/<[^>]*>/g, '')}
                     </p>
                   )}
 
                   {/* Map */}
                   <div className="mt-16">
-                    <div className="text-xs uppercase tracking-wider text-gray-500 mb-4">Location</div>
+                    <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">Location</div>
                     <GoogleMap destination={destination} />
                   </div>
                 </div>
@@ -350,13 +350,13 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               </div>
 
               {/* Title and Category */}
-              <h1 className="text-3xl sm:text-4xl font-normal mb-4">{destination.name}</h1>
+              <h1 className="text-3xl sm:text-4xl font-normal mb-4 text-black dark:text-white">{destination.name}</h1>
               
               <div className="flex items-center gap-3 mb-6">
                 <span className={`px-3 py-1 text-xs font-medium ${categoryColor}`}>
                   {destination.category}
                 </span>
-                <span className="text-base text-gray-600">{capitalizeCity(destination.city)}</span>
+                <span className="text-base text-gray-600 dark:text-gray-400">{capitalizeCity(destination.city)}</span>
               </div>
 
               {/* Action Buttons */}
@@ -366,8 +366,8 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                     onClick={handleSave}
                     className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
                       isSaved
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-gray-300 hover:border-black'
+                        ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
+                        : 'bg-white dark:bg-gray-900 text-black dark:text-white border-gray-300 dark:border-gray-700 hover:border-black dark:hover:border-white'
                     }`}
                   >
                     <Heart className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
@@ -378,8 +378,8 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                     onClick={handleVisited}
                     className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
                       isVisited
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-gray-300 hover:border-black'
+                        ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
+                        : 'bg-white dark:bg-gray-900 text-black dark:text-white border-gray-300 dark:border-gray-700 hover:border-black dark:hover:border-white'
                     }`}
                   >
                     <CheckCircle2 className={`h-4 w-4 ${isVisited ? 'fill-current' : ''}`} />
@@ -394,7 +394,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-black dark:text-white"
                 >
                   <Navigation className="h-4 w-4" />
                   <span>Directions</span>
@@ -421,9 +421,9 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               {/* Description Section */}
               {destination.content && (
                 <>
-                  <h2 className="text-lg font-normal mb-6">About</h2>
+                  <h2 className="text-lg font-normal mb-6 text-black dark:text-white">About</h2>
                   <div className="mb-12">
-                    <p className="text-base text-gray-700 leading-relaxed">
+                    <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
                       {destination.content.replace(/<[^>]*>/g, '')}
                     </p>
                   </div>
@@ -431,19 +431,19 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               )}
 
               {/* Divider */}
-              <div className="border-t border-gray-200 my-12"></div>
+              <div className="border-t border-gray-200 dark:border-gray-800 my-12"></div>
 
               {/* Map Section */}
               <div className="mb-12">
-                <h2 className="text-lg font-normal mb-6">Location</h2>
+                <h2 className="text-lg font-normal mb-6 text-black dark:text-white">Location</h2>
                 <GoogleMap destination={destination} />
               </div>
 
               {/* Share Button */}
-              <div className="flex justify-center pt-8 border-t border-gray-200">
+              <div className="flex justify-center pt-8 border-t border-gray-200 dark:border-gray-800">
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 px-6 py-3 bg-black text-white hover:bg-gray-800 transition-colors text-sm"
+                  className="flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-sm"
                 >
                   <Share2 className="h-4 w-4" />
                   <span>{copied ? "Link Copied!" : "Share"}</span>
