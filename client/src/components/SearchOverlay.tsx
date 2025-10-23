@@ -60,18 +60,10 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-white dark:bg-gray-950 z-50 overflow-y-auto transition-colors duration-300">
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+      <div className="sticky top-0 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center gap-4">
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-
           {/* Search Input */}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -80,10 +72,18 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
               placeholder="Search destinations, cities, or categories..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-10 h-12 text-base border-gray-200 focus:border-black"
+              className="pl-10 h-12 text-base border-gray-200 dark:border-gray-700 focus:border-black dark:focus:border-white dark:bg-gray-900 dark:text-white"
               autoFocus
             />
           </div>
+          
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            <X className="h-5 w-5 dark:text-white" />
+          </button>
         </div>
       </div>
 
@@ -92,13 +92,13 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
         {query.trim() && (
           <>
             {/* Query Title */}
-            <h2 className="text-xl font-normal mb-6">
+            <h2 className="text-xl font-normal mb-6 text-black dark:text-white">
               {query}
             </h2>
 
             {/* Intro Text */}
             {introText && (
-              <p className="text-base text-gray-600 leading-relaxed mb-8">
+              <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
                 {introText}
               </p>
             )}
@@ -113,10 +113,10 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
                       onSelectDestination(destination);
                       onClose();
                     }}
-                    className="w-full flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                    className="w-full flex items-center gap-4 p-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors text-left"
                   >
                     {/* Thumbnail */}
-                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-800">
                       {destination.mainImage ? (
                         <img
                           src={destination.mainImage}
@@ -132,27 +132,27 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-medium mb-1 truncate">
+                      <h3 className="text-base font-medium mb-1 truncate text-black dark:text-white">
                         {destination.name}
                       </h3>
-                      <p className="text-sm text-gray-500 line-clamp-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                         {destination.content?.slice(0, 100) || destination.subline?.slice(0, 100) || `${destination.category} in ${capitalizeCity(destination.city)}`}
                       </p>
                     </div>
 
                     {/* Location & Arrow */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
                         {capitalizeCity(destination.city)}
                       </span>
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                      <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                     </div>
                   </button>
                 ))}
               </div>
             ) : query.trim() && (
               <div className="text-center py-12">
-                <p className="text-gray-400">No results found</p>
+                <p className="text-gray-400 dark:text-gray-500">No results found</p>
               </div>
             )}
           </>
@@ -161,8 +161,8 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
         {/* Empty State */}
         {!query.trim() && (
           <div className="text-center py-12">
-            <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-400">Start typing to search destinations</p>
+            <Search className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+            <p className="text-gray-400 dark:text-gray-500">Start typing to search destinations</p>
           </div>
         )}
       </div>
