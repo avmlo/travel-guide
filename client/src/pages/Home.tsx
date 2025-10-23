@@ -14,7 +14,6 @@ import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { ModernAIChat } from "@/components/ModernAIChat";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
-import { ChevronDown, ChevronRight } from "lucide-react";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -34,7 +33,6 @@ export default function Home() {
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showAllCities, setShowAllCities] = useState(false);
-  const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set(['Taiwan']));
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -121,54 +119,28 @@ export default function Home() {
 
   const cities = useMemo(() => {
     const citySet = new Set(destinations.map((d) => d.city).filter(Boolean));
-    return Array.from(citySet).sort();
-  }, [destinations]);
-
-  const citiesByCountry = useMemo(() => {
-    const grouped: Record<string, string[]> = {};
+    const cityArray = Array.from(citySet);
     
-    cities.forEach(city => {
-      const country = cityCountryMap[city] || 'Other';
-      if (!grouped[country]) {
-        grouped[country] = [];
+    // Sort cities by country priority, then alphabetically within country
+    return cityArray.sort((a, b) => {
+      const countryA = cityCountryMap[a] || 'Other';
+      const countryB = cityCountryMap[b] || 'Other';
+      
+      const indexA = countryOrder.indexOf(countryA);
+      const indexB = countryOrder.indexOf(countryB);
+      
+      // If same country, sort alphabetically
+      if (countryA === countryB) {
+        return a.localeCompare(b);
       }
-      grouped[country].push(city);
-    });
-    
-    // Sort cities within each country
-    Object.keys(grouped).forEach(country => {
-      grouped[country].sort();
-    });
-    
-    // Sort countries by priority order
-    const sortedCountries = Object.keys(grouped).sort((a, b) => {
-      const indexA = countryOrder.indexOf(a);
-      const indexB = countryOrder.indexOf(b);
-      if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+      
+      // Sort by country priority
+      if (indexA === -1 && indexB === -1) return countryA.localeCompare(countryB);
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
       return indexA - indexB;
     });
-    
-    const result: Record<string, string[]> = {};
-    sortedCountries.forEach(country => {
-      result[country] = grouped[country];
-    });
-    
-    return result;
-  }, [cities]);
-
-  const toggleCountry = (country: string) => {
-    setExpandedCountries(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(country)) {
-        newSet.delete(country);
-      } else {
-        newSet.add(country);
-      }
-      return newSet;
-    });
-  };
+  }, [destinations]);
 
   const filteredDestinations = useMemo(() => {
     return destinations.filter((dest) => {
@@ -225,54 +197,39 @@ export default function Home() {
             </button>
           </div>
 
-          {/* City Filter by Country */}
+          {/* City Filter */}
           <div className="mb-8">
             <div className="mb-3">
               <h2 className="text-xs font-bold uppercase">Places</h2>
             </div>
-            <div className="space-y-3">
-              {/* All button */}
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
               <button
                 onClick={() => setSelectedCity("")}
-                className={`text-xs transition-colors ${
+                className={`transition-colors ${
                   !selectedCity ? "font-medium text-black dark:text-white" : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
                 }`}
               >
                 All
               </button>
-              
-              {/* Countries */}
-              {Object.entries(citiesByCountry).map(([country, countryCities]) => (
-                <div key={country} className="space-y-1">
-                  <button
-                    onClick={() => toggleCountry(country)}
-                    className="flex items-center gap-2 text-xs font-bold uppercase text-black dark:text-white hover:opacity-60 transition-opacity"
-                  >
-                    {expandedCountries.has(country) ? (
-                      <ChevronDown className="h-3 w-3" />
-                    ) : (
-                      <ChevronRight className="h-3 w-3" />
-                    )}
-                    {country}
-                  </button>
-                  
-                  {expandedCountries.has(country) && (
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs pl-5 animate-in fade-in slide-in-from-top-2 duration-200">
-                      {countryCities.map((city) => (
-                        <button
-                          key={city}
-                          onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                          className={`transition-colors ${
-                            selectedCity === city ? "font-medium text-black dark:text-white" : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
-                          }`}
-                        >
-                          {capitalizeCity(city)}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              {(showAllCities ? cities : cities.slice(0, 20)).map((city) => (
+                <button
+                  key={city}
+                  onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
+                  className={`transition-colors ${
+                    selectedCity === city ? "font-medium text-black dark:text-white" : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
+                  }`}
+                >
+                  {capitalizeCity(city)}
+                </button>
               ))}
+              {cities.length > 20 && (
+                <button
+                  onClick={() => setShowAllCities(!showAllCities)}
+                  className="font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300 transition-colors"
+                >
+                  {showAllCities ? '- Show Less' : '+ Show More'}
+                </button>
+              )}
             </div>
           </div>
 
