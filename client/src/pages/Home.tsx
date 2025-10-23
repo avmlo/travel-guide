@@ -12,7 +12,7 @@ import { AdvancedSearchOverlay } from "@/components/AdvancedSearchOverlay";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
-import { ModernAIChat } from "@/components/ModernAIChat";
+import { ChatGPTStyleAI } from "@/components/ChatGPTStyleAI";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
 
 // Helper function to capitalize city names
@@ -314,7 +314,7 @@ export default function Home() {
       )}
 
       {/* AI Assistant */}
-      <ModernAIChat />
+      <ChatGPTStyleAI />
     </div>
   );
 }
