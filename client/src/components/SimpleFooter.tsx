@@ -1,4 +1,8 @@
+import { useLocation } from "wouter";
+
 export function SimpleFooter() {
+  const [, setLocation] = useLocation();
+  
   return (
     <footer className="border-t border-gray-200 dark:border-gray-800 dark:bg-gray-900 py-8 px-6 md:px-10">
       <div className="max-w-[1920px] mx-auto">
@@ -9,7 +13,7 @@ export function SimpleFooter() {
           <div className="flex items-center gap-6">
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity dark:text-gray-300">About</a>
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity dark:text-gray-300">Contact</a>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity dark:text-gray-300">Privacy</a>
+            <button onClick={() => setLocation("/privacy")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity dark:text-gray-300">Privacy</button>
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity dark:text-gray-300">Terms</a>
           </div>
         </div>
