@@ -3,10 +3,12 @@ import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { DarkModeToggle } from "./DarkModeToggle";
+import { Menu, X } from "lucide-react";
 
 export function Header() {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<any>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
@@ -46,7 +48,8 @@ export function Header() {
       {/* Navigation Bar */}
       <div className="px-6 md:px-10 border-t border-gray-200 dark:border-gray-800 dark:text-white">
         <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
-          <div className="flex items-center gap-6">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6">
             <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
             <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
             <button onClick={() => setLocation("/explore")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Explore</button>
@@ -54,29 +57,96 @@ export function Header() {
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
           </div>
+          
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2 hover:opacity-60 transition-opacity"
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+          
+          {/* Right Side */}
           <div className="flex items-center gap-4">
-            <span className="text-xs font-bold uppercase">New York</span>
-            <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+            <span className="hidden sm:inline text-xs font-bold uppercase">New York</span>
+            <span className="hidden sm:inline text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
             <DarkModeToggle />
             {user && <NotificationDropdown />}
-            {user ? (
-              <button 
-                onClick={handleSignOut}
-                className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-              >
-                Sign Out
-              </button>
-            ) : (
-              <button 
-                onClick={() => setLocation('/account')}
-                className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-              >
-                Sign In
-              </button>
-            )}
+            <div className="hidden md:block">
+              {user ? (
+                <button 
+                  onClick={handleSignOut}
+                  className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setLocation('/account')}
+                  className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
+      
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 animate-in slide-in-from-top-4 duration-200">
+          <div className="px-6 py-4 space-y-3">
+            <button 
+              onClick={() => { setLocation("/"); setIsMenuOpen(false); }}
+              className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+            >
+              Catalogue
+            </button>
+            <button 
+              onClick={() => { setLocation("/cities"); setIsMenuOpen(false); }}
+              className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+            >
+              Cities
+            </button>
+            <button 
+              onClick={() => { setLocation("/explore"); setIsMenuOpen(false); }}
+              className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+            >
+              Explore
+            </button>
+            {user && (
+              <button 
+                onClick={() => { setLocation("/feed"); setIsMenuOpen(false); }}
+                className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+              >
+                Feed
+              </button>
+            )}
+            <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Archive</a>
+            <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Editorial</a>
+            
+            <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
+              {user ? (
+                <button 
+                  onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
+                  className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <button 
+                  onClick={() => { setLocation('/account'); setIsMenuOpen(false); }}
+                  className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
