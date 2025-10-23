@@ -8,7 +8,7 @@ import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { CookieBanner } from "@/components/CookieBanner";
-import { SearchOverlay } from "@/components/SearchOverlay";
+import { AdvancedSearchOverlay } from "@/components/AdvancedSearchOverlay";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
@@ -291,7 +291,7 @@ export default function Home() {
       <CookieBanner />
 
       {/* Search Overlay */}
-      <SearchOverlay
+      <AdvancedSearchOverlay
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         destinations={destinations}
