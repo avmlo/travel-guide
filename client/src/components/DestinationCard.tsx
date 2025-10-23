@@ -20,7 +20,7 @@ interface DestinationCardProps {
 export function DestinationCard({ destination, onClick }: DestinationCardProps) {
   return (
     <div 
-      className="group cursor-pointer destination-card bg-white dark:bg-gray-900 overflow-hidden transition-all duration-300 hover:opacity-80 animate-in fade-in slide-in-from-bottom-4"
+      className="group cursor-pointer destination-card overflow-hidden transition-all duration-300 hover:opacity-80 animate-in fade-in slide-in-from-bottom-4"
       onClick={onClick}
     >
       <div className="relative aspect-square overflow-hidden bg-gray-100">
@@ -54,7 +54,7 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
         )}
       </div>
       
-      <div className="py-3 space-y-0.5 bg-white dark:bg-gray-900">
+      <div className="py-3 space-y-0.5">
         <h3 className="font-medium text-sm leading-tight line-clamp-2 text-black dark:text-white">
           {destination.name}
         </h3>
