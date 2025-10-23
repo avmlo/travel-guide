@@ -196,7 +196,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           <div className="sticky top-0 bg-white dark:bg-gray-950 z-10 flex justify-between items-center px-8 py-6 border-b border-gray-200 dark:border-gray-800">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors dark:text-white"
+              className="hidden md:block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors dark:text-white"
               aria-label={isExpanded ? "Collapse" : "Expand"}
             >
               {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
