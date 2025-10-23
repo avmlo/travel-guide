@@ -55,7 +55,7 @@ export function Header() {
             <button onClick={() => setLocation("/explore")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Explore</button>
             {user && <button onClick={() => setLocation("/feed")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Feed</button>}
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
+            <button onClick={() => setLocation("/editorial")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</button>
           </div>
           
           {/* Mobile Menu Button */}
@@ -125,7 +125,12 @@ export function Header() {
               </button>
             )}
             <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Archive</a>
-            <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Editorial</a>
+            <button 
+              onClick={() => { setLocation("/editorial"); setIsMenuOpen(false); }}
+              className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+            >
+              Editorial
+            </button>
             
             <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
               {user ? (
