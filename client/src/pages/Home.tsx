@@ -29,6 +29,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [displayCount, setDisplayCount] = useState(40);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -154,9 +155,12 @@ export default function Home() {
       const matchesCity =
         !selectedCity || dest.city === selectedCity;
 
-      return matchesSearch && matchesCity;
+      const matchesCategory =
+        !selectedCategory || dest.category.toLowerCase().includes(selectedCategory.toLowerCase());
+
+      return matchesSearch && matchesCity && matchesCategory;
     });
-  }, [destinations, searchQuery, selectedCity]);
+  }, [destinations, searchQuery, selectedCity, selectedCategory]);
 
   const displayedDestinations = filteredDestinations.slice(0, displayCount);
   const hasMore = displayCount < filteredDestinations.length;
@@ -164,7 +168,7 @@ export default function Home() {
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(40);
-  }, [searchQuery, selectedCity]);
+  }, [searchQuery, selectedCity, selectedCategory]);
 
   const handleCardClick = (destination: Destination) => {
     setSelectedDestination(destination);
@@ -195,6 +199,89 @@ export default function Home() {
                 <span className="text-gray-500 dark:text-gray-400">Search {destinations.length} items...</span>
               </div>
             </button>
+          </div>
+
+          {/* Category Filter - App Store Style */}
+          <div className="mb-8">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedCategory("")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  !selectedCategory
+                    ? "bg-black dark:bg-white text-white dark:text-black"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span>🌍</span>
+                <span>All</span>
+              </button>
+              <button
+                onClick={() => setSelectedCategory("restaurant")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === "restaurant"
+                    ? "bg-black dark:bg-white text-white dark:text-black"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span>🍽️</span>
+                <span>Restaurant</span>
+              </button>
+              <button
+                onClick={() => setSelectedCategory("cafe")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === "cafe"
+                    ? "bg-black dark:bg-white text-white dark:text-black"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span>☕</span>
+                <span>Cafe</span>
+              </button>
+              <button
+                onClick={() => setSelectedCategory("hotel")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === "hotel"
+                    ? "bg-black dark:bg-white text-white dark:text-black"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span>🏨</span>
+                <span>Hotel</span>
+              </button>
+              <button
+                onClick={() => setSelectedCategory("bar")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === "bar"
+                    ? "bg-black dark:bg-white text-white dark:text-black"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span>🍸</span>
+                <span>Bar</span>
+              </button>
+              <button
+                onClick={() => setSelectedCategory("shop")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === "shop"
+                    ? "bg-black dark:bg-white text-white dark:text-black"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span>🛍️</span>
+                <span>Shop</span>
+              </button>
+              <button
+                onClick={() => setSelectedCategory("bakery")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === "bakery"
+                    ? "bg-black dark:bg-white text-white dark:text-black"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span>🥐</span>
+                <span>Bakery</span>
+              </button>
+            </div>
           </div>
 
           {/* City Filter */}
