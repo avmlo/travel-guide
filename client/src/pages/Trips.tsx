@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { SkeletonGrid } from "@/components/SkeletonCard";
 
 export default function Trips() {
   const [, setLocation] = useLocation();
@@ -91,11 +92,27 @@ export default function Trips() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950">
+      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
         <Header />
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        </div>
+        <main className="px-6 md:px-10 py-12 dark:text-white">
+          <div className="max-w-7xl mx-auto">
+            {/* Header skeleton */}
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-2" />
+                <div className="h-4 w-64 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
+              </div>
+              <div className="h-10 w-28 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
+            </div>
+
+            {/* Grid skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-48 bg-gray-200 dark:bg-gray-800 rounded-lg animate-shimmer" />
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -107,9 +124,9 @@ export default function Trips() {
       <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 animate-fade-in">
             <div>
-              <h1 className="text-3xl font-bold mb-2">My Trips</h1>
+              <h1 className="text-3xl font-bold mb-2 text-black dark:text-white">My Trips</h1>
               <p className="text-gray-600 dark:text-gray-400">
                 Plan and organize your travel itineraries
               </p>
@@ -199,23 +216,27 @@ export default function Trips() {
 
           {/* Trips Grid */}
           {trips && trips.length === 0 ? (
-            <div className="text-center py-20">
+            <div className="text-center py-20 animate-fade-in" style={{ animationDelay: '100ms' }}>
               <div className="mb-6">
                 <MapPin className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-700" />
               </div>
-              <h2 className="text-2xl font-semibold mb-2">No trips yet</h2>
+              <h2 className="text-2xl font-semibold mb-2 text-black dark:text-white">No trips yet</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Start planning your next adventure
               </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200">
                 <Plus className="h-4 w-4 mr-2" />
                 Create Your First Trip
               </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trips?.map((trip) => (
-                <Card key={trip.id} className="hover:shadow-lg transition-shadow cursor-pointer group">
+              {trips?.map((trip, index) => (
+                <Card
+                  key={trip.id}
+                  className="hover:shadow-lg transition-all duration-200 cursor-pointer group animate-scale-in dark:bg-gray-900 dark:border-gray-800"
+                  style={{ animationDelay: `${Math.min(index * 50, 400)}ms` }}
+                >
                   <CardHeader className="pb-3" onClick={() => setLocation(`/trip/${trip.id}`)}>
                     <div className="flex items-start justify-between mb-2">
                       <Badge className={getStatusColor(trip.status || "planning")}>
