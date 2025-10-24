@@ -14,7 +14,11 @@ import {
   BarChart3,
   MessageCircle,
   CalendarClock,
-  Compass
+  Compass,
+  CalendarRange,
+  ListChecks,
+  Plus,
+  X
 } from "lucide-react";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { Destination } from "@/types/destination";
@@ -109,6 +113,15 @@ export default function Account() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
   const [visitedFilter, setVisitedFilter] = useState<"all" | "rated" | "notes">("all");
+  const [tripName, setTripName] = useState("Next urban escape");
+  const [tripDuration, setTripDuration] = useState(3);
+  const [dayPlans, setDayPlans] = useState<Record<number, string[]>>({
+    1: [],
+    2: [],
+    3: []
+  });
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [placeSearch, setPlaceSearch] = useState("");
 
   // Load all destinations for drawer
   useEffect(() => {
@@ -140,6 +153,17 @@ export default function Account() {
     }
     loadDestinations();
   }, []);
+
+  useEffect(() => {
+    setDayPlans(prev => {
+      const next: Record<number, string[]> = {};
+      for (let day = 1; day <= tripDuration; day++) {
+        next[day] = prev[day] ? [...prev[day]] : [];
+      }
+      return next;
+    });
+    setSelectedDay(prev => (prev && prev > tripDuration ? null : prev));
+  }, [tripDuration]);
 
   const handleCardClick = (destinationSlug: string) => {
     const dest = allDestinations.find(d => d.slug === destinationSlug);
@@ -398,6 +422,84 @@ export default function Account() {
     "Where should I grab coffee in Seoul?"
   ];
 
+  const plannerPlaceMap = new Map<
+    string,
+    {
+      slug: string;
+      name: string;
+      city: string;
+      image: string;
+      badges: string[];
+    }
+  >();
+
+  savedPlaces.forEach(place => {
+    plannerPlaceMap.set(place.destination_slug, {
+      slug: place.destination_slug,
+      name: place.destination.name,
+      city: place.destination.city,
+      image: place.destination.image,
+      badges: ["Saved"]
+    });
+  });
+
+  visitedTimeline.forEach(place => {
+    const existing = plannerPlaceMap.get(place.destination_slug);
+    if (existing) {
+      if (!existing.badges.includes("Visited")) {
+        existing.badges.push("Visited");
+      }
+    } else if (place.destination) {
+      plannerPlaceMap.set(place.destination_slug, {
+        slug: place.destination_slug,
+        name: place.destination.name,
+        city: place.destination.city,
+        image: place.destination.image,
+        badges: ["Visited"]
+      });
+    }
+  });
+
+  const plannerOptions = Array.from(plannerPlaceMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  const totalAssignments = Object.values(dayPlans).reduce(
+    (sum, entries) => sum + entries.length,
+    0
+  );
+
+  const dayNumbers = Array.from({ length: tripDuration }, (_, index) => index + 1);
+  const unplannedDays = dayNumbers.filter(day => (dayPlans[day] || []).length === 0).length;
+  const averageAssignments = tripDuration > 0 ? totalAssignments / tripDuration : 0;
+
+  const handleAddPlaceToDay = (day: number, slug: string) => {
+    setDayPlans(prev => {
+      const current = prev[day] || [];
+      if (current.includes(slug)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [day]: [...current, slug]
+      };
+    });
+  };
+
+  const handleRemovePlaceFromDay = (day: number, slug: string) => {
+    setDayPlans(prev => ({
+      ...prev,
+      [day]: (prev[day] || []).filter(item => item !== slug)
+    }));
+  };
+
+  const clearDayPlan = (day: number) => {
+    setDayPlans(prev => ({
+      ...prev,
+      [day]: []
+    }));
+  };
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -617,6 +719,273 @@ export default function Account() {
                 </div>
               </div>
             </aside>
+          </section>
+
+          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-semibold text-neutral-900">Trip planner</h2>
+                <p className="text-sm text-neutral-500">
+                  Draft a day-by-day itinerary by assigning your favorite places to each day.
+                </p>
+              </div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-600">
+                <CalendarRange className="h-3.5 w-3.5" /> Interactive itinerary
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-6 xl:grid-cols-[2fr_1fr]">
+              <div className="space-y-5">
+                <div className="grid gap-4 rounded-2xl border border-neutral-200 p-4 sm:p-5 lg:grid-cols-[1.3fr_auto] lg:items-end">
+                  <div className="space-y-3">
+                    <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+                      Trip name
+                    </label>
+                    <input
+                      value={tripName}
+                      onChange={event => setTripName(event.target.value)}
+                      placeholder="Name your getaway"
+                      className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+                      <span>Trip length</span>
+                      <span className="text-neutral-900">{tripDuration} day{tripDuration === 1 ? "" : "s"}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={10}
+                      value={tripDuration}
+                      onChange={event => setTripDuration(Number(event.target.value))}
+                      className="w-full accent-neutral-900"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      {[3, 5, 7].map(option => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => setTripDuration(option)}
+                          className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] transition-colors ${
+                            tripDuration === option
+                              ? "bg-neutral-900 text-white"
+                              : "border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                          }`}
+                        >
+                          {option}-day
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 max-md:-mx-2 max-md:flex max-md:overflow-x-auto max-md:px-2 max-md:pb-1 max-md:[&>div]:min-w-[260px] max-md:[&>div]:flex-1 max-md:[&>div]:snap-start max-md:snap-x max-md:snap-mandatory">
+                  {dayNumbers.map(day => {
+                    const assignments = dayPlans[day] || [];
+                    const isOpen = selectedDay === day;
+                    const filteredSuggestions = plannerOptions.filter(option => {
+                      const query = placeSearch.trim().toLowerCase();
+                      const matchesQuery =
+                        query.length === 0 ||
+                        option.name.toLowerCase().includes(query) ||
+                        option.city.toLowerCase().includes(query);
+                      const alreadySelected = assignments.includes(option.slug);
+                      return matchesQuery && !alreadySelected;
+                    });
+
+                    return (
+                      <div key={day} className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Day {day}</p>
+                            <p className="text-sm text-neutral-400">{tripName || "Untitled trip"}</p>
+                          </div>
+                          {assignments.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => clearDayPlan(day)}
+                              className="rounded-full border border-neutral-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-neutral-900/20 hover:bg-neutral-100"
+                            >
+                              Reset
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="mt-4 space-y-3">
+                          {assignments.length === 0 && (
+                            <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-500">
+                              Drop in saved or visited spots to outline the day.
+                            </div>
+                          )}
+
+                          {assignments.map(slug => {
+                            const details = plannerPlaceMap.get(slug);
+                            if (!details) {
+                              return null;
+                            }
+                            return (
+                              <button
+                                key={slug}
+                                type="button"
+                                onClick={() => handleCardClick(slug)}
+                                className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3 text-left transition-colors hover:border-neutral-900/20 hover:bg-neutral-50"
+                              >
+                                <div className="h-14 w-16 overflow-hidden rounded-xl bg-neutral-100">
+                                  <img
+                                    src={details.image || "/images/placeholder-destination.jpg"}
+                                    alt={details.name}
+                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-semibold text-neutral-900">{details.name}</p>
+                                  <p className="mt-1 flex items-center gap-1 text-xs text-neutral-500">
+                                    <MapPin className="h-3.5 w-3.5" /> {capitalizeCity(details.city)}
+                                  </p>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {details.badges.map(badge => (
+                                      <span
+                                        key={badge}
+                                        className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-500"
+                                      >
+                                        {badge}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={event => {
+                                    event.stopPropagation();
+                                    handleRemovePlaceFromDay(day, slug);
+                                  }}
+                                  className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/80 text-neutral-400 transition hover:bg-neutral-900 hover:text-white"
+                                >
+                                  <X className="h-4 w-4" />
+                                  <span className="sr-only">Remove</span>
+                                </button>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedDay(isOpen ? null : day);
+                            setPlaceSearch("");
+                          }}
+                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:border-neutral-900/20 hover:bg-neutral-100"
+                        >
+                          <Plus className="h-4 w-4" /> {assignments.length > 0 ? "Add more spots" : "Add a spot"}
+                        </button>
+
+                        {isOpen && (
+                          <div className="mt-4 space-y-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-neutral-500">
+                                Choose from your collection
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedDay(null)}
+                                className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-neutral-500 transition hover:text-neutral-900"
+                              >
+                                Close <X className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                            <input
+                              value={placeSearch}
+                              onChange={event => setPlaceSearch(event.target.value)}
+                              placeholder="Search saved or visited spots"
+                              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10"
+                            />
+                            <div className="max-h-48 space-y-3 overflow-y-auto pr-1">
+                              {filteredSuggestions.length === 0 ? (
+                                <p className="rounded-xl border border-dashed border-neutral-200 bg-white p-3 text-xs text-neutral-500">
+                                  {plannerOptions.length === 0
+                                    ? "Save or log destinations to start planning."
+                                    : "No matches. Try a different search or day."}
+                                </p>
+                              ) : (
+                                filteredSuggestions.map(option => (
+                                  <button
+                                    key={option.slug}
+                                    type="button"
+                                    onClick={() => handleAddPlaceToDay(day, option.slug)}
+                                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left text-sm text-neutral-700 transition hover:border-neutral-900/20 hover:bg-neutral-100"
+                                  >
+                                    <div>
+                                      <p className="font-semibold text-neutral-900">{option.name}</p>
+                                      <p className="text-xs text-neutral-500">{capitalizeCity(option.city)}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex flex-wrap gap-1">
+                                        {option.badges.map(badge => (
+                                          <span
+                                            key={badge}
+                                            className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-500"
+                                          >
+                                            {badge}
+                                          </span>
+                                        ))}
+                                      </div>
+                                      <Plus className="h-4 w-4 text-neutral-400" />
+                                    </div>
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <aside className="space-y-5">
+                <div className="rounded-3xl border border-neutral-200 bg-white p-6">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+                    <ListChecks className="h-4 w-4" /> Plan summary
+                  </div>
+                  <p className="mt-4 text-sm text-neutral-600">
+                    Assign saved highlights or past favorites to keep your itinerary balanced across the trip.
+                  </p>
+                  <div className="mt-5 space-y-3 text-sm text-neutral-600">
+                    <div className="flex items-center justify-between rounded-2xl border border-neutral-200 px-3 py-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Days planned</span>
+                      <span className="text-sm font-semibold text-neutral-900">{tripDuration}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-2xl border border-neutral-200 px-3 py-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Places assigned</span>
+                      <span className="text-sm font-semibold text-neutral-900">{totalAssignments}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-2xl border border-neutral-200 px-3 py-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Avg per day</span>
+                      <span className="text-sm font-semibold text-neutral-900">{averageAssignments.toFixed(1)}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-2xl border border-neutral-200 px-3 py-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Open days</span>
+                      <span className="text-sm font-semibold text-neutral-900">{unplannedDays}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-neutral-200 bg-white p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Need inspiration?</p>
+                  <p className="mt-3 text-sm text-neutral-600">
+                    Ask the AI chat to fill any blank days or surface themed experiences. Try prompting:
+                  </p>
+                  <div className="mt-4 space-y-2 text-sm text-neutral-700">
+                    <p className="rounded-2xl bg-neutral-50 px-4 py-2">“Suggest a morning in {tripName || "my next city"} that pairs coffee and design.”</p>
+                    <p className="rounded-2xl bg-neutral-50 px-4 py-2">“Balance my trip with one cultural highlight and one food experience each day.”</p>
+                    <p className="rounded-2xl bg-neutral-50 px-4 py-2">“What hidden gems should I add to day {selectedDay || 1}?”</p>
+                  </div>
+                </div>
+              </aside>
+            </div>
           </section>
 
           <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
