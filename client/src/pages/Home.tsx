@@ -13,6 +13,7 @@ import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { ChatGPTStyleAI } from "@/components/ChatGPTStyleAI";
+import { LocalMode } from "@/components/LocalMode";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
 
 // Helper function to capitalize city names
@@ -348,6 +349,15 @@ export default function Home() {
 
       {/* AI Assistant */}
       <ChatGPTStyleAI />
+
+      {/* Local Mode */}
+      <LocalMode
+        destinations={destinations}
+        onSelectDestination={(dest) => {
+          setSelectedDestination(dest);
+          setIsDrawerOpen(true);
+        }}
+      />
     </div>
   );
 }

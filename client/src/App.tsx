@@ -13,6 +13,7 @@ import City from "./pages/City";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
 import Profile from "./pages/Profile";
+import Stats from "./pages/Stats";
 import Lists from "./pages/Lists";
 import ListDetail from "./pages/ListDetail";
 import Feed from "./pages/Feed";
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/saved" component={SavedPlaces} />
       <Route path="/preferences" component={Account} />
       <Route path="/account" component={Account} />
+      <Route path="/stats" component={Stats} />
       <Route path="/user/:username" component={Profile} />
       <Route path="/lists" component={Lists} />
       <Route path="/list/:id" component={ListDetail} />

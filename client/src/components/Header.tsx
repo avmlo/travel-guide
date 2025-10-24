@@ -54,6 +54,7 @@ export function Header() {
             <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
             <button onClick={() => setLocation("/explore")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Explore</button>
             {user && <button onClick={() => setLocation("/feed")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Feed</button>}
+            {user && <button onClick={() => setLocation("/stats")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Stats</button>}
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
             <button onClick={() => setLocation("/editorial")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</button>
           </div>
@@ -122,6 +123,14 @@ export function Header() {
                 className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
               >
                 Feed
+              </button>
+            )}
+            {user && (
+              <button 
+                onClick={() => { setLocation("/stats"); setIsMenuOpen(false); }}
+                className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+              >
+                Stats
               </button>
             )}
             <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Archive</a>
