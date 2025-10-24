@@ -38,3 +38,37 @@ export const userActivity = mysqlTable("user_activity", {
   metadata: text("metadata"), // JSON for additional context
 });
 
+export const trips = mysqlTable("trips", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  destination: varchar("destination", { length: 255 }), // Main city/destination
+  startDate: datetime("start_date"),
+  endDate: datetime("end_date"),
+  status: varchar("status", { length: 50 }).notNull().default("planning"), // 'planning', 'upcoming', 'ongoing', 'completed'
+  isPublic: int("is_public").notNull().default(0), // 0 = private, 1 = public
+  coverImage: varchar("cover_image", { length: 500 }),
+  createdAt: datetime("created_at").notNull(),
+  updatedAt: datetime("updated_at").notNull(),
+});
+
+export type Trip = typeof trips.$inferSelect;
+export type InsertTrip = typeof trips.$inferInsert;
+
+export const itineraryItems = mysqlTable("itinerary_items", {
+  id: int("id").primaryKey().autoincrement(),
+  tripId: int("trip_id").notNull(),
+  destinationSlug: varchar("destination_slug", { length: 255 }),
+  day: int("day").notNull(), // Day number in the trip (1-indexed)
+  orderIndex: int("order_index").notNull(), // Order within the day
+  time: varchar("time", { length: 50 }), // e.g., "9:00 AM", "Morning", "Afternoon"
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  notes: text("notes"), // User's personal notes
+  createdAt: datetime("created_at").notNull(),
+});
+
+export type ItineraryItem = typeof itineraryItems.$inferSelect;
+export type InsertItineraryItem = typeof itineraryItems.$inferInsert;
+
