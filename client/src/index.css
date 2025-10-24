@@ -199,4 +199,92 @@
   nav a, nav button, nav select {
     @apply transition-colors duration-200 ease-in-out;
   }
+
+  /* Shimmer animation for loading states */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+  }
+
+  /* Fade in animation for content */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Scale in animation for cards */
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  /* Slide up animation for modals */
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Smooth transition wrapper for route changes */
+  .page-transition-enter {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+  }
+
+  .page-transition-exit {
+    opacity: 1;
+  }
+
+  .page-transition-exit-active {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+  }
 }
