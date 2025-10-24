@@ -149,10 +149,10 @@ export function ChatGPTStyleAI() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 group"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full border border-white/15 bg-black/50 text-white/90 shadow-lg backdrop-blur-md transition-all flex items-center gap-2 group hover:bg-black/60"
       >
-        <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
-        <span className="font-medium">Ask AI Travel Assistant</span>
+        <Sparkles className="w-5 h-5 text-white/80 group-hover:text-white" />
+        <span className="font-medium tracking-wide">Ask AI Travel Assistant</span>
       </button>
     );
   }
@@ -162,10 +162,10 @@ export function ChatGPTStyleAI() {
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
         <button
           onClick={() => setIsMinimized(false)}
-          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+          className="px-6 py-3 rounded-full border border-white/15 bg-black/50 text-white/90 shadow-lg backdrop-blur-md transition-all flex items-center gap-2 hover:bg-black/60"
         >
-          <Sparkles className="w-5 h-5" />
-          <span className="font-medium">Travel Assistant</span>
+          <Sparkles className="w-5 h-5 text-white/80" />
+          <span className="font-medium tracking-wide">Travel Assistant</span>
           <button
             onClick={(e) => {
               e.stopPropagation();

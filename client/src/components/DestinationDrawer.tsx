@@ -202,11 +202,11 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSelectDestin
       <div
         className={`fixed top-0 right-0 h-full bg-white dark:bg-gray-950 shadow-xl transition-all duration-300 z-50 ${
           isOpen ? "translate-x-0" : "translate-x-full"
-        } ${isExpanded ? "w-full" : "w-full sm:w-[600px]"}`}
+        } ${isExpanded ? "w-full" : "w-full sm:w-[460px] lg:w-[500px]"}`}
       >
         <div className="h-full overflow-y-auto">
           {/* Header with Close and Expand buttons */}
-          <div className="sticky top-0 bg-white dark:bg-gray-950 z-10 flex justify-between items-center px-8 py-6 border-b border-gray-200 dark:border-gray-800">
+          <div className="sticky top-0 bg-white dark:bg-gray-950 z-10 flex justify-between items-center px-6 py-5 border-b border-gray-200 dark:border-gray-800">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="hidden md:block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors dark:text-white"
@@ -228,7 +228,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSelectDestin
             // Expanded: Two-column layout (Clarity Ventures style)
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-80px)]">
               {/* Left Column: Metadata */}
-              <div className="px-12 py-16 bg-gray-50 dark:bg-gray-900">
+              <div className="px-10 py-14 bg-gray-50 dark:bg-gray-900">
                 <h1 className="text-4xl lg:text-5xl font-normal mb-12 text-black dark:text-white">{activeDestination.name}</h1>
 
                 {/* Metadata Grid */}
@@ -334,7 +334,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSelectDestin
                 </div>
 
                 {/* Description */}
-                <div className="px-12 py-16">
+                <div className="px-10 py-14">
                   {activeDestination.content && (
                     <p className="text-lg lg:text-xl leading-relaxed text-gray-700 dark:text-gray-300">
                       {activeDestination.content.replace(/<[^>]*>/g, '')}
@@ -351,7 +351,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSelectDestin
             </div>
           ) : (
             // Collapsed: Original single-column layout
-            <div className="px-8 py-12">
+            <div className="px-6 py-10">
               {/* Hero Image */}
               <div className="w-full aspect-square max-h-[60vh] mb-8">
                 <img
