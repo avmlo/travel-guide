@@ -403,10 +403,10 @@ export default function Account() {
     <div className="min-h-screen bg-white">
       <Header />
 
-      <main className="bg-neutral-50 px-4 pb-24 pt-10 md:px-10">
-        <div className="mx-auto max-w-6xl space-y-12">
-          <section className="rounded-3xl border border-neutral-200 bg-white p-8">
-            <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+      <main className="bg-neutral-50 px-4 pb-24 pt-8 md:px-10 md:pt-10">
+        <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
+          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
+            <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:gap-10">
               <div>
                 <span className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                   <Plane className="h-3.5 w-3.5" /> Account overview
@@ -416,24 +416,27 @@ export default function Account() {
                 <p className="mt-6 max-w-xl text-sm text-neutral-600">
                   Keep your travel journal, curate future getaways, and let Urban Manual surface timely ideas for where to head next.
                 </p>
-                <div className="mt-6 flex flex-wrap gap-3">
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <button
                     onClick={() => setLocation("/preferences")}
-                    className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
                   >
                     <Settings2 className="h-4 w-4" /> Manage preferences
                   </button>
                   <button
                     onClick={handleSignOut}
-                    className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-5 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 px-5 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100"
                   >
                     <LogOut className="h-4 w-4" /> Sign out
                   </button>
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="max-sm:-mx-2 max-sm:flex max-sm:gap-3 max-sm:overflow-x-auto max-sm:px-2 max-sm:pb-1 max-sm:snap-x max-sm:snap-mandatory sm:grid sm:grid-cols-2 sm:gap-4">
                 {stats.map(({ label, value, sublabel, icon: Icon }) => (
-                  <div key={label} className="rounded-2xl border border-neutral-200 p-5">
+                  <div
+                    key={label}
+                    className="rounded-2xl border border-neutral-200 p-4 sm:p-5 max-sm:min-w-[180px] max-sm:flex-1 max-sm:snap-start"
+                  >
                     <div className="flex items-center justify-between text-neutral-500">
                       <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">{label}</span>
                       <Icon className="h-4 w-4" />
@@ -447,7 +450,7 @@ export default function Account() {
           </section>
 
           <section className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
-            <div className="rounded-3xl border border-neutral-200 bg-white p-8">
+            <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-semibold text-neutral-900">Journey insights</h2>
@@ -457,27 +460,27 @@ export default function Account() {
                   <Globe2 className="h-3.5 w-3.5" /> Live metrics
                 </div>
               </div>
-              <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-2xl border border-neutral-200 p-5">
+              <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4 max-md:grid-cols-2 max-sm:-mx-2 max-sm:flex max-sm:overflow-x-auto max-sm:px-2 max-sm:pb-1 max-sm:[&>div]:min-w-[200px] max-sm:[&>div]:flex-1 max-sm:[&>div]:snap-start max-sm:snap-x max-sm:snap-mandatory">
+                <div className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Avg rating</p>
                   <p className="mt-4 text-4xl font-semibold text-neutral-900">
                     {averageRating > 0 ? averageRating.toFixed(1) : "—"}
                   </p>
                   <p className="mt-2 text-xs text-neutral-500">Across {ratingValues.length || "no"} logged reviews</p>
                 </div>
-                <div className="rounded-2xl border border-neutral-200 p-5">
+                <div className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Go-to category</p>
                   <p className="mt-4 text-lg font-semibold text-neutral-900">{topCategory}</p>
                   <p className="mt-2 text-xs text-neutral-500">Your most frequented experience type</p>
                 </div>
-                <div className="rounded-2xl border border-neutral-200 p-5">
+                <div className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">City crush</p>
                   <p className="mt-4 text-lg font-semibold text-neutral-900">
                     {topCity !== "—" ? capitalizeCity(topCity) : "—"}
                   </p>
                   <p className="mt-2 text-xs text-neutral-500">Where you keep returning</p>
                 </div>
-                <div className="rounded-2xl border border-neutral-200 p-5">
+                <div className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Trips goal</p>
                   <div className="mt-4">
                     <div className="flex items-baseline justify-between text-neutral-900">
@@ -497,9 +500,12 @@ export default function Account() {
               {cadenceEntries.length > 0 && (
                 <div className="mt-8">
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Travel cadence</p>
-                  <div className="mt-4 flex flex-wrap gap-4">
+                  <div className="mt-4 flex gap-4 overflow-x-auto pb-1 max-sm:-mx-2 max-sm:px-2 max-sm:snap-x max-sm:snap-mandatory">
                     {cadenceEntries.map(entry => (
-                      <div key={entry.year} className="flex-1 min-w-[120px] rounded-2xl border border-neutral-200 p-4">
+                      <div
+                        key={entry.year}
+                        className="flex-1 min-w-[120px] rounded-2xl border border-neutral-200 p-4 sm:p-5 max-sm:snap-start"
+                      >
                         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">{entry.year}</p>
                         <div className="mt-4 flex h-16 items-end gap-2">
                           <div className="w-full rounded-full bg-neutral-100">
@@ -518,7 +524,7 @@ export default function Account() {
             </div>
 
             <aside className="space-y-6">
-              <div className="rounded-3xl border border-neutral-200 bg-white p-7">
+              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7">
                 <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
                   <Globe2 className="h-4 w-4" /> Travel footprint
                 </div>
@@ -551,7 +557,7 @@ export default function Account() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-neutral-200 bg-white p-7">
+              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7">
                 <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
                   <BarChart3 className="h-4 w-4" /> Saved city heatmap
                 </div>
@@ -579,7 +585,7 @@ export default function Account() {
                 )}
               </div>
 
-              <div className="rounded-3xl border border-neutral-200 bg-white p-7">
+              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7">
                 <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
                   <Sparkles className="h-4 w-4" /> AI copilots
                 </div>
@@ -598,7 +604,7 @@ export default function Account() {
                 </div>
                 <div className="mt-5 border-t border-neutral-200 pt-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Quick prompts</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2 max-sm:-mx-1 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:px-1 max-sm:[&>span]:whitespace-nowrap">
                     {aiShortcuts.map(shortcut => (
                       <span
                         key={shortcut}
@@ -613,7 +619,7 @@ export default function Account() {
             </aside>
           </section>
 
-          <section className="rounded-3xl border border-neutral-200 bg-white p-8">
+          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-semibold text-neutral-900">Saved destinations</h2>
@@ -627,7 +633,7 @@ export default function Account() {
               </button>
             </div>
             {savedPlaces.length === 0 ? (
-              <div className="mt-10 flex flex-col items-center justify-center gap-4 py-12 text-center">
+              <div className="mt-8 flex flex-col items-center justify-center gap-4 py-12 text-center sm:mt-10">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-100">
                   <Bookmark className="h-6 w-6 text-neutral-400" />
                 </div>
@@ -637,7 +643,7 @@ export default function Account() {
                 </div>
               </div>
             ) : (
-              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-8 grid gap-5 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
                 {savedPlaces.map(place => (
                   <button
                     key={place.destination_slug}
@@ -666,7 +672,7 @@ export default function Account() {
             )}
           </section>
 
-          <section className="rounded-3xl border border-neutral-200 bg-white p-8">
+          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-semibold text-neutral-900">Visited timeline</h2>
@@ -693,7 +699,7 @@ export default function Account() {
               </div>
             </div>
             {filteredVisitedTimeline.length === 0 ? (
-              <div className="mt-10 flex flex-col items-center justify-center gap-4 py-16 text-center">
+              <div className="mt-8 flex flex-col items-center justify-center gap-4 py-16 text-center sm:mt-10">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100">
                   <CheckCircle2 className="h-8 w-8 text-neutral-400" />
                 </div>
@@ -709,12 +715,12 @@ export default function Account() {
                 </button>
               </div>
             ) : (
-              <ol className="mt-10 space-y-8">
+              <ol className="mt-8 space-y-6 sm:mt-10 sm:space-y-8">
                 {filteredVisitedTimeline.map(place => (
                   <li key={place.destination_slug}>
                     <button
                       onClick={() => handleCardClick(place.destination_slug)}
-                      className="group flex w-full flex-col gap-4 rounded-2xl border border-neutral-200 p-5 text-left transition-colors hover:border-neutral-900/20 hover:bg-neutral-50"
+                      className="group flex w-full flex-col gap-4 rounded-2xl border border-neutral-200 p-4 text-left transition-colors hover:border-neutral-900/20 hover:bg-neutral-50 sm:p-5"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
@@ -726,7 +732,7 @@ export default function Account() {
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-5">
                         <div>
                           <h3 className="text-lg font-semibold text-neutral-900">{place.destination.name}</h3>
                           <p className="mt-1 flex items-center gap-2 text-sm text-neutral-500">
@@ -739,7 +745,7 @@ export default function Account() {
                             <img
                               src={place.destination.image}
                               alt={place.destination.name}
-                              className="h-24 w-40 object-cover transition-transform duration-500 group-hover:scale-105"
+                              className="h-24 w-full max-w-[160px] object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                           </div>
                         )}
