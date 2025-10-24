@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+
 import { cn } from "@/lib/utils";
 
 type ContentSectionProps = {
@@ -15,7 +16,7 @@ type ContentSectionProps = {
 
 const toneClasses: Record<NonNullable<ContentSectionProps["tone"]>, string> = {
   default: "bg-transparent",
-  muted: "bg-white/70 backdrop-blur dark:bg-slate-900/40",
+  muted: "bg-white/70 shadow-[0_20px_60px_rgba(15,23,42,0.05)] backdrop-blur dark:bg-slate-900/50",
   contrast: "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900",
 };
 
@@ -41,27 +42,28 @@ export function ContentSection({
     >
       <div
         className={cn(
-          "rounded-3xl border border-transparent",
-          tone === "default" ? "" : "border-slate-200/70 dark:border-slate-800/60",
+          "rounded-[32px] border border-slate-300/40",
+          tone === "default" ? "bg-transparent" : "",
           toneClasses[tone],
-          bleed ? "px-4 py-12 sm:px-6 lg:px-10" : "py-12 sm:py-14",
+          bleed ? "px-4 py-14 sm:px-6 lg:px-10" : "py-14 sm:py-16",
         )}
       >
         {(eyebrow || title || description || actions) && (
           <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div className="space-y-3 sm:max-w-2xl">
               {eyebrow && (
-                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/5 dark:text-emerald-200">
+                <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">
+                  <span className="h-px w-5 bg-slate-400/70" aria-hidden="true" />
                   {eyebrow}
                 </span>
               )}
               {title && (
-                <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-50">
+                <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[2.75rem] sm:leading-[1.1] dark:text-slate-50">
                   {title}
                 </h2>
               )}
               {description && (
-                <p className="text-base text-slate-600 dark:text-slate-300">
+                <p className="text-base leading-relaxed text-slate-600 dark:text-slate-300">
                   {description}
                 </p>
               )}
@@ -69,7 +71,7 @@ export function ContentSection({
             {actions && <div className="flex flex-wrap gap-3">{actions}</div>}
           </div>
         )}
-        <div className={cn("mt-8", bleed && "mx-auto max-w-6xl")}>{children}</div>
+        <div className={cn("mt-10", bleed && "mx-auto max-w-6xl")}>{children}</div>
       </div>
     </section>
   );

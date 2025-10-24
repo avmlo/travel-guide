@@ -196,14 +196,14 @@ export default function Home() {
 
   const hero = (
     <PageHero
-      eyebrow="City intelligence"
-      title="Fluent journeys for design-minded explorers"
-      description="Surface modern places to stay, dine, and wander. Blend them into day-by-day itineraries that honour your pace, interests, and the city's rhythm."
+      eyebrow="urbanmanual.co reference"
+      title="Curated city intelligence for modern travellers"
+      description="We pulled cues from the editorial grids and neutral palettes of urbanmanual.co to reimagine this planner—balancing print-inspired calm with fast AI tooling for the way design people actually travel."
       actions={
         <>
           <Button
             onClick={() => setIsSearchOpen(true)}
-            className="rounded-full bg-emerald-600 px-6 py-3 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-sm transition hover:bg-emerald-700"
+            className="rounded-full bg-slate-900 px-6 py-3 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-[0_18px_30px_rgba(15,23,42,0.18)] transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
           >
             <Search className="h-4 w-4" />
             Search the atlas
@@ -211,16 +211,16 @@ export default function Home() {
           <Button
             variant="outline"
             onClick={() => setLocation("/account")}
-            className="rounded-full border-emerald-500/40 px-6 py-3 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 transition hover:border-emerald-500 hover:text-emerald-600 dark:border-emerald-400/40 dark:text-emerald-200 dark:hover:text-emerald-100"
+            className="rounded-full border-slate-400/70 px-6 py-3 text-xs font-semibold uppercase tracking-[0.35em] text-slate-700 transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-600 dark:text-slate-200 dark:hover:border-slate-400"
           >
             <Sparkles className="h-4 w-4" />
-            Launch planner
+            Build a trip
           </Button>
         </>
       }
       stats={[
-        { label: "Curated destinations", value: `${destinations.length}`, hint: "Thoughtfully vetted spots" },
-        { label: "Cities tracked", value: `${cities.length}`, hint: "Across ${countryOrder.length} countries" },
+        { label: "Curated destinations", value: `${destinations.length}`, hint: "Vetted through our editorial lens" },
+        { label: "Cities tracked", value: `${cities.length}`, hint: `Across ${countryOrder.length} countries` },
         {
           label: "Your library",
           value: `${savedPlaces.length + visitedPlaces.length}`,
@@ -228,21 +228,21 @@ export default function Home() {
         },
       ]}
       media={
-        <div className="space-y-4">
-          <div className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-cyan-500/10 to-transparent p-6 text-slate-700 shadow-sm dark:border-emerald-400/20 dark:text-slate-100">
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-700/80 dark:text-emerald-200/70">Trip studio</p>
+        <div className="space-y-5">
+          <div className="rounded-[28px] border border-slate-300/60 bg-white/80 p-6 text-slate-700 shadow-[0_24px_60px_rgba(15,23,42,0.08)] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100">
+            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500/90 dark:text-slate-400/80">Trip studio</p>
             <p className="mt-3 text-lg font-semibold text-slate-900 dark:text-white">
-              Assign saved places to an effortless itinerary.
+              Assign saved places and borrow draws from our AI concierge.
             </p>
-            <p className="mt-2 text-sm text-slate-600/80 dark:text-slate-300">
-              Drag destinations onto each day, let the assistant balance energy, and collect prompts for effortless planning.
+            <p className="mt-2 text-sm text-slate-600/90 dark:text-slate-300">
+              Drop your favourite restaurants, hotels, and rituals onto each day, then request balancing suggestions inspired by the original Urban Manual feed.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               {cities.slice(0, 6).map((city) => (
                 <button
                   key={city}
                   onClick={() => setSelectedCity(city)}
-                  className="rounded-full border border-white/80 bg-white/70 px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/30 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:text-emerald-300"
+                  className="rounded-full border border-slate-300/70 bg-white/80 px-4 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:text-white"
                 >
                   {capitalizeCity(city)}
                 </button>
@@ -250,7 +250,7 @@ export default function Home() {
             </div>
             <button
               onClick={() => setLocation("/account")}
-              className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-white/80 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 transition hover:bg-emerald-500/20 dark:border-emerald-400/30 dark:bg-slate-900/70 dark:text-emerald-200"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-slate-400/80 bg-white/90 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-900 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:bg-slate-800"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Open planner
@@ -258,18 +258,18 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-emerald-400/15 dark:bg-slate-900/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Saved atlas</p>
+            <div className="rounded-2xl border border-slate-300/60 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500/80 dark:text-slate-400/80">Saved atlas</p>
               <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{savedPlaces.length}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400">Destinations ready to slot into your itinerary.</p>
             </div>
-            <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-emerald-400/15 dark:bg-slate-900/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Visited trail</p>
+            <div className="rounded-2xl border border-slate-300/60 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500/80 dark:text-slate-400/80">Visited trail</p>
               <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{visitedPlaces.length}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400">Keep notes and reflections for future reference.</p>
             </div>
-            <div className="col-span-2 rounded-2xl border border-emerald-500/15 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-emerald-400/15 dark:bg-slate-900/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Active filters</p>
+            <div className="col-span-2 rounded-2xl border border-slate-300/60 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500/80 dark:text-slate-400/80">Active filters</p>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                 {activeFilters.length > 0 ? activeFilters.join(" • ") : "All experiences are in view"}
               </p>
@@ -291,28 +291,28 @@ export default function Home() {
           <div className="space-y-10">
             <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600/80 dark:text-emerald-300/80">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500/90 dark:text-slate-400/90">
                   Search the library
                 </p>
                 <button
                   onClick={() => setIsSearchOpen(true)}
-                  className="group flex w-full items-center justify-between rounded-2xl border border-emerald-500/15 bg-white/80 px-4 py-4 text-left text-sm text-slate-500 shadow-sm transition hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/15 dark:bg-slate-950/70 dark:text-slate-300"
+                  className="group flex w-full items-center justify-between rounded-2xl border border-slate-300/60 bg-white/80 px-4 py-4 text-left text-sm text-slate-600 shadow-sm transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-300"
                 >
                   <span className="flex items-center gap-3">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 transition group-hover:border-emerald-500/40 group-hover:text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/70 bg-white/80 text-slate-900 transition group-hover:border-slate-500 group-hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
                       <Search className="h-4 w-4" />
                     </span>
                     Search {destinations.length} experiences, venues, and stays
                   </span>
-                  <ArrowRight className="h-4 w-4 text-emerald-500 transition group-hover:translate-x-1" />
+                  <ArrowRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-1 group-hover:text-slate-900" />
                 </button>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Combine mood, duration, and design sensibility with the advanced filters, or tap a city below to instantly refocus the feed.
                 </p>
               </div>
 
-              <div className="rounded-3xl border border-emerald-500/15 bg-white/90 p-6 shadow-sm dark:border-emerald-400/15 dark:bg-slate-950/60">
-                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600/80 dark:text-emerald-300/80">
+              <div className="rounded-3xl border border-slate-300/60 bg-white/90 p-6 shadow-sm dark:border-slate-700 dark:bg-slate-950/60">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.35em] text-slate-500/80 dark:text-slate-400/80">
                   <MapPin className="h-4 w-4" />
                   Quick pivots
                 </div>
@@ -321,7 +321,7 @@ export default function Home() {
                     <button
                       key={city}
                       onClick={() => setSelectedCity(city)}
-                      className="rounded-2xl border border-emerald-500/15 bg-white/80 px-4 py-3 text-left font-semibold text-slate-600 transition hover:border-emerald-500/30 hover:text-emerald-600 dark:border-emerald-400/20 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:text-emerald-300"
+                      className="rounded-2xl border border-slate-300/60 bg-white/80 px-4 py-3 text-left font-semibold text-slate-600 transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:text-white"
                     >
                       {capitalizeCity(city)}
                     </button>
@@ -329,7 +329,7 @@ export default function Home() {
                 </div>
                 <button
                   onClick={() => setLocation("/cities")}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 transition hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/30 dark:text-emerald-200"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-400/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-700 transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-600 dark:text-slate-200"
                 >
                   View all cities
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -339,15 +339,15 @@ export default function Home() {
 
             <div className="space-y-6">
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600/80 dark:text-emerald-300/80">Cities</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500/90 dark:text-slate-400/90">Cities</p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedCity("")}
                     className={cn(
                       "rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] transition",
                       selectedCity === ""
-                        ? "border-emerald-500 bg-emerald-500 text-white"
-                        : "border-emerald-500/20 bg-white/80 text-slate-600 hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/20 dark:bg-slate-900/70 dark:text-slate-200",
+                        ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
+                        : "border-slate-300/70 bg-white/80 text-slate-600 hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200",
                     )}
                   >
                     All
@@ -359,8 +359,8 @@ export default function Home() {
                       className={cn(
                         "rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] transition",
                         selectedCity === city
-                          ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-emerald-500/20 bg-white/80 text-slate-600 hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/20 dark:bg-slate-900/70 dark:text-slate-200",
+                          ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
+                          : "border-slate-300/70 bg-white/80 text-slate-600 hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200",
                       )}
                     >
                       {capitalizeCity(city)}
@@ -370,7 +370,7 @@ export default function Home() {
                 {cities.length > 18 && (
                   <button
                     onClick={() => setShowAllCities((prev) => !prev)}
-                    className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600 transition hover:text-emerald-500 dark:text-emerald-300"
+                    className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 transition hover:text-slate-900 dark:text-slate-300"
                   >
                     {showAllCities ? "Show fewer" : "Reveal more"}
                   </button>
@@ -378,7 +378,7 @@ export default function Home() {
               </div>
 
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600/80 dark:text-emerald-300/80">Categories</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500/90 dark:text-slate-400/90">Categories</p>
                 <div className="flex flex-wrap gap-2">
                   {categories.map((cat) => (
                     <button
@@ -387,8 +387,8 @@ export default function Home() {
                       className={cn(
                         "flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] transition",
                         selectedCategory === cat.value
-                          ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-emerald-500/20 bg-white/80 text-slate-600 hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/20 dark:bg-slate-900/70 dark:text-slate-200",
+                          ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
+                          : "border-slate-300/70 bg-white/80 text-slate-600 hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200",
                       )}
                     >
                       <span>{cat.emoji}</span>
@@ -413,7 +413,7 @@ export default function Home() {
                   setSelectedCity("");
                   setSelectedCategory("");
                 }}
-                className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 hover:text-emerald-600"
+                className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 hover:text-slate-900"
               >
                 Clear filters
               </Button>
@@ -426,14 +426,14 @@ export default function Home() {
                 Showing {filteredDestinations.length} {filteredDestinations.length === 1 ? "destination" : "destinations"}
               </p>
               {user && (
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/70 dark:text-emerald-300/70">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500/80 dark:text-slate-400/80">
                   Logged in • synced with your saved and visited lists
                 </p>
               )}
             </div>
 
             {filteredDestinations.length === 0 ? (
-              <div className="rounded-3xl border border-emerald-500/10 bg-white/80 px-6 py-14 text-center shadow-sm backdrop-blur dark:border-emerald-400/15 dark:bg-slate-950/60">
+              <div className="rounded-3xl border border-slate-300/60 bg-white/85 px-6 py-14 text-center shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/60">
                 <p className="text-lg font-semibold text-slate-700 dark:text-slate-200">No destinations match that blend yet.</p>
                 <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                   Reset the filters or expand your search to uncover more of the atlas.
@@ -444,7 +444,7 @@ export default function Home() {
                     setSelectedCity("");
                     setSelectedCategory("");
                   }}
-                  className="mt-6 rounded-full bg-emerald-600 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-emerald-700"
+                  className="mt-6 rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900"
                 >
                   Reset filters
                 </Button>
@@ -468,7 +468,7 @@ export default function Home() {
                   <div className="flex justify-center">
                     <button
                       onClick={() => setDisplayCount((prev) => prev + 40)}
-                      className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-700 transition hover:border-emerald-500 hover:text-emerald-600 dark:border-emerald-400/30 dark:text-emerald-200"
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-400/80 px-6 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-600 dark:text-slate-200"
                     >
                       Load more
                       <ArrowRight className="h-3.5 w-3.5" />
@@ -490,7 +490,7 @@ export default function Home() {
               <button
                 key={city}
                 onClick={() => setSelectedCity(city)}
-                className="flex items-center justify-between rounded-2xl border border-emerald-500/15 bg-white/80 px-5 py-4 text-left text-base font-semibold text-slate-700 shadow-sm transition hover:border-emerald-500/30 hover:text-emerald-600 dark:border-emerald-400/20 dark:bg-slate-950/60 dark:text-slate-200"
+                className="flex items-center justify-between rounded-2xl border border-slate-300/60 bg-white/80 px-5 py-4 text-left text-base font-semibold text-slate-700 shadow-sm transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-200"
               >
                 <span>{capitalizeCity(city)}</span>
                 <ArrowRight className="h-4 w-4" />
@@ -511,19 +511,18 @@ export default function Home() {
         }}
       />
 
-      {selectedDestination && (
-        <DestinationDrawer
-          destination={selectedDestination}
-          isOpen={isDrawerOpen}
-          onClose={() => {
-            setIsDrawerOpen(false);
-            setSelectedDestination(null);
-          }}
-          onSelectDestination={handleDrawerSuggestion}
-        />
-      )}
+        {selectedDestination && (
+          <DestinationDrawer
+            destination={selectedDestination}
+            isOpen={isDrawerOpen}
+            onClose={() => {
+              setIsDrawerOpen(false);
+              setSelectedDestination(null);
+            }}
+          />
+        )}
 
-      <ChatGPTStyleAI />
+        <ChatGPTStyleAI />
     </SiteShell>
   );
 }

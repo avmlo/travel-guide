@@ -378,7 +378,7 @@ export default function Explore() {
   );
 
   return (
-    <SiteShell hero={hero} background="canvas">
+    <SiteShell hero={hero}>
       <div className="space-y-16">
         <ContentSection
           tone="muted"

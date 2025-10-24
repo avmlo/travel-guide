@@ -590,7 +590,7 @@ export default function Account() {
   );
 
   return (
-    <SiteShell hero={hero} background="canvas">
+    <SiteShell hero={hero}>
       <div className="space-y-16">
         <ContentSection
           tone="muted"

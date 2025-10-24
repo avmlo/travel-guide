@@ -184,7 +184,7 @@ export default function City() {
   );
 
   return (
-    <SiteShell hero={hero} background="canvas">
+    <SiteShell hero={hero}>
       <div className="space-y-16">
         <ContentSection
           title="Curated places"

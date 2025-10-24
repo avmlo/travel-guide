@@ -62,7 +62,7 @@ export function Header() {
 
   useEffect(() => {
     function handleScroll() {
-      setIsScrolled(window.scrollY > 12);
+      setIsScrolled(window.scrollY > 8);
     }
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -93,9 +93,9 @@ export function Header() {
 
   const locationHint = useMemo(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      return "Global";
+      return "Worldwide";
     }
-    return "Worldwide";
+    return "Global";
   }, []);
 
   const handleNavigate = (href: string) => {
@@ -117,8 +117,8 @@ export function Header() {
   }, [user]);
 
   const headerClass = cn(
-    "sticky top-0 z-40 border-b border-emerald-500/10 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-emerald-400/10 dark:bg-slate-950/70",
-    isScrolled ? "shadow-sm" : "shadow-none",
+    "sticky top-0 z-40 border-b border-slate-300/60 bg-[#faf9f5]/80 backdrop-blur dark:border-slate-800/70 dark:bg-slate-950/70",
+    isScrolled ? "shadow-[0_12px_24px_rgba(15,23,42,0.08)]" : "shadow-none",
   );
 
   return (
@@ -126,46 +126,48 @@ export function Header() {
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 transition-all sm:px-6 lg:px-8">
         <button
           onClick={() => handleNavigate("/")}
-          className="group flex items-center gap-2 text-left text-2xl font-semibold tracking-tight text-slate-900 transition hover:text-emerald-700 dark:text-slate-100 dark:hover:text-emerald-300"
+          className="group flex items-center gap-3 text-left text-2xl font-semibold tracking-tight text-slate-900 transition hover:text-slate-600 dark:text-slate-100 dark:hover:text-emerald-200"
         >
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 transition group-hover:bg-emerald-500/20 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/70 bg-white text-slate-900 transition group-hover:border-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
             <Compass className="h-4 w-4" />
           </span>
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600/80 dark:text-emerald-300/80">
-              The Urban Manual
+            <span className="text-[10px] font-semibold uppercase tracking-[0.45em] text-slate-500 dark:text-slate-400">
+              Urban Manual
             </span>
-            <span className="text-[11px] uppercase tracking-[0.4em] text-slate-500 dark:text-slate-400">
-              Curated Travels
-            </span>
+            <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">City intelligence</span>
           </div>
         </button>
 
-        <nav className="hidden items-center gap-6 rounded-full border border-emerald-500/10 bg-white/70 px-6 py-2 text-sm font-semibold text-slate-600 shadow-sm backdrop-blur dark:border-emerald-400/15 dark:bg-slate-900/70 dark:text-slate-200 lg:flex">
+        <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-200 lg:flex">
           {primaryNav.map((link) => (
             <button
               key={link.href}
               onClick={() => handleNavigate(link.href)}
-              className="transition hover:text-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 dark:hover:text-emerald-300"
+              className="group relative pb-1 transition hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 dark:hover:text-white"
             >
               {link.label}
+              <span
+                className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-slate-900 transition-transform duration-200 group-hover:scale-x-100 dark:bg-white"
+                aria-hidden="true"
+              />
             </button>
           ))}
         </nav>
 
         <div className="hidden items-center gap-4 md:flex">
-          <div className="flex items-center gap-3 rounded-full border border-emerald-500/10 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 backdrop-blur dark:border-emerald-400/10 dark:bg-slate-900/60 dark:text-slate-300">
-            <MapPin className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-300" />
+          <div className="hidden items-center gap-3 rounded-full border border-slate-300/60 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 lg:flex">
+            <MapPin className="h-3.5 w-3.5" />
             <span>{locationHint}</span>
-            <span className="mx-2 inline-block h-4 w-px bg-emerald-500/20" />
-            <Clock3 className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-300" />
+            <span className="mx-2 inline-block h-4 w-px bg-slate-300/70 dark:bg-slate-700" />
+            <Clock3 className="h-3.5 w-3.5" />
             <span>{currentTime}</span>
           </div>
           <DarkModeToggle />
           {user && <NotificationDropdown />}
           <button
             onClick={() => handleNavigate("/account")}
-            className="hidden items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-emerald-700 transition hover:bg-emerald-500/20 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200 dark:hover:bg-emerald-400/20 lg:flex"
+            className="hidden items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-900 transition hover:bg-slate-900 hover:text-white dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 lg:flex"
           >
             <Sparkles className="h-3.5 w-3.5" />
             Plan a trip
@@ -176,7 +178,7 @@ export function Header() {
           <DarkModeToggle />
           <button
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/20 bg-white/70 text-slate-700 transition hover:bg-emerald-500/10 dark:border-emerald-400/20 dark:bg-slate-900/70 dark:text-slate-200"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/70 bg-white/80 text-slate-700 transition hover:border-slate-500 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -184,11 +186,11 @@ export function Header() {
         </div>
       </div>
 
-      <div className="hidden border-t border-emerald-500/10 bg-white/60 py-3 dark:border-emerald-400/10 dark:bg-slate-950/60 md:block">
+      <div className="hidden border-t border-slate-200/70 bg-white/80 py-3 dark:border-slate-800 dark:bg-slate-950/70 md:block">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 text-sm font-medium text-slate-500 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-emerald-600/70 dark:text-emerald-300/80">
+          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.35em] text-slate-500/80 dark:text-slate-400/80">
             <Sparkles className="h-4 w-4" />
-            Your personal travel studio
+            urbanmanual.co — travel for design people
           </div>
           <div className="flex items-center gap-4">
             {secondaryNav
@@ -197,7 +199,7 @@ export function Header() {
                 <button
                   key={link.href}
                   onClick={() => handleNavigate(link.href)}
-                  className="text-xs uppercase tracking-[0.3em] text-slate-500 transition hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-300"
+                  className="text-xs uppercase tracking-[0.3em] text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                 >
                   {link.label}
                 </button>
@@ -205,7 +207,7 @@ export function Header() {
             {user ? (
               <button
                 onClick={handleSignOut}
-                className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 transition hover:text-emerald-600 dark:border-emerald-400/20 dark:text-slate-300 dark:hover:text-emerald-300"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 transition hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
               >
                 <LogOut className="h-3.5 w-3.5" />
                 Sign out
@@ -213,7 +215,7 @@ export function Header() {
             ) : (
               <button
                 onClick={() => handleNavigate("/account")}
-                className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 transition hover:text-emerald-600 dark:border-emerald-400/20 dark:text-slate-300 dark:hover:text-emerald-300"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500 transition hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:text-white"
               >
                 <UserRound className="h-3.5 w-3.5" />
                 Sign in
@@ -226,15 +228,15 @@ export function Header() {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
-          <div className="fixed inset-y-0 right-0 z-50 w-full max-w-sm overflow-y-auto border-l border-emerald-500/10 bg-white px-6 py-8 shadow-xl dark:border-emerald-400/10 dark:bg-slate-950">
+          <div className="fixed inset-y-0 right-0 z-50 w-full max-w-sm overflow-y-auto border-l border-slate-200/60 bg-[#faf9f5] px-6 py-8 shadow-xl dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Navigate</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500/80 dark:text-slate-400/80">Navigate</p>
                 <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">The Urban Manual</p>
               </div>
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/20 bg-white/70 text-slate-700 transition hover:bg-emerald-500/10 dark:border-emerald-400/20 dark:bg-slate-900/70 dark:text-slate-200"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/70 bg-white/80 text-slate-700 transition hover:border-slate-500 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
                 aria-label="Close menu"
               >
                 <X className="h-5 w-5" />
@@ -247,34 +249,34 @@ export function Header() {
                   <button
                     key={link.href}
                     onClick={() => handleNavigate(link.href)}
-                    className="flex w-full items-center justify-between rounded-2xl border border-emerald-500/10 bg-white/90 px-4 py-4 text-left text-base font-semibold text-slate-700 transition hover:border-emerald-500/30 hover:text-emerald-600 dark:border-emerald-400/15 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:text-emerald-300"
+                    className="flex w-full items-center justify-between rounded-2xl border border-slate-300/60 bg-white/90 px-4 py-4 text-left text-base font-semibold text-slate-700 transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:text-white"
                   >
                     {link.label}
-                    <Compass className="h-4 w-4 text-emerald-500" />
+                    <Compass className="h-4 w-4 text-slate-400" />
                   </button>
                 ))}
               </div>
 
-              <div className="rounded-3xl border border-emerald-500/15 bg-emerald-500/10 p-5 text-sm text-slate-600 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-slate-100">
-                <h3 className="text-base font-semibold text-emerald-700 dark:text-emerald-200">Plan with our AI studio</h3>
+              <div className="rounded-3xl border border-slate-300/60 bg-white/80 p-5 text-sm text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+                <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Plan with our AI studio</h3>
                 <p className="mt-2 text-sm leading-relaxed">
-                  Drop destinations into your itinerary, balance your days, and let our assistant suggest cultural highlights along the way.
+                  Assign saved places to each day of your trip and let the assistant surface matches sourced from urbanmanual.co.
                 </p>
                 <button
                   onClick={() => handleNavigate("/account")}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:bg-emerald-700"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                   Launch planner
                 </button>
               </div>
 
-              <div className="space-y-3 text-xs text-slate-500">
-                <p className="font-semibold uppercase tracking-[0.4em] text-emerald-600/80 dark:text-emerald-300/80">Profile</p>
+              <div className="space-y-3 text-xs text-slate-500 dark:text-slate-400">
+                <p className="font-semibold uppercase tracking-[0.35em]">Profile</p>
                 {user ? (
                   <button
                     onClick={handleSignOut}
-                    className="flex w-full items-center justify-between rounded-xl border border-emerald-500/10 bg-white/90 px-4 py-3 text-left font-semibold text-slate-700 transition hover:border-emerald-500/30 hover:text-emerald-600 dark:border-emerald-400/15 dark:bg-slate-900/60 dark:text-slate-100"
+                    className="flex w-full items-center justify-between rounded-xl border border-slate-300/60 bg-white/90 px-4 py-3 text-left font-semibold text-slate-700 transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
                   >
                     Sign out
                     <LogOut className="h-4 w-4" />
@@ -282,7 +284,7 @@ export function Header() {
                 ) : (
                   <button
                     onClick={() => handleNavigate("/account")}
-                    className="flex w-full items-center justify-between rounded-xl border border-emerald-500/10 bg-white/90 px-4 py-3 text-left font-semibold text-slate-700 transition hover:border-emerald-500/30 hover:text-emerald-600 dark:border-emerald-400/15 dark:bg-slate-900/60 dark:text-slate-100"
+                    className="flex w-full items-center justify-between rounded-xl border border-slate-300/60 bg-white/90 px-4 py-3 text-left font-semibold text-slate-700 transition hover:border-slate-500 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
                   >
                     Sign in
                     <UserRound className="h-4 w-4" />
