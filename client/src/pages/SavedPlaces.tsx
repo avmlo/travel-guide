@@ -5,6 +5,8 @@ import { ArrowLeft, Heart } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
 import { trpc } from "@/lib/trpc";
+import { Header } from "@/components/Header";
+import { SimpleFooter } from "@/components/SimpleFooter";
 
 export default function SavedPlaces() {
   const [, setLocation] = useLocation();
@@ -46,32 +48,26 @@ export default function SavedPlaces() {
   );
 
   return (
-    <div className="min-h-screen">
-      {/* Navigation Bar */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-[1600px] mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+      <Header />
+
+      <main className="py-16">
+        <div className="max-w-[1600px] mx-auto px-6 space-y-12">
+          <div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLocation("/")}
-              className="gap-2"
+              className="gap-2 mb-6"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
             </Button>
-          </div>
-        </div>
-      </nav>
 
-      {/* Content */}
-      <section className="py-16">
-        <div className="max-w-[1600px] mx-auto px-6">
-          <div className="mb-12">
             <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
               Saved Places
             </h1>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-600 dark:text-gray-300">
               {savedDestinations.length} {savedDestinations.length === 1 ? 'place' : 'places'} saved
             </p>
           </div>
@@ -103,7 +99,9 @@ export default function SavedPlaces() {
             </div>
           )}
         </div>
-      </section>
+      </main>
+
+      <SimpleFooter />
     </div>
   );
 }

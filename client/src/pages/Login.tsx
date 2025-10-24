@@ -72,27 +72,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="px-4 py-6 border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto">
-          <button 
-            onClick={() => setLocation("/")}
-            className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
-          >
-            The Urban Manual
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300 flex flex-col">
+      <Header />
 
-      {/* Login Form */}
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold uppercase mb-2">
               {isSignUp ? "Create Account" : "Sign In"}
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               {isSignUp
                 ? "Sign up to save your favorite destinations"
                 : "Access your saved places and travel history"}
@@ -111,10 +100,10 @@ export default function Login() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or</span>
+                <span className="bg-white dark:bg-gray-950 px-2 text-gray-500 dark:text-gray-400">Or</span>
               </div>
             </div>
 
@@ -129,7 +118,7 @@ export default function Login() {
                   placeholder="Email"
                   required
                   disabled={loading}
-                  className="h-12 bg-[#efefef] border-none"
+                  className="h-12 bg-[#efefef] dark:bg-gray-800 border-none"
                 />
               </div>
 
@@ -143,19 +132,19 @@ export default function Login() {
                   required
                   disabled={loading}
                   minLength={6}
-                  className="h-12 bg-[#efefef] border-none"
+                  className="h-12 bg-[#efefef] dark:bg-gray-800 border-none"
                 />
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 p-3 text-sm">
+                <div className="bg-red-50 border border-red-200 text-red-600 p-3 text-sm dark:bg-red-950/20 dark:border-red-800">
                   {error}
                 </div>
               )}
 
               <Button
                 type="submit"
-                className="w-full h-12 border-2 border-black bg-white text-black hover:bg-black hover:text-white text-xs font-bold uppercase"
+                className="w-full h-12 border-2 border-black bg-white text-black hover:bg-black hover:text-white text-xs font-bold uppercase dark:bg-gray-900 dark:text-white dark:border-white"
                 disabled={loading}
               >
                 {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
@@ -186,18 +175,9 @@ export default function Login() {
             </button>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8">
-        <div className="max-w-[1920px] mx-auto px-4">
-          <div className="flex items-center justify-center">
-            <div className="text-xs text-gray-500">
-              © {new Date().getFullYear()} ALL RIGHTS RESERVED
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SimpleFooter />
     </div>
   );
 }

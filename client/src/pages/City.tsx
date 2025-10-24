@@ -26,14 +26,12 @@ export default function City() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
-  const [user, setUser] = useState<any>(null);
 
   // Load user's saved and visited places
   useEffect(() => {
     async function loadUserData() {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-      
+
       if (session?.user) {
         // Load saved places
         const { data: savedData } = await supabase
@@ -110,42 +108,9 @@ export default function City() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="px-6 md:px-10 py-6 border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between">
-          <button 
-            onClick={() => setLocation("/")}
-            className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
-          >
-            The Urban Manual
-          </button>
-          <button 
-            onClick={() => setLocation(user ? "/account" : "/auth/login")}
-            className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black"
-          >
-            {user ? 'Account' : 'Sign In'}
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+      <Header />
 
-      {/* Navigation Bar */}
-      <nav className="px-6 md:px-10 border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
-          <div className="flex items-center gap-6">
-            <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
-            <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-bold uppercase">New York</span>
-            <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
       <main className="px-6 md:px-10 py-12">
         <div className="max-w-[1920px] mx-auto">
           {/* Breadcrumb */}
@@ -186,28 +151,13 @@ export default function City() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 mt-20">
-        <div className="max-w-[1920px] mx-auto px-6 md:px-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6 text-xs">
-              <a href="#" className="hover:underline">INSTAGRAM</a>
-              <a href="#" className="hover:underline">TWITTER</a>
-              <a href="#" className="hover:underline">SAVEE</a>
-            </div>
-            <div className="text-xs text-gray-500">
-              © {new Date().getFullYear()} ALL RIGHTS RESERVED
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Destination Drawer */}
       <DestinationDrawer
         destination={selectedDestination}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
       />
+
+      <SimpleFooter />
     </div>
   );
 }
