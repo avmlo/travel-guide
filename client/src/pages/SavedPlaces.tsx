@@ -92,11 +92,10 @@ export default function SavedPlaces() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-              {savedDestinations.map((destination, index) => (
+              {savedDestinations.map((destination) => (
                 <DestinationCard
                   key={destination.slug}
                   destination={destination}
-                  colorIndex={index}
                   onClick={() => setLocation(`/destination/${destination.slug}`)}
                 />
               ))}
