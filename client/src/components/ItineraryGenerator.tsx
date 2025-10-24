@@ -151,13 +151,13 @@ export function ItineraryGenerator({ destinations, cities }: ItineraryGeneratorP
             </div>
 
             <div className="space-y-6">
-              {itinerary.days.map((day: any) => (
+              {itinerary.days.map((day) => (
                 <div key={day.day} className="border border-gray-200 rounded-lg p-4">
                   <h4 className="font-semibold text-lg mb-3">
                     Day {day.day}: {day.title}
                   </h4>
                   <div className="space-y-3">
-                    {day.activities.map((activity: any, idx: number) => (
+                    {day.activities.map((activity, idx: number) => (
                       <div key={idx} className="flex gap-3">
                         <div className="text-sm font-medium text-gray-500 w-20 flex-shrink-0">
                           {activity.time}

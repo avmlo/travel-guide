@@ -6,11 +6,16 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
-const SUPABASE_URL = 'https://avdnefdfwvpjkuanhdwk.supabase.co';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!GOOGLE_PLACES_API_KEY) {
   console.error('❌ Google Places API key not found in environment variables');
+  process.exit(1);
+}
+
+if (!SUPABASE_URL) {
+  console.error('❌ Supabase URL not found in environment variables');
   process.exit(1);
 }
 
