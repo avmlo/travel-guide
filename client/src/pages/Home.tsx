@@ -201,35 +201,6 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Category Filter */}
-          <div className="mb-8">
-            <div className="mb-3">
-              <h2 className="text-xs font-bold uppercase">Categories</h2>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { emoji: '🌍', label: 'All', value: '' },
-                { emoji: '🍽️', label: 'Eat & Drink', value: 'Eat & Drink' },
-                { emoji: '🏨', label: 'Stay', value: 'Stay' },
-                { emoji: '🏛️', label: 'Space', value: 'Space' },
-                { emoji: '✨', label: 'Other', value: 'Other' },
-              ].map((cat) => (
-                <button
-                  key={cat.value}
-                  onClick={() => setSelectedCategory(cat.value)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    selectedCategory === cat.value
-                      ? 'bg-black text-white dark:bg-white dark:text-black'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="mr-1.5">{cat.emoji}</span>
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* City Filter */}
           <div className="mb-8">
             <div className="mb-3">
@@ -263,6 +234,35 @@ export default function Home() {
                   {showAllCities ? '- Show Less' : '+ Show More'}
                 </button>
               )}
+            </div>
+          </div>
+
+          {/* Category Filter */}
+          <div className="mb-8">
+            <div className="mb-3">
+              <h2 className="text-xs font-bold uppercase">Categories</h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { emoji: '🌍', label: 'All', value: '' },
+                { emoji: '🍽️', label: 'Eat & Drink', value: 'Eat & Drink' },
+                { emoji: '🏨', label: 'Stay', value: 'Stay' },
+                { emoji: '🏛️', label: 'Space', value: 'Space' },
+                { emoji: '✨', label: 'Other', value: 'Other' },
+              ].map((cat) => (
+                <button
+                  key={cat.value}
+                  onClick={() => setSelectedCategory(cat.value)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedCategory === cat.value
+                      ? 'bg-black text-white dark:bg-white dark:text-black'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="mr-1.5">{cat.emoji}</span>
+                  {cat.label}
+                </button>
+              ))}
             </div>
           </div>
 
