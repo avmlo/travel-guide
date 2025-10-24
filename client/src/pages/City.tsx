@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { supabase } from "@/lib/supabase";
-import { DestinationCard } from "@/components/DestinationCard";
+import { DestinationCardEnhanced } from "@/components/DestinationCardEnhanced";
 import { Destination } from "@/types/destination";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
-
+import { SkeletonGrid } from "@/components/SkeletonCard";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 // Helper function to capitalize city names
@@ -101,84 +101,84 @@ export default function City() {
     setIsDrawerOpen(true);
   };
 
+  const handleSaveToggle = (slug: string, saved: boolean) => {
+    if (saved) {
+      setSavedPlaces(prev => [...prev, slug]);
+    } else {
+      setSavedPlaces(prev => prev.filter(s => s !== slug));
+    }
+  };
+
+  const handleVisitToggle = (slug: string, visited: boolean) => {
+    if (visited) {
+      setVisitedPlaces(prev => [...prev, slug]);
+    } else {
+      setVisitedPlaces(prev => prev.filter(v => v !== slug));
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-lg text-gray-400">Loading...</div>
+      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+        <Header />
+        <main className="px-6 md:px-10 py-12 dark:text-white">
+          <div className="max-w-[1920px] mx-auto">
+            {/* Breadcrumb skeleton */}
+            <div className="mb-6 h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
+
+            {/* Title skeleton */}
+            <div className="mb-12">
+              <div className="h-12 w-64 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-4" />
+              <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
+            </div>
+
+            {/* Grid skeleton */}
+            <SkeletonGrid count={16} />
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="px-6 md:px-10 py-6 border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between">
-          <button 
-            onClick={() => setLocation("/")}
-            className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
-          >
-            The Urban Manual
-          </button>
-          <button 
-            onClick={() => setLocation(user ? "/account" : "/auth/login")}
-            className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black"
-          >
-            {user ? 'Account' : 'Sign In'}
-          </button>
-        </div>
-      </header>
-
-      {/* Navigation Bar */}
-      <nav className="px-6 md:px-10 border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
-          <div className="flex items-center gap-6">
-            <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
-            <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
-            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-bold uppercase">New York</span>
-            <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+      <Header />
 
       {/* Main Content */}
-      <main className="px-6 md:px-10 py-12">
+      <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-[1920px] mx-auto">
           {/* Breadcrumb */}
-          <div className="mb-6">
-            <button onClick={() => setLocation("/cities")} className="text-xs text-gray-500 hover:text-black">
+          <div className="mb-6 animate-fade-in">
+            <button onClick={() => setLocation("/cities")} className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
               ← Back to Cities
             </button>
           </div>
 
           {/* Page Title */}
-          <div className="mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4">
+          <div className="mb-12 animate-fade-in" style={{ animationDelay: '50ms' }}>
+            <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4 text-black dark:text-white">
               {capitalizeCity(citySlug)}
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               {destinations.length} {destinations.length === 1 ? 'destination' : 'destinations'}
             </p>
           </div>
 
-          {/* Destinations Grid */}
+          {/* Destinations Grid with staggered animations */}
           {destinations.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-xl text-gray-400">No destinations found in this city.</p>
+            <div className="text-center py-20 animate-fade-in">
+              <p className="text-xl text-gray-400 dark:text-gray-600">No destinations found in this city.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {destinations.map((destination) => (
-                <DestinationCard
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
+              {destinations.map((destination, index) => (
+                <DestinationCardEnhanced
                   key={destination.slug}
                   destination={destination}
                   onClick={() => handleCardClick(destination)}
                   isSaved={savedPlaces.includes(destination.slug)}
                   isVisited={visitedPlaces.includes(destination.slug)}
+                  animationDelay={Math.min(index * 30, 500)}
                 />
               ))}
             </div>
@@ -186,28 +186,21 @@ export default function City() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 mt-20">
-        <div className="max-w-[1920px] mx-auto px-6 md:px-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6 text-xs">
-              <a href="#" className="hover:underline">INSTAGRAM</a>
-              <a href="#" className="hover:underline">TWITTER</a>
-              <a href="#" className="hover:underline">SAVEE</a>
-            </div>
-            <div className="text-xs text-gray-500">
-              © {new Date().getFullYear()} ALL RIGHTS RESERVED
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SimpleFooter />
 
       {/* Destination Drawer */}
-      <DestinationDrawer
-        destination={selectedDestination}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
+      {selectedDestination && (
+        <DestinationDrawer
+          destination={selectedDestination}
+          isOpen={isDrawerOpen}
+          onClose={() => {
+            setIsDrawerOpen(false);
+            setTimeout(() => setSelectedDestination(null), 300);
+          }}
+          onSaveToggle={handleSaveToggle}
+          onVisitToggle={handleVisitToggle}
+        />
+      )}
     </div>
   );
 }
