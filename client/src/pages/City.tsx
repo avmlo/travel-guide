@@ -101,6 +101,14 @@ export default function City() {
     setIsDrawerOpen(true);
   };
 
+  const handleDrawerSuggestion = (slug: string) => {
+    const match = destinations.find(destination => destination.slug === slug);
+    if (match) {
+      setSelectedDestination(match);
+      setIsDrawerOpen(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -207,6 +215,7 @@ export default function City() {
         destination={selectedDestination}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
+        onSelectDestination={handleDrawerSuggestion}
       />
     </div>
   );

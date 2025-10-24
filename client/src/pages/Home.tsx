@@ -175,6 +175,14 @@ export default function Home() {
     setIsDrawerOpen(true);
   };
 
+  const handleDrawerSuggestion = (slug: string) => {
+    const match = destinations.find(destination => destination.slug === slug);
+    if (match) {
+      setSelectedDestination(match);
+      setIsDrawerOpen(true);
+    }
+  };
+
   const displayedCities = showAllCities ? cities : cities.slice(0, 20);
 
   if (loading) {
@@ -343,6 +351,7 @@ export default function Home() {
             setIsDrawerOpen(false);
             setSelectedDestination(null);
           }}
+          onSelectDestination={handleDrawerSuggestion}
         />
       )}
 
