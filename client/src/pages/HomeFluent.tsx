@@ -36,7 +36,7 @@ const CATEGORIES = [
   { id: "bakery", label: "Bakery", icon: "🥐" },
 ];
 
-export default function Home() {
+export default function HomeFluent() {
   const [, setLocation] = useLocation();
 
   // State
@@ -221,23 +221,6 @@ export default function Home() {
   const handleCategoryChange = (categoryId: string) => {
     // Smooth transition effect
     setSelectedCategory(categoryId);
-  };
-
-  // Callback to update saved/visited states from drawer
-  const handleSaveToggle = (slug: string, saved: boolean) => {
-    if (saved) {
-      setSavedPlaces(prev => [...prev, slug]);
-    } else {
-      setSavedPlaces(prev => prev.filter(s => s !== slug));
-    }
-  };
-
-  const handleVisitToggle = (slug: string, visited: boolean) => {
-    if (visited) {
-      setVisitedPlaces(prev => [...prev, slug]);
-    } else {
-      setVisitedPlaces(prev => prev.filter(v => v !== slug));
-    }
   };
 
   const displayedCities = showAllCities ? cities : cities.slice(0, 20);
@@ -435,8 +418,6 @@ export default function Home() {
             setIsDrawerOpen(false);
             setTimeout(() => setSelectedDestination(null), 300); // Delay to allow close animation
           }}
-          onSaveToggle={handleSaveToggle}
-          onVisitToggle={handleVisitToggle}
         />
       )}
 
