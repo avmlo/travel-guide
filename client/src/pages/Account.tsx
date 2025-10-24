@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   LogOut,
   Settings2,
-  ArrowUpRight,
   Bookmark,
   Plane,
   Globe2,
@@ -15,15 +14,16 @@ import {
   MessageCircle,
   CalendarClock,
   Compass,
-  CalendarRange,
   ListChecks,
   Plus,
   X
 } from "lucide-react";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { Destination } from "@/types/destination";
-import { Header } from "@/components/Header";
-import { SimpleFooter } from "@/components/SimpleFooter";
+import { PageHero } from "@/components/layout/PageHero";
+import { SiteShell } from "@/components/layout/SiteShell";
+import { ContentSection } from "@/components/layout/ContentSection";
+import { Button } from "@/components/ui/button";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -464,6 +464,15 @@ export default function Account() {
     a.name.localeCompare(b.name)
   );
 
+  const filteredSuggestions = plannerOptions.filter((option) => {
+    const matchesSearch =
+      placeSearch.trim() === "" ||
+      option.name.toLowerCase().includes(placeSearch.toLowerCase()) ||
+      option.city.toLowerCase().includes(placeSearch.toLowerCase());
+    const alreadyInDay = selectedDay ? (dayPlans[selectedDay] || []).includes(option.slug) : false;
+    return matchesSearch && !alreadyInDay;
+  });
+
   const totalAssignments = Object.values(dayPlans).reduce(
     (sum, entries) => sum + entries.length,
     0
@@ -501,123 +510,146 @@ export default function Account() {
   };
 
 
-  return (
-    <div className="min-h-screen bg-white">
-      <Header />
+  const heroStats = stats.map((stat) => ({
+    label: stat.label,
+    value: String(stat.value),
+    hint: stat.sublabel,
+  }));
 
-      <main className="bg-neutral-50 px-4 pb-24 pt-8 md:px-10 md:pt-10">
-        <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
-          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:gap-10">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                  <Plane className="h-3.5 w-3.5" /> Account overview
-                </span>
-                <h1 className="mt-5 text-4xl font-semibold tracking-tight text-neutral-900 md:text-5xl">{displayName}</h1>
-                <p className="mt-2 text-sm text-neutral-500">{user?.email}</p>
-                <p className="mt-6 max-w-xl text-sm text-neutral-600">
-                  Keep your travel journal, curate future getaways, and let Urban Manual surface timely ideas for where to head next.
-                </p>
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <button
-                    onClick={() => setLocation("/preferences")}
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
-                  >
-                    <Settings2 className="h-4 w-4" /> Manage preferences
-                  </button>
-                  <button
-                    onClick={handleSignOut}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 px-5 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100"
-                  >
-                    <LogOut className="h-4 w-4" /> Sign out
-                  </button>
-                </div>
+  const handleScrollToPlanner = () => {
+    const section = document.getElementById("planner");
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const hero = (
+    <PageHero
+      eyebrow="Account studio"
+      title={`Welcome back, ${displayName}`}
+      description="Shape future trips, track memories, and let our assistant surface the next best stop."
+      actions={
+        <>
+          <Button
+            onClick={() => setLocation("/preferences")}
+            className="rounded-full bg-emerald-600 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.32em] text-white shadow-sm transition hover:bg-emerald-700"
+          >
+            <Settings2 className="h-4 w-4" /> Preferences
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleSignOut}
+            className="rounded-full border-emerald-500/40 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.32em] text-emerald-700 transition hover:border-emerald-500 hover:text-emerald-600 dark:border-emerald-400/40 dark:text-emerald-200"
+          >
+            <LogOut className="h-4 w-4" /> Sign out
+          </Button>
+        </>
+      }
+      stats={heroStats}
+      media={
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-emerald-500/20 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600/80 dark:text-emerald-300/80">Trip planner</p>
+            <h3 className="mt-3 text-lg font-semibold text-slate-900 dark:text-white">{tripName || "Name your next escape"}</h3>
+            <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-slate-600 dark:text-slate-300">
+              <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-3 dark:border-emerald-400/20 dark:bg-slate-900/60">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Duration</p>
+                <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{tripDuration} day{tripDuration === 1 ? "" : "s"}</p>
               </div>
-              <div className="max-sm:-mx-2 max-sm:flex max-sm:gap-3 max-sm:overflow-x-auto max-sm:px-2 max-sm:pb-1 max-sm:snap-x max-sm:snap-mandatory sm:grid sm:grid-cols-2 sm:gap-4">
-                {stats.map(({ label, value, sublabel, icon: Icon }) => (
-                  <div
-                    key={label}
-                    className="rounded-2xl border border-neutral-200 p-4 sm:p-5 max-sm:min-w-[180px] max-sm:flex-1 max-sm:snap-start"
-                  >
-                    <div className="flex items-center justify-between text-neutral-500">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">{label}</span>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <p className="mt-5 text-3xl font-semibold text-neutral-900">{value}</p>
-                    <p className="mt-2 text-xs text-neutral-500">{sublabel}</p>
-                  </div>
-                ))}
+              <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-3 dark:border-emerald-400/20 dark:bg-slate-900/60">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Places assigned</p>
+                <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{totalAssignments}</p>
+              </div>
+              <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-3 dark:border-emerald-400/20 dark:bg-slate-900/60">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Avg / day</p>
+                <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{averageAssignments.toFixed(1)}</p>
+              </div>
+              <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-3 dark:border-emerald-400/20 dark:bg-slate-900/60">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Open days</p>
+                <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{unplannedDays}</p>
               </div>
             </div>
-          </section>
+            <div className="mt-5 space-y-2 text-xs text-slate-500 dark:text-slate-400">
+              {aiShortcuts.slice(0, 2).map((shortcut) => (
+                <p key={shortcut} className="rounded-2xl border border-emerald-500/10 bg-white/70 px-3 py-2 dark:border-emerald-400/20 dark:bg-slate-900/60">
+                  “{shortcut}”
+                </p>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleScrollToPlanner}
+              className="mt-5 inline-flex items-center gap-2 rounded-full border-emerald-500/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 transition hover:border-emerald-500 hover:text-emerald-600 dark:border-emerald-400/40 dark:text-emerald-200"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Jump to planner
+            </Button>
+          </div>
+        </div>
+      }
+    />
+  );
 
-          <section className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
-            <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-semibold text-neutral-900">Journey insights</h2>
-                  <p className="text-sm text-neutral-500">Understand your recent patterns at a glance.</p>
+  return (
+    <SiteShell hero={hero} background="canvas">
+      <div className="space-y-16">
+        <ContentSection
+          tone="muted"
+          title="Journey intelligence"
+          description="Understand how your travels evolve across categories, cadence, and cities."
+        >
+          <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+            <div className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Avg rating</p>
+                  <p className="mt-4 text-4xl font-semibold text-slate-900 dark:text-white">{averageRating > 0 ? averageRating.toFixed(1) : "—"}</p>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Across {ratingValues.length || "no"} logged reviews</p>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-600">
-                  <Globe2 className="h-3.5 w-3.5" /> Live metrics
+                <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Go-to category</p>
+                  <p className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">{topCategory}</p>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Your most frequented experience type</p>
                 </div>
-              </div>
-              <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4 max-md:grid-cols-2 max-sm:-mx-2 max-sm:flex max-sm:overflow-x-auto max-sm:px-2 max-sm:pb-1 max-sm:[&>div]:min-w-[200px] max-sm:[&>div]:flex-1 max-sm:[&>div]:snap-start max-sm:snap-x max-sm:snap-mandatory">
-                <div className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Avg rating</p>
-                  <p className="mt-4 text-4xl font-semibold text-neutral-900">
-                    {averageRating > 0 ? averageRating.toFixed(1) : "—"}
-                  </p>
-                  <p className="mt-2 text-xs text-neutral-500">Across {ratingValues.length || "no"} logged reviews</p>
+                <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">City crush</p>
+                  <p className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">{topCity !== "—" ? capitalizeCity(topCity) : "—"}</p>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Where you keep returning</p>
                 </div>
-                <div className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Go-to category</p>
-                  <p className="mt-4 text-lg font-semibold text-neutral-900">{topCategory}</p>
-                  <p className="mt-2 text-xs text-neutral-500">Your most frequented experience type</p>
-                </div>
-                <div className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">City crush</p>
-                  <p className="mt-4 text-lg font-semibold text-neutral-900">
-                    {topCity !== "—" ? capitalizeCity(topCity) : "—"}
-                  </p>
-                  <p className="mt-2 text-xs text-neutral-500">Where you keep returning</p>
-                </div>
-                <div className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Trips goal</p>
+                <div className="rounded-2xl border border-emerald-500/15 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Trips goal</p>
                   <div className="mt-4">
-                    <div className="flex items-baseline justify-between text-neutral-900">
+                    <div className="flex items-baseline justify-between text-slate-900 dark:text-white">
                       <span className="text-4xl font-semibold">{visitedTimeline.length}</span>
-                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-400">/{goalTarget}</span>
+                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">/{goalTarget}</span>
                     </div>
-                    <div className="mt-3 h-2 rounded-full bg-neutral-100">
+                    <div className="mt-3 h-2 rounded-full bg-emerald-100 dark:bg-emerald-900/40">
                       <div
-                        className="h-full rounded-full bg-neutral-900"
+                        className="h-full rounded-full bg-emerald-500"
                         style={{ width: `${goalProgress}%` }}
                       />
                     </div>
-                    <p className="mt-2 text-xs text-neutral-500">{goalProgress}% complete</p>
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{goalProgress}% complete</p>
                   </div>
                 </div>
               </div>
+
               {cadenceEntries.length > 0 && (
-                <div className="mt-8">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Travel cadence</p>
-                  <div className="mt-4 flex gap-4 overflow-x-auto pb-1 max-sm:-mx-2 max-sm:px-2 max-sm:snap-x max-sm:snap-mandatory">
-                    {cadenceEntries.map(entry => (
+                <div className="rounded-3xl border border-emerald-500/15 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Travel cadence</p>
+                  <div className="mt-5 flex gap-4 overflow-x-auto pb-1">
+                    {cadenceEntries.map((entry) => (
                       <div
                         key={entry.year}
-                        className="flex-1 min-w-[120px] rounded-2xl border border-neutral-200 p-4 sm:p-5 max-sm:snap-start"
+                        className="flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-emerald-500/15 bg-white/80 p-4 text-center shadow-sm dark:border-emerald-400/20 dark:bg-slate-950/60"
                       >
-                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">{entry.year}</p>
-                        <div className="mt-4 flex h-16 items-end gap-2">
-                          <div className="w-full rounded-full bg-neutral-100">
-                            <div
-                              className="h-full rounded-full bg-neutral-900"
-                              style={{ height: `${Math.round((entry.count / maxCadenceCount) * 100)}%` }}
-                            />
-                          </div>
-                          <span className="text-sm font-medium text-neutral-900">{entry.count}</span>
+                        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">{entry.year}</span>
+                        <div className="relative h-20 w-full overflow-hidden rounded-full bg-emerald-100/70 dark:bg-emerald-900/40">
+                          <div
+                            className="absolute bottom-0 inset-x-0 rounded-full bg-emerald-500"
+                            style={{ height: `${Math.round((entry.count / (maxCadenceCount || 1)) * 100)}%` }}
+                          />
                         </div>
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{entry.count} trips</span>
                       </div>
                     ))}
                   </div>
@@ -625,33 +657,31 @@ export default function Account() {
               )}
             </div>
 
-            <aside className="space-y-6">
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7">
-                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+            <aside className="space-y-5">
+              <div className="rounded-3xl border border-emerald-500/15 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">
                   <Globe2 className="h-4 w-4" /> Travel footprint
                 </div>
-                <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
+                <div className="mt-5 grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-3xl font-semibold text-neutral-900">{uniqueCountries.size}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.2em] text-neutral-500">Countries</p>
+                    <p className="text-3xl font-semibold text-slate-900 dark:text-white">{uniqueCountries.size}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Countries</p>
                   </div>
                   <div>
-                    <p className="text-3xl font-semibold text-neutral-900">{uniqueCities.size}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.2em] text-neutral-500">Cities</p>
+                    <p className="text-3xl font-semibold text-slate-900 dark:text-white">{uniqueCities.size}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Cities</p>
                   </div>
                 </div>
-                <div className="mt-6 border-t border-neutral-200 pt-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Spotlight cities</p>
+                <div className="mt-6 border-t border-emerald-500/15 pt-5 dark:border-emerald-400/20">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Spotlight cities</p>
                   {spotlightCities.length === 0 ? (
-                    <p className="mt-4 text-sm text-neutral-500">
-                      Save or log destinations to build your personal atlas.
-                    </p>
+                    <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Save or log destinations to build your personal atlas.</p>
                   ) : (
-                    <ul className="mt-4 space-y-3 text-sm text-neutral-700">
-                      {spotlightCities.map(city => (
+                    <ul className="mt-4 space-y-3 text-sm text-slate-700 dark:text-slate-200">
+                      {spotlightCities.map((city) => (
                         <li key={city} className="flex items-center justify-between">
                           <span>{capitalizeCity(city)}</span>
-                          <span className="text-neutral-400">{countryLabel(city)}</span>
+                          <span className="text-slate-400 dark:text-slate-500">{countryLabel(city)}</span>
                         </li>
                       ))}
                     </ul>
@@ -659,26 +689,24 @@ export default function Account() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7">
-                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+              <div className="rounded-3xl border border-emerald-500/15 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">
                   <BarChart3 className="h-4 w-4" /> Saved city heatmap
                 </div>
                 {savedHeatmap.length === 0 ? (
-                  <p className="mt-4 text-sm text-neutral-500">
-                    Bookmark destinations to see which hubs you gravitate toward.
-                  </p>
+                  <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Bookmark destinations to see which hubs you gravitate toward.</p>
                 ) : (
                   <ul className="mt-6 space-y-4">
-                    {savedHeatmap.map(city => (
+                    {savedHeatmap.map((city) => (
                       <li key={city.city} className="space-y-2">
-                        <div className="flex items-center justify-between text-sm text-neutral-600">
+                        <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
                           <span>{capitalizeCity(city.city)}</span>
-                          <span className="text-neutral-400">{city.count} saved</span>
+                          <span className="text-slate-400 dark:text-slate-500">{city.count} saved</span>
                         </div>
-                        <div className="h-2 rounded-full bg-neutral-100">
+                        <div className="h-2 rounded-full bg-emerald-100/80 dark:bg-emerald-900/40">
                           <div
-                            className="h-full rounded-full bg-neutral-900"
-                            style={{ width: `${Math.min((city.count / savedHeatmap[0].count) * 100, 100)}%` }}
+                            className="h-full rounded-full bg-emerald-500"
+                            style={{ width: `${Math.min((city.count / (savedHeatmap[0].count || 1)) * 100, 100)}%` }}
                           />
                         </div>
                       </li>
@@ -687,31 +715,26 @@ export default function Account() {
                 )}
               </div>
 
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7">
-                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+              <div className="rounded-3xl border border-emerald-500/15 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">
                   <Sparkles className="h-4 w-4" /> AI copilots
                 </div>
-                <p className="mt-4 text-sm text-neutral-600">
-                  Tap into the assistant anywhere on Urban Manual to surface ideas tailored to your saved and visited places.
-                </p>
+                <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">Tap into the assistant anywhere on Urban Manual to surface ideas tailored to your saved and visited places.</p>
                 <div className="mt-5 space-y-4">
                   {aiModules.map(({ title, description, icon: Icon }) => (
-                    <div key={title} className="rounded-2xl border border-neutral-200 p-4">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                    <div key={title} className="rounded-2xl border border-emerald-500/15 bg-white/80 p-4 shadow-sm dark:border-emerald-400/20 dark:bg-slate-950/60">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
                         <Icon className="h-4 w-4" /> {title}
                       </div>
-                      <p className="mt-2 text-sm text-neutral-600">{description}</p>
+                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{description}</p>
                     </div>
                   ))}
                 </div>
-                <div className="mt-5 border-t border-neutral-200 pt-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Quick prompts</p>
-                  <div className="mt-3 flex flex-wrap gap-2 max-sm:-mx-1 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:px-1 max-sm:[&>span]:whitespace-nowrap">
-                    {aiShortcuts.map(shortcut => (
-                      <span
-                        key={shortcut}
-                        className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600"
-                      >
+                <div className="mt-5 border-t border-emerald-500/15 pt-4 dark:border-emerald-400/20">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Quick prompts</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {aiShortcuts.map((shortcut) => (
+                      <span key={shortcut} className="rounded-full border border-emerald-500/20 bg-white/70 px-3 py-1 text-xs font-medium text-slate-600 dark:border-emerald-400/20 dark:bg-slate-950/60 dark:text-slate-200">
                         {shortcut}
                       </span>
                     ))}
@@ -719,136 +742,91 @@ export default function Account() {
                 </div>
               </div>
             </aside>
-          </section>
+          </div>
+        </ContentSection>
 
-          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold text-neutral-900">Trip planner</h2>
-                <p className="text-sm text-neutral-500">
-                  Draft a day-by-day itinerary by assigning your favorite places to each day.
-                </p>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-600">
-                <CalendarRange className="h-3.5 w-3.5" /> Interactive itinerary
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-6 xl:grid-cols-[2fr_1fr]">
-              <div className="space-y-5">
-                <div className="grid gap-4 rounded-2xl border border-neutral-200 p-4 sm:p-5 lg:grid-cols-[1.3fr_auto] lg:items-end">
-                  <div className="space-y-3">
-                    <label className="block text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
-                      Trip name
-                    </label>
-                    <input
-                      value={tripName}
-                      onChange={event => setTripName(event.target.value)}
-                      placeholder="Name your getaway"
-                      className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
-                      <span>Trip length</span>
-                      <span className="text-neutral-900">{tripDuration} day{tripDuration === 1 ? "" : "s"}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={1}
-                      max={10}
-                      value={tripDuration}
-                      onChange={event => setTripDuration(Number(event.target.value))}
-                      className="w-full accent-neutral-900"
-                    />
-                    <div className="flex flex-wrap gap-2">
-                      {[3, 5, 7].map(option => (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => setTripDuration(option)}
-                          className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] transition-colors ${
-                            tripDuration === option
-                              ? "bg-neutral-900 text-white"
-                              : "border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-                          }`}
-                        >
-                          {option}-day
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+        <ContentSection
+          id="planner"
+          title="Trip planner"
+          description="Draft a day-by-day itinerary by assigning your favorite places to each day."
+        >
+          <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
+            <div className="space-y-6">
+              <div className="grid gap-4 rounded-3xl border border-emerald-500/15 bg-white/80 p-5 shadow-sm backdrop-blur lg:grid-cols-[1.4fr_auto] lg:items-end dark:border-emerald-400/20 dark:bg-slate-950/70">
+                <div className="space-y-3">
+                  <label className="block text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Trip name</label>
+                  <input
+                    value={tripName}
+                    onChange={(event) => setTripName(event.target.value)}
+                    placeholder="Name your getaway"
+                    className="w-full rounded-xl border border-emerald-500/20 bg-white/80 px-4 py-2.5 text-sm font-medium text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-400/20 dark:bg-slate-950/70 dark:text-slate-100"
+                  />
                 </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">
+                    <span>Trip length</span>
+                    <span className="text-slate-900 dark:text-white">{tripDuration} day{tripDuration === 1 ? "" : "s"}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={10}
+                    value={tripDuration}
+                    onChange={(event) => setTripDuration(Number(event.target.value))}
+                    className="w-full accent-emerald-600"
+                  />
+                </div>
+              </div>
 
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 max-md:-mx-2 max-md:flex max-md:overflow-x-auto max-md:px-2 max-md:pb-1 max-md:[&>div]:min-w-[260px] max-md:[&>div]:flex-1 max-md:[&>div]:snap-start max-md:snap-x max-md:snap-mandatory">
-                  {dayNumbers.map(day => {
-                    const assignments = dayPlans[day] || [];
-                    const isOpen = selectedDay === day;
-                    const filteredSuggestions = plannerOptions.filter(option => {
-                      const query = placeSearch.trim().toLowerCase();
-                      const matchesQuery =
-                        query.length === 0 ||
-                        option.name.toLowerCase().includes(query) ||
-                        option.city.toLowerCase().includes(query);
-                      const alreadySelected = assignments.includes(option.slug);
-                      return matchesQuery && !alreadySelected;
-                    });
-
-                    return (
-                      <div key={day} className="rounded-2xl border border-neutral-200 p-4 sm:p-5">
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Day {day}</p>
-                            <p className="text-sm text-neutral-400">{tripName || "Untitled trip"}</p>
-                          </div>
-                          {assignments.length > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => clearDayPlan(day)}
-                              className="rounded-full border border-neutral-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500 transition-colors hover:border-neutral-900/20 hover:bg-neutral-100"
-                            >
-                              Reset
-                            </button>
-                          )}
+              <div className="space-y-4">
+                {dayNumbers.map((day) => {
+                  const assignments = dayPlans[day] || [];
+                  const isOpen = selectedDay === day;
+                  return (
+                    <div key={day} className="rounded-3xl border border-emerald-500/15 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Day {day}</p>
+                          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{assignments.length} {assignments.length === 1 ? "spot" : "spots"} assigned</p>
                         </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => clearDayPlan(day)}
+                            className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 transition hover:border-emerald-500/40 hover:text-emerald-700 dark:border-emerald-400/20 dark:text-emerald-200"
+                          >
+                            Reset
+                          </button>
+                        </div>
+                      </div>
 
-                        <div className="mt-4 space-y-3">
-                          {assignments.length === 0 && (
-                            <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-500">
-                              Drop in saved or visited spots to outline the day.
-                            </div>
-                          )}
-
-                          {assignments.map(slug => {
+                      <div className="mt-4 space-y-3">
+                        {assignments.length === 0 ? (
+                          <p className="rounded-2xl border border-dashed border-emerald-500/20 bg-white/70 px-4 py-6 text-center text-sm text-slate-500 dark:border-emerald-400/20 dark:bg-slate-950/60 dark:text-slate-300">
+                            No places assigned yet. Add saved or visited gems to structure the day.
+                          </p>
+                        ) : (
+                          assignments.map((slug) => {
                             const details = plannerPlaceMap.get(slug);
-                            if (!details) {
-                              return null;
-                            }
+                            if (!details) return null;
                             return (
                               <button
                                 key={slug}
                                 type="button"
                                 onClick={() => handleCardClick(slug)}
-                                className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3 text-left transition-colors hover:border-neutral-900/20 hover:bg-neutral-50"
+                                className="group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl border border-emerald-500/15 bg-white/80 p-4 text-left shadow-sm transition hover:border-emerald-500/40 hover:bg-white dark:border-emerald-400/20 dark:bg-slate-950/70"
                               >
-                                <div className="h-14 w-16 overflow-hidden rounded-xl bg-neutral-100">
-                                  <img
-                                    src={details.image || "/images/placeholder-destination.jpg"}
-                                    alt={details.name}
-                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                  />
+                                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-emerald-100/60 dark:bg-emerald-900/40">
+                                  {details.image ? (
+                                    <img src={details.image} alt={details.name} className="h-full w-full object-cover" />
+                                  ) : null}
                                 </div>
                                 <div className="flex-1">
-                                  <p className="text-sm font-semibold text-neutral-900">{details.name}</p>
-                                  <p className="mt-1 flex items-center gap-1 text-xs text-neutral-500">
-                                    <MapPin className="h-3.5 w-3.5" /> {capitalizeCity(details.city)}
-                                  </p>
+                                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{details.name}</p>
+                                  <p className="text-xs text-slate-500 dark:text-slate-300">{capitalizeCity(details.city)}</p>
                                   <div className="mt-2 flex flex-wrap gap-2">
-                                    {details.badges.map(badge => (
-                                      <span
-                                        key={badge}
-                                        className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-500"
-                                      >
+                                    {details.badges.map((badge) => (
+                                      <span key={badge} className="rounded-full bg-emerald-100/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
                                         {badge}
                                       </span>
                                     ))}
@@ -856,285 +834,255 @@ export default function Account() {
                                 </div>
                                 <button
                                   type="button"
-                                  onClick={event => {
+                                  onClick={(event) => {
                                     event.stopPropagation();
                                     handleRemovePlaceFromDay(day, slug);
                                   }}
-                                  className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/80 text-neutral-400 transition hover:bg-neutral-900 hover:text-white"
+                                  className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/80 text-emerald-500 transition hover:bg-emerald-500 hover:text-white dark:bg-slate-950/70"
                                 >
                                   <X className="h-4 w-4" />
                                   <span className="sr-only">Remove</span>
                                 </button>
                               </button>
                             );
-                          })}
-                        </div>
+                          })
+                        )}
+                      </div>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedDay(isOpen ? null : day);
-                            setPlaceSearch("");
-                          }}
-                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:border-neutral-900/20 hover:bg-neutral-100"
-                        >
-                          <Plus className="h-4 w-4" /> {assignments.length > 0 ? "Add more spots" : "Add a spot"}
-                        </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDay(isOpen ? null : day);
+                          setPlaceSearch("");
+                        }}
+                        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/20 dark:text-emerald-200"
+                      >
+                        <Plus className="h-4 w-4" /> {assignments.length > 0 ? "Add more spots" : "Add a spot"}
+                      </button>
 
-                        {isOpen && (
-                          <div className="mt-4 space-y-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-neutral-500">
-                                Choose from your collection
+                      {isOpen && (
+                        <div className="mt-4 space-y-3 rounded-2xl border border-emerald-500/20 bg-emerald-50/60 p-4 dark:border-emerald-400/20 dark:bg-emerald-950/40">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Choose from your collection</p>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedDay(null)}
+                              className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-600/80 transition hover:text-emerald-700 dark:text-emerald-300"
+                            >
+                              Close <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <input
+                            value={placeSearch}
+                            onChange={(event) => setPlaceSearch(event.target.value)}
+                            placeholder="Search saved or visited spots"
+                            className="w-full rounded-xl border border-emerald-500/20 bg-white/80 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-400/20 dark:bg-slate-950/70 dark:text-slate-100"
+                          />
+                          <div className="max-h-48 space-y-3 overflow-y-auto pr-1">
+                            {filteredSuggestions.length === 0 ? (
+                              <p className="rounded-xl border border-dashed border-emerald-500/20 bg-white/80 p-3 text-xs text-slate-500 dark:border-emerald-400/20 dark:bg-slate-950/60 dark:text-slate-300">
+                                {plannerOptions.length === 0 ? "Save or log destinations to start planning." : "No matches. Try a different search or day."}
                               </p>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedDay(null)}
-                                className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-neutral-500 transition hover:text-neutral-900"
-                              >
-                                Close <X className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                            <input
-                              value={placeSearch}
-                              onChange={event => setPlaceSearch(event.target.value)}
-                              placeholder="Search saved or visited spots"
-                              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10"
-                            />
-                            <div className="max-h-48 space-y-3 overflow-y-auto pr-1">
-                              {filteredSuggestions.length === 0 ? (
-                                <p className="rounded-xl border border-dashed border-neutral-200 bg-white p-3 text-xs text-neutral-500">
-                                  {plannerOptions.length === 0
-                                    ? "Save or log destinations to start planning."
-                                    : "No matches. Try a different search or day."}
-                                </p>
-                              ) : (
-                                filteredSuggestions.map(option => (
-                                  <button
-                                    key={option.slug}
-                                    type="button"
-                                    onClick={() => handleAddPlaceToDay(day, option.slug)}
-                                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left text-sm text-neutral-700 transition hover:border-neutral-900/20 hover:bg-neutral-100"
-                                  >
-                                    <div>
-                                      <p className="font-semibold text-neutral-900">{option.name}</p>
-                                      <p className="text-xs text-neutral-500">{capitalizeCity(option.city)}</p>
+                            ) : (
+                              filteredSuggestions.map((option) => (
+                                <button
+                                  key={option.slug}
+                                  type="button"
+                                  onClick={() => handleAddPlaceToDay(day, option.slug)}
+                                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-white/80 px-3 py-2 text-left text-sm text-slate-700 transition hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/20 dark:bg-slate-950/70 dark:text-slate-200"
+                                >
+                                  <div>
+                                    <p className="font-semibold text-slate-900 dark:text-white">{option.name}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-300">{capitalizeCity(option.city)}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex flex-wrap gap-1">
+                                      {option.badges.map((badge) => (
+                                        <span key={badge} className="rounded-full bg-emerald-100/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+                                          {badge}
+                                        </span>
+                                      ))}
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                      <div className="flex flex-wrap gap-1">
-                                        {option.badges.map(badge => (
-                                          <span
-                                            key={badge}
-                                            className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-500"
-                                          >
-                                            {badge}
-                                          </span>
-                                        ))}
-                                      </div>
-                                      <Plus className="h-4 w-4 text-neutral-400" />
-                                    </div>
-                                  </button>
-                                ))
-                              )}
-                            </div>
+                                    <Plus className="h-4 w-4 text-emerald-500" />
+                                  </div>
+                                </button>
+                              ))
+                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <aside className="space-y-5">
-                <div className="rounded-3xl border border-neutral-200 bg-white p-6">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
-                    <ListChecks className="h-4 w-4" /> Plan summary
-                  </div>
-                  <p className="mt-4 text-sm text-neutral-600">
-                    Assign saved highlights or past favorites to keep your itinerary balanced across the trip.
-                  </p>
-                  <div className="mt-5 space-y-3 text-sm text-neutral-600">
-                    <div className="flex items-center justify-between rounded-2xl border border-neutral-200 px-3 py-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Days planned</span>
-                      <span className="text-sm font-semibold text-neutral-900">{tripDuration}</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-neutral-200 px-3 py-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Places assigned</span>
-                      <span className="text-sm font-semibold text-neutral-900">{totalAssignments}</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-neutral-200 px-3 py-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Avg per day</span>
-                      <span className="text-sm font-semibold text-neutral-900">{averageAssignments.toFixed(1)}</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-neutral-200 px-3 py-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Open days</span>
-                      <span className="text-sm font-semibold text-neutral-900">{unplannedDays}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-3xl border border-neutral-200 bg-white p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Need inspiration?</p>
-                  <p className="mt-3 text-sm text-neutral-600">
-                    Ask the AI chat to fill any blank days or surface themed experiences. Try prompting:
-                  </p>
-                  <div className="mt-4 space-y-2 text-sm text-neutral-700">
-                    <p className="rounded-2xl bg-neutral-50 px-4 py-2">“Suggest a morning in {tripName || "my next city"} that pairs coffee and design.”</p>
-                    <p className="rounded-2xl bg-neutral-50 px-4 py-2">“Balance my trip with one cultural highlight and one food experience each day.”</p>
-                    <p className="rounded-2xl bg-neutral-50 px-4 py-2">“What hidden gems should I add to day {selectedDay || 1}?”</p>
-                  </div>
-                </div>
-              </aside>
-            </div>
-          </section>
-
-          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold text-neutral-900">Saved destinations</h2>
-                <p className="text-sm text-neutral-500">Keep track of the places waiting on your list.</p>
-              </div>
-              <button
-                onClick={() => setLocation("/")}
-                className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100"
-              >
-                Discover more <ArrowUpRight className="h-4 w-4" />
-              </button>
-            </div>
-            {savedPlaces.length === 0 ? (
-              <div className="mt-8 flex flex-col items-center justify-center gap-4 py-12 text-center sm:mt-10">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-100">
-                  <Bookmark className="h-6 w-6 text-neutral-400" />
-                </div>
-                <div>
-                  <p className="text-lg font-semibold text-neutral-900">No saved spots yet</p>
-                  <p className="mt-1 text-sm text-neutral-500">Start bookmarking destinations you want to experience.</p>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-8 grid gap-5 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
-                {savedPlaces.map(place => (
-                  <button
-                    key={place.destination_slug}
-                    onClick={() => handleCardClick(place.destination_slug)}
-                    className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 text-left transition-shadow hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)]"
-                  >
-                    <div className="aspect-[4/3] overflow-hidden bg-neutral-100">
-                      <img
-                        src={place.destination.image || "/images/placeholder-destination.jpg"}
-                        alt={place.destination.name}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                    <div className="flex flex-1 flex-col gap-2 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-400">
-                        {place.destination.category || "Destination"}
-                      </p>
-                      <h3 className="text-lg font-semibold text-neutral-900">{place.destination.name}</h3>
-                      <p className="flex items-center gap-2 text-sm text-neutral-500">
-                        <MapPin className="h-4 w-4" /> {capitalizeCity(place.destination.city)}
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold text-neutral-900">Visited timeline</h2>
-                <p className="text-sm text-neutral-500">Your documented destinations, stories, and ratings.</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {[
-                  { key: "all", label: "All" },
-                  { key: "rated", label: "Rated" },
-                  { key: "notes", label: "With notes" }
-                ].map(filter => (
-                  <button
-                    key={filter.key}
-                    onClick={() => setVisitedFilter(filter.key as typeof visitedFilter)}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] transition-colors ${
-                      visitedFilter === filter.key
-                        ? "bg-neutral-900 text-white"
-                        : "border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-                    }`}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {filteredVisitedTimeline.length === 0 ? (
-              <div className="mt-8 flex flex-col items-center justify-center gap-4 py-16 text-center sm:mt-10">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100">
-                  <CheckCircle2 className="h-8 w-8 text-neutral-400" />
-                </div>
-                <div>
-                  <p className="text-lg font-semibold text-neutral-900">No visits logged yet</p>
-                  <p className="mt-1 text-sm text-neutral-500">Keep track of your journeys to build a personal travel log.</p>
-                </div>
-                <button
-                  onClick={() => setLocation("/")}
-                  className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
-                >
-                  Discover places <ArrowUpRight className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <ol className="mt-8 space-y-6 sm:mt-10 sm:space-y-8">
-                {filteredVisitedTimeline.map(place => (
-                  <li key={place.destination_slug}>
-                    <button
-                      onClick={() => handleCardClick(place.destination_slug)}
-                      className="group flex w-full flex-col gap-4 rounded-2xl border border-neutral-200 p-4 text-left transition-colors hover:border-neutral-900/20 hover:bg-neutral-50 sm:p-5"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
-                          {formatVisitedDate(place.visited_date)}
                         </div>
-                        {place.notes && (
-                          <span className="rounded-full bg-neutral-900/5 px-3 py-1 text-xs font-medium text-neutral-600">
-                            Personal note
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-5">
-                        <div>
-                          <h3 className="text-lg font-semibold text-neutral-900">{place.destination.name}</h3>
-                          <p className="mt-1 flex items-center gap-2 text-sm text-neutral-500">
-                            <MapPin className="h-4 w-4" /> {capitalizeCity(place.destination.city)}
-                          </p>
-                          {renderRating(place.rating)}
-                        </div>
-                        {place.destination.image && (
-                          <div className="overflow-hidden rounded-xl bg-neutral-100">
-                            <img
-                              src={place.destination.image}
-                              alt={place.destination.name}
-                              className="h-24 w-full max-w-[160px] object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                          </div>
-                        )}
-                      </div>
-                      {place.notes && (
-                        <p className="rounded-2xl bg-white p-4 text-sm text-neutral-600 shadow-inner">
-                          “{place.notes}”
-                        </p>
                       )}
-                    </button>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
-        </div>
-      </main>
-      <SimpleFooter />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-      {/* Destination Drawer */}
+            <aside className="space-y-5">
+              <div className="rounded-3xl border border-emerald-500/15 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">
+                  <ListChecks className="h-4 w-4" /> Plan summary
+                </div>
+                <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">Assign saved highlights or past favorites to keep your itinerary balanced across the trip.</p>
+                <div className="mt-5 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+                  <div className="flex items-center justify-between rounded-2xl border border-emerald-500/20 px-3 py-2">
+                    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80">Days planned</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{tripDuration}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl border border-emerald-500/20 px-3 py-2">
+                    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80">Places assigned</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{totalAssignments}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl border border-emerald-500/20 px-3 py-2">
+                    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80">Avg per day</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{averageAssignments.toFixed(1)}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl border border-emerald-500/20 px-3 py-2">
+                    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80">Open days</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{unplannedDays}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-emerald-500/15 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">Need inspiration?</p>
+                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">Ask the AI chat to fill any blank days or surface themed experiences. Try prompting:</p>
+                <div className="mt-4 space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                  <p className="rounded-2xl bg-emerald-50/80 px-4 py-2 dark:bg-emerald-900/30">“Suggest a morning in {tripName || "my next city"} that pairs coffee and design.”</p>
+                  <p className="rounded-2xl bg-emerald-50/80 px-4 py-2 dark:bg-emerald-900/30">“Balance my trip with one cultural highlight and one food experience each day.”</p>
+                  <p className="rounded-2xl bg-emerald-50/80 px-4 py-2 dark:bg-emerald-900/30">“What hidden gems should I add to day {selectedDay || 1}?”</p>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </ContentSection>
+
+        <ContentSection
+          title="Saved destinations"
+          description="Keep track of the places waiting on your list."
+        >
+          {savedPlaces.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-emerald-500/20 bg-white/80 px-8 py-14 text-center shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100/80 dark:bg-emerald-900/40">
+                <Bookmark className="h-6 w-6 text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">No saved spots yet</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Start bookmarking destinations you want to experience.</p>
+              </div>
+              <Button
+                onClick={() => setLocation("/")}
+                className="rounded-full bg-emerald-600 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-emerald-700"
+              >
+                Discover places
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {savedPlaces.map((place) => (
+                <button
+                  key={place.destination_slug}
+                  onClick={() => handleCardClick(place.destination_slug)}
+                  className="group flex flex-col overflow-hidden rounded-3xl border border-emerald-500/15 bg-white/80 text-left shadow-sm transition hover:border-emerald-500/40 hover:shadow-[0_12px_40px_rgba(16,112,87,0.15)] dark:border-emerald-400/20 dark:bg-slate-950/70"
+                >
+                  <div className="aspect-[4/3] overflow-hidden bg-emerald-100/60 dark:bg-emerald-900/40">
+                    <img
+                      src={place.destination.image || "/images/placeholder-destination.jpg"}
+                      alt={place.destination.name}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col gap-2 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">{place.destination.category || "Destination"}</p>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{place.destination.name}</h3>
+                    <p className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
+                      <MapPin className="h-4 w-4" /> {capitalizeCity(place.destination.city)}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </ContentSection>
+
+        <ContentSection
+          title="Visited timeline"
+          description="Your documented destinations, stories, and ratings."
+        >
+          <div className="flex flex-wrap items-center gap-2 pb-4">
+            {[{ key: "all", label: "All" }, { key: "rated", label: "Rated" }, { key: "notes", label: "With notes" }].map((filter) => (
+              <button
+                key={filter.key}
+                onClick={() => setVisitedFilter(filter.key as typeof visitedFilter)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                  visitedFilter === filter.key
+                    ? "bg-emerald-600 text-white"
+                    : "border border-emerald-500/20 text-emerald-700 hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/20 dark:text-emerald-200"
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+
+          {filteredVisitedTimeline.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-emerald-500/20 bg-white/80 px-8 py-16 text-center shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100/80 dark:bg-emerald-900/40">
+                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">No visits logged yet</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Keep track of your journeys to build a personal travel log.</p>
+              </div>
+              <Button
+                onClick={() => setLocation("/")}
+                className="rounded-full bg-emerald-600 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-emerald-700"
+              >
+                Discover places
+              </Button>
+            </div>
+          ) : (
+            <ol className="space-y-6">
+              {filteredVisitedTimeline.map((place) => (
+                <li key={place.destination_slug}>
+                  <button
+                    onClick={() => handleCardClick(place.destination_slug)}
+                    className="group flex w-full flex-col gap-4 rounded-3xl border border-emerald-500/15 bg-white/80 p-5 text-left shadow-sm transition hover:border-emerald-500/40 hover:bg-white dark:border-emerald-400/20 dark:bg-slate-950/70"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">{formatVisitedDate(place.visited_date)}</div>
+                      {place.notes && (
+                        <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200">Personal note</span>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{place.destination.name}</h3>
+                        <p className="mt-1 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
+                          <MapPin className="h-4 w-4" /> {capitalizeCity(place.destination.city)}
+                        </p>
+                        {renderRating(place.rating)}
+                      </div>
+                      {place.destination.image && (
+                        <div className="overflow-hidden rounded-xl bg-emerald-100/60 dark:bg-emerald-900/40">
+                          <img
+                            src={place.destination.image}
+                            alt={place.destination.name}
+                            className="h-24 w-full max-w-[160px] object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    {place.notes && (
+                      <p className="rounded-2xl bg-white/80 p-4 text-sm text-slate-600 shadow-inner dark:bg-slate-950/70 dark:text-slate-300">“{place.notes}”</p>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+        </ContentSection>
+      </div>
+
       {selectedDestination && (
         <DestinationDrawer
           destination={selectedDestination}
@@ -1146,7 +1094,7 @@ export default function Account() {
           onSelectDestination={handleDrawerSuggestion}
         />
       )}
-    </div>
+    </SiteShell>
   );
-}
 
+}
