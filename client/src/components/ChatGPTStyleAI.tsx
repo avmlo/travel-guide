@@ -149,7 +149,7 @@ export function ChatGPTStyleAI() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 group"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 group"
       >
         <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
         <span className="font-medium">Ask AI Travel Assistant</span>
@@ -162,7 +162,7 @@ export function ChatGPTStyleAI() {
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
         <button
           onClick={() => setIsMinimized(false)}
-          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
         >
           <Sparkles className="w-5 h-5" />
           <span className="font-medium">Travel Assistant</span>
@@ -201,7 +201,7 @@ export function ChatGPTStyleAI() {
                 <div
                   className={`max-w-[80%] px-4 py-2 rounded-2xl ${
                     msg.role === "user"
-                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                      ? "bg-black text-white"
                       : "bg-white/90 text-gray-800 border border-gray-200"
                   }`}
                 >
@@ -305,7 +305,7 @@ export function ChatGPTStyleAI() {
         <button
           onClick={handleSend}
           disabled={!input.trim()}
-          className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+          className="p-2 bg-black hover:bg-gray-800 text-white rounded-full hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
         >
           <Send className="w-5 h-5" />
         </button>
