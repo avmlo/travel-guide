@@ -159,7 +159,7 @@ export function GoogleMap({ destination }: GoogleMapProps) {
             )}
             
             {/* Rating */}
-            {placeData.rating && (
+            {typeof placeData.rating === 'number' && (
               <div className="flex items-start gap-3">
                 <Star className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div>
@@ -168,17 +168,17 @@ export function GoogleMap({ destination }: GoogleMapProps) {
                     <span className="text-sm font-semibold text-gray-900">{placeData.rating.toFixed(1)}</span>
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
+                        <Star
+                          key={i}
                           className={`h-3.5 w-3.5 ${
-                            i < Math.floor(placeData.rating) 
-                              ? 'text-yellow-400 fill-yellow-400' 
+                            i < Math.floor(placeData.rating)
+                              ? 'text-yellow-400 fill-yellow-400'
                               : 'text-gray-300'
                           }`}
                         />
                       ))}
                     </div>
-                    {placeData.user_ratings_total && (
+                    {typeof placeData.user_ratings_total === 'number' && (
                       <span className="text-xs text-gray-500">({placeData.user_ratings_total.toLocaleString()} reviews)</span>
                     )}
                   </div>
