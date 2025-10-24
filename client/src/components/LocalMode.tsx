@@ -133,11 +133,10 @@ export function LocalMode({ destinations, onSelectDestination }: LocalModeProps)
       {/* Content */}
       <div className="max-w-[1600px] mx-auto px-6 py-8">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-          {nearbyDestinations.map((destination, index) => (
+          {nearbyDestinations.map((destination) => (
             <div key={destination.slug} className="relative">
               <DestinationCard
                 destination={destination}
-                colorIndex={index}
                 onClick={() => onSelectDestination(destination)}
               />
               {/* Distance Badge */}
