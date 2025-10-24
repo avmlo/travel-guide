@@ -1,12 +1,15 @@
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
-import { db } from "../db";
+import { getDb } from "../db";
 import { trips, itineraryItems, type Trip, type ItineraryItem } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 
 export const tripsRouter = router({
   // Get all trips for the current user
   list: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
     const userTrips = await db
       .select()
       .from(trips)
@@ -20,6 +23,9 @@ export const tripsRouter = router({
   get: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
       const [trip] = await db
         .select()
         .from(trips)
@@ -55,6 +61,9 @@ export const tripsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
       const now = new Date();
 
       const [newTrip] = await db.insert(trips).values({
@@ -90,6 +99,9 @@ export const tripsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
       const { id, ...updateData } = input;
 
       // Verify ownership
@@ -120,6 +132,9 @@ export const tripsRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
       // Verify ownership
       const [trip] = await db
         .select()
@@ -155,6 +170,9 @@ export const tripsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
       // Verify trip ownership
       const [trip] = await db
         .select()
@@ -196,6 +214,9 @@ export const tripsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
       const { id, ...updateData } = input;
 
       // Verify ownership through trip
@@ -230,6 +251,9 @@ export const tripsRouter = router({
   deleteItem: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
       // Verify ownership through trip
       const [item] = await db
         .select()
@@ -281,6 +305,9 @@ export const tripsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
       const now = new Date();
 
       // Create the trip
