@@ -55,26 +55,35 @@ export default function Brand() {
     }
   }, [brandSlug]);
 
+  const toDestination = (dest: any): Destination => ({
+    name: dest.name,
+    slug: dest.slug,
+    city: dest.city,
+    category: dest.category,
+    content: dest.content || dest.description || '',
+    mainImage: dest.image || '',
+    michelinStars: dest.michelin_stars || 0,
+    crown: dest.crown || false,
+    brand: dest.brand || '',
+    cardTags: dest.card_tags || '',
+    lat: dest.lat || 0,
+    long: dest.long || 0,
+    myRating: 0,
+    reviewed: false,
+    subline: dest.description || ''
+  });
+
   const handleCardClick = (dest: any) => {
-    const transformed: Destination = {
-      name: dest.name,
-      slug: dest.slug,
-      city: dest.city,
-      category: dest.category,
-      content: dest.content || dest.description || '',
-      mainImage: dest.image || '',
-      michelinStars: dest.michelin_stars || 0,
-      crown: dest.crown || false,
-      brand: dest.brand || '',
-      cardTags: '',
-      lat: 0,
-      long: 0,
-      myRating: 0,
-      reviewed: false,
-      subline: dest.description || ''
-    };
-    setSelectedDestination(transformed);
+    setSelectedDestination(toDestination(dest));
     setIsDrawerOpen(true);
+  };
+
+  const handleDrawerSuggestion = (slug: string) => {
+    const match = destinations.find((candidate: any) => candidate.slug === slug);
+    if (match) {
+      setSelectedDestination(toDestination(match));
+      setIsDrawerOpen(true);
+    }
   };
 
   if (loading) {
@@ -157,6 +166,7 @@ export default function Brand() {
             setIsDrawerOpen(false);
             setSelectedDestination(null);
           }}
+          onSelectDestination={handleDrawerSuggestion}
         />
       )}
     </div>

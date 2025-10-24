@@ -1,11 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { X, Send, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "wouter";
+import {
+  buildAssistantResponse,
+  AssistantSuggestion,
+  TravelRecord,
+} from "@/utils/aiAssistant";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  suggestions?: AssistantSuggestion[];
+  followUps?: string[];
 }
 
 export function ModernAIChat() {
@@ -14,7 +21,7 @@ export function ModernAIChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [destinations, setDestinations] = useState<any[]>([]);
+  const [destinations, setDestinations] = useState<TravelRecord[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
 
@@ -28,11 +35,11 @@ export function ModernAIChat() {
     async function loadDestinations() {
       const { data } = await supabase
         .from('destinations')
-        .select('*')
+        .select('slug, name, city, category, michelin_stars, description, content, image, image_url, crown')
         .limit(500);
-      
+
       if (data) {
-        setDestinations(data);
+        setDestinations(data as TravelRecord[]);
       }
     }
     loadDestinations();
@@ -45,80 +52,83 @@ export function ModernAIChat() {
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       const greeting = user
-        ? `Hi ${user.user_metadata?.name || user.email?.split('@')[0]}! I'm here to help you discover amazing destinations. What are you looking for?`
-        : "Hello! I can help you discover amazing destinations around the world. What interests you?";
-      
+        ? `Hi ${user.user_metadata?.name || user.email?.split('@')[0]}! I can surface perfect spots, itineraries, and tips. Ask about any city, vibe, or experience and I'll dig in.`
+        : "Hello! I'm your travel copilot. Ask me about cities, cuisines, vibes, or itineraries and I'll surface the right places.";
+
       setMessages([{ role: "assistant", content: greeting }]);
     }
   }, [isOpen, user]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const formatCity = (city: string) =>
+    city
+      .split('-')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
 
-    const userMessage = input.trim();
-    setInput("");
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+  const defaultQuickPrompts = useMemo(() => {
+    const uniqueCities = Array.from(
+      new Set(destinations.map(destination => destination.city).filter((city): city is string => Boolean(city)))
+    );
+
+    if (uniqueCities.length === 0) {
+      return [
+        'Find Michelin-starred dinners in Tokyo',
+        'Plan a weekend itinerary for Paris',
+        'Show me design hotels in Copenhagen',
+        'Where should I grab coffee in Seoul?'
+      ];
+    }
+
+    const templates = [
+      (city: string) => `Find Michelin-starred dinners in ${formatCity(city)}`,
+      (city: string) => `Plan a weekend itinerary for ${formatCity(city)}`,
+      (city: string) => `Show me design hotels in ${formatCity(city)}`,
+      (city: string) => `Where should I grab coffee in ${formatCity(city)}?`
+    ];
+
+    return templates.map((template, index) => template(uniqueCities[index % uniqueCities.length]!));
+  }, [destinations]);
+
+  const sendPrompt = async (prompt: string) => {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt || isLoading) {
+      return;
+    }
+
+    setMessages(prev => [...prev, { role: 'user', content: trimmedPrompt }]);
     setIsLoading(true);
 
     try {
-      // Simple keyword-based responses
-      const lowerQuery = userMessage.toLowerCase();
-      let response = "";
-      let matchedDestinations: any[] = [];
-
-      // Check for city queries
-      const cities = ['tokyo', 'paris', 'london', 'new york', 'singapore', 'hong kong', 'seoul', 'bangkok'];
-      const matchedCity = cities.find(city => lowerQuery.includes(city));
-
-      if (matchedCity) {
-        matchedDestinations = destinations.filter(d => 
-          d.city.toLowerCase().includes(matchedCity)
-        ).slice(0, 5);
-        
-        if (matchedDestinations.length > 0) {
-          response = `I found ${matchedDestinations.length} amazing places in ${matchedCity.charAt(0).toUpperCase() + matchedCity.slice(1)}:\n\n`;
-          matchedDestinations.forEach(d => {
-            response += `• ${d.name}${d.michelin_stars ? ` (${d.michelin_stars}★)` : ''}\n`;
-          });
-        }
-      }
-      // Check for category queries
-      else if (lowerQuery.includes('restaurant') || lowerQuery.includes('eat') || lowerQuery.includes('food')) {
-        matchedDestinations = destinations.filter(d => 
-          d.category?.toLowerCase().includes('eat') || d.category?.toLowerCase().includes('restaurant')
-        ).slice(0, 5);
-        
-        response = `Here are some top restaurants:\n\n`;
-        matchedDestinations.forEach(d => {
-          response += `• ${d.name} in ${d.city}${d.michelin_stars ? ` (${d.michelin_stars}★)` : ''}\n`;
-        });
-      }
-      // Check for Michelin queries
-      else if (lowerQuery.includes('michelin') || lowerQuery.includes('star')) {
-        matchedDestinations = destinations.filter(d => 
-          d.michelin_stars && d.michelin_stars > 0
-        ).slice(0, 5);
-        
-        response = `Here are some Michelin-starred restaurants:\n\n`;
-        matchedDestinations.forEach(d => {
-          response += `• ${d.name} - ${d.michelin_stars}★ (${d.city})\n`;
-        });
-      }
-      // Default response
-      else {
-        response = "I can help you find restaurants, hotels, attractions, and more. Try asking about:\n\n• Specific cities (e.g., 'places in Tokyo')\n• Categories (e.g., 'find restaurants')\n• Michelin-starred restaurants\n\nWhat would you like to explore?";
-      }
-
-      setMessages(prev => [...prev, { role: "assistant", content: response }]);
+      const reply = buildAssistantResponse(trimmedPrompt, destinations);
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: reply.content,
+          suggestions: reply.suggestions,
+          followUps: reply.followUps,
+        },
+      ]);
     } catch (error) {
-      console.error("Error:", error);
-      setMessages(prev => [...prev, { 
-        role: "assistant", 
-        content: "I'm having trouble right now. Please try again in a moment." 
-      }]);
+      console.error('Error:', error);
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: "I'm having trouble right now. Please try again in a moment.",
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const prompt = input.trim();
+    setInput('');
+    await sendPrompt(prompt);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -126,6 +136,18 @@ export function ModernAIChat() {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleSuggestionSelect = (slug: string) => {
+    setIsOpen(false);
+    setTimeout(() => {
+      setLocation(`/destination/${slug}`);
+    }, 150);
+  };
+
+  const handleQuickPrompt = (prompt: string) => {
+    setInput('');
+    sendPrompt(prompt);
   };
 
   if (!isOpen) {
@@ -172,13 +194,66 @@ export function ModernAIChat() {
             className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+              className={`max-w-[85%] rounded-2xl px-4 py-3 space-y-3 ${
                 message.role === "user"
                   ? "bg-gray-900 text-white"
                   : "bg-white text-gray-900 border border-gray-200"
               }`}
             >
               <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+
+              {message.role === 'assistant' && message.suggestions && message.suggestions.length > 0 && (
+                <div className="space-y-3">
+                  {message.suggestions.map(suggestion => (
+                    <button
+                      key={suggestion.slug}
+                      onClick={() => handleSuggestionSelect(suggestion.slug)}
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50/70 text-left transition hover:border-gray-300 hover:bg-gray-100"
+                    >
+                      <div className="flex gap-3 p-3">
+                        {suggestion.image && (
+                          <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg">
+                            <img
+                              src={suggestion.image}
+                              alt={suggestion.name}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-gray-900 truncate">{suggestion.name}</p>
+                            {suggestion.michelinStars > 0 && (
+                              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-500">
+                                {suggestion.michelinStars}★
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-gray-500">
+                            {suggestion.city} • {suggestion.category}
+                          </p>
+                          <p className="mt-2 text-xs text-gray-600 line-clamp-2">{suggestion.reason}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {message.role === 'assistant' && message.followUps && message.followUps.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {message.followUps.map(followUp => (
+                    <button
+                      key={followUp}
+                      onClick={() => handleQuickPrompt(followUp)}
+                      className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 transition hover:border-gray-900 hover:text-gray-900"
+                    >
+                      {followUp}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -198,6 +273,17 @@ export function ModernAIChat() {
 
       {/* Input */}
       <div className="p-4 border-t border-gray-200 bg-white">
+        <div className="mb-3 flex flex-wrap gap-2">
+          {defaultQuickPrompts.map(prompt => (
+            <button
+              key={prompt}
+              onClick={() => handleQuickPrompt(prompt)}
+              className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-900 hover:text-white"
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
         <div className="flex gap-2">
           <input
             type="text"

@@ -4,11 +4,13 @@ import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GoogleMap } from "@/components/GoogleMap";
+import { AISuggestions } from "@/components/AISuggestions";
 
 interface DestinationDrawerProps {
   destination: Destination | null;
   isOpen: boolean;
   onClose: () => void;
+  onSelectDestination?: (slug: string) => void;
 }
 
 // Helper function to capitalize city names
@@ -32,7 +34,7 @@ const categoryColors: Record<string, string> = {
   'default': 'bg-gray-100 text-gray-800'
 };
 
-export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {
+export function DestinationDrawer({ destination, isOpen, onClose, onSelectDestination }: DestinationDrawerProps) {
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);
@@ -332,6 +334,10 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                   <div className="mt-16">
                     <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">Location</div>
                     <GoogleMap destination={destination} />
+                    <AISuggestions
+                      destination={destination}
+                      onSelectDestination={slug => onSelectDestination?.(slug)}
+                    />
                   </div>
                 </div>
               </div>
@@ -438,6 +444,11 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                 <h2 className="text-lg font-normal mb-6 text-black dark:text-white">Location</h2>
                 <GoogleMap destination={destination} />
               </div>
+
+              <AISuggestions
+                destination={destination}
+                onSelectDestination={slug => onSelectDestination?.(slug)}
+              />
 
               {/* Share Button */}
               <div className="flex justify-center pt-8 border-t border-gray-200 dark:border-gray-800">
