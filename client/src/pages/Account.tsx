@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { trpc } from "@/lib/trpc";
@@ -39,6 +39,7 @@ export default function AccountNew() {
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({ name: "", email: "" });
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const { data: trips } = trpc.trips.list.useQuery(undefined, { enabled: !!user });
 
@@ -76,82 +77,100 @@ export default function AccountNew() {
   // Load user data and places
   useEffect(() => {
     async function loadUserData() {
-      if (!user) return;
-
-      setProfileData({
-        name: user.name || "",
-        email: user.email || ""
-      });
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      // Load saved places
-      const { data: savedData } = await supabase
-        .from('saved_destinations')
-        .select('destination_slug')
-        .eq('user_id', session.user.id);
-
-      if (savedData) {
-        const slugs = savedData.map(item => item.destination_slug);
-        if (slugs.length > 0) {
-          const { data: destData } = await supabase
-            .from('destinations')
-            .select('slug, name, city, category, image')
-            .in('slug', slugs);
-
-          if (destData) {
-            setSavedPlaces(destData.map((dest: any) => ({
-              destination_slug: dest.slug,
-              destination: {
-                name: dest.name,
-                city: dest.city,
-                category: dest.category,
-                image: dest.image
-              }
-            })));
-          }
-        }
+      if (!user) {
+        setIsLoadingData(false);
+        return;
       }
 
-      // Load visited places
-      const { data: visitedData } = await supabase
-        .from('visited_destinations')
-        .select('destination_slug, visited_date, rating, notes')
-        .eq('user_id', session.user.id)
-        .order('visited_date', { ascending: false });
+      try {
+        setIsLoadingData(true);
 
-      if (visitedData) {
-        const slugs = visitedData.map(item => item.destination_slug);
-        if (slugs.length > 0) {
+        setProfileData({
+          name: user.name || "",
+          email: user.email || ""
+        });
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setIsLoadingData(false);
+          return;
+        }
+
+        // Load both saved and visited places in parallel
+        const [savedResult, visitedResult] = await Promise.all([
+          supabase
+            .from('saved_destinations')
+            .select('destination_slug')
+            .eq('user_id', session.user.id),
+          supabase
+            .from('visited_destinations')
+            .select('destination_slug, visited_date, rating, notes')
+            .eq('user_id', session.user.id)
+            .order('visited_date', { ascending: false })
+        ]);
+
+        // Collect all unique slugs
+        const allSlugs = new Set<string>();
+        if (savedResult.data) {
+          savedResult.data.forEach(item => allSlugs.add(item.destination_slug));
+        }
+        if (visitedResult.data) {
+          visitedResult.data.forEach(item => allSlugs.add(item.destination_slug));
+        }
+
+        // Fetch all destinations in one query
+        if (allSlugs.size > 0) {
           const { data: destData } = await supabase
             .from('destinations')
             .select('slug, name, city, category, image')
-            .in('slug', slugs);
+            .in('slug', Array.from(allSlugs));
 
           if (destData) {
-            setVisitedPlaces(visitedData.map((item: any) => {
-              const dest = destData.find((d: any) => d.slug === item.destination_slug);
-              return {
-                destination_slug: item.destination_slug,
-                visited_date: item.visited_date,
-                rating: item.rating,
-                notes: item.notes,
-                destination: dest ? {
-                  name: dest.name,
-                  city: dest.city,
-                  category: dest.category,
-                  image: dest.image
-                } : null
-              };
-            }).filter(item => item.destination !== null));
+            // Map saved places
+            if (savedResult.data) {
+              setSavedPlaces(savedResult.data.map((item: any) => {
+                const dest = destData.find((d: any) => d.slug === item.destination_slug);
+                return dest ? {
+                  destination_slug: dest.slug,
+                  destination: {
+                    name: dest.name,
+                    city: dest.city,
+                    category: dest.category,
+                    image: dest.image
+                  }
+                } : null;
+              }).filter((item: any) => item !== null));
+            }
+
+            // Map visited places
+            if (visitedResult.data) {
+              setVisitedPlaces(visitedResult.data.map((item: any) => {
+                const dest = destData.find((d: any) => d.slug === item.destination_slug);
+                return dest ? {
+                  destination_slug: item.destination_slug,
+                  visited_date: item.visited_date,
+                  rating: item.rating,
+                  notes: item.notes,
+                  destination: {
+                    name: dest.name,
+                    city: dest.city,
+                    category: dest.category,
+                    image: dest.image
+                  }
+                } : null;
+              }).filter((item: any) => item !== null));
+            }
           }
         }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setIsLoadingData(false);
       }
     }
 
     loadUserData();
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id to prevent unnecessary re-runs
 
   const handleCardClick = (destinationSlug: string) => {
     const dest = allDestinations.find(d => d.slug === destinationSlug);
@@ -182,25 +201,52 @@ export default function AccountNew() {
     setLocation("/");
   };
 
-  // Calculate statistics
-  const uniqueCities = new Set([
-    ...savedPlaces.map(p => p.destination.city),
-    ...visitedPlaces.filter(p => p.destination).map(p => p.destination!.city)
-  ]);
+  // Memoize statistics to prevent recalculation on every render
+  const stats = useMemo(() => {
+    const uniqueCities = new Set([
+      ...savedPlaces.map(p => p.destination?.city).filter(Boolean),
+      ...visitedPlaces.filter(p => p.destination).map(p => p.destination!.city)
+    ]);
 
-  const uniqueCountries = new Set(
-    Array.from(uniqueCities).map(city => cityCountryMap[city] || 'Other')
-  );
+    const uniqueCountries = new Set(
+      Array.from(uniqueCities).map(city => cityCountryMap[city] || 'Other')
+    );
 
-  const michelinCount = visitedPlaces.filter(p => {
-    const dest = allDestinations.find(d => d.slug === p.destination_slug);
-    return dest && dest.michelinStars > 0;
-  }).length;
+    const michelinCount = visitedPlaces.filter(p => {
+      const dest = allDestinations.find(d => d.slug === p.destination_slug);
+      return dest && dest.michelinStars > 0;
+    }).length;
 
-  if (authLoading) {
+    return {
+      uniqueCities,
+      uniqueCountries,
+      michelinCount
+    };
+  }, [savedPlaces, visitedPlaces, allDestinations]);
+
+  if (authLoading || isLoadingData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+        <Header />
+        <main className="px-6 md:px-10 py-12">
+          <div className="max-w-7xl mx-auto">
+            {/* Header skeleton */}
+            <div className="mb-8">
+              <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-2" />
+              <div className="h-4 w-96 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
+            </div>
+
+            {/* Tabs skeleton */}
+            <div className="h-10 w-[600px] bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-6" />
+
+            {/* Stats grid skeleton */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-lg animate-shimmer" />
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -239,7 +285,7 @@ export default function AccountNew() {
                   <CardContent>
                     <div className="text-2xl font-bold">{visitedPlaces.length}</div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Across {uniqueCities.size} cities
+                      Across {stats.uniqueCities.size} cities
                     </p>
                   </CardContent>
                 </Card>
@@ -263,7 +309,7 @@ export default function AccountNew() {
                     <Map className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{uniqueCountries.size}</div>
+                    <div className="text-2xl font-bold">{stats.uniqueCountries.size}</div>
                     <p className="text-xs text-muted-foreground mt-1">
                       Explored
                     </p>
@@ -329,7 +375,7 @@ export default function AccountNew() {
               )}
 
               {/* Travel Achievements */}
-              {michelinCount > 0 && (
+              {stats.michelinCount > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -339,7 +385,7 @@ export default function AccountNew() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {michelinCount > 0 && (
+                      {stats.michelinCount > 0 && (
                         <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
@@ -348,14 +394,14 @@ export default function AccountNew() {
                             <div>
                               <p className="font-semibold">Michelin Explorer</p>
                               <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Visited {michelinCount} Michelin-starred {michelinCount === 1 ? 'restaurant' : 'restaurants'}
+                                Visited {stats.michelinCount} Michelin-starred {stats.michelinCount === 1 ? 'restaurant' : 'restaurants'}
                               </p>
                             </div>
                           </div>
-                          <Badge variant="secondary">{michelinCount}</Badge>
+                          <Badge variant="secondary">{stats.michelinCount}</Badge>
                         </div>
                       )}
-                      {uniqueCountries.size >= 5 && (
+                      {stats.uniqueCountries.size >= 5 && (
                         <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -364,11 +410,11 @@ export default function AccountNew() {
                             <div>
                               <p className="font-semibold">Globe Trotter</p>
                               <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Explored {uniqueCountries.size} countries
+                                Explored {stats.uniqueCountries.size} countries
                               </p>
                             </div>
                           </div>
-                          <Badge variant="secondary">{uniqueCountries.size}</Badge>
+                          <Badge variant="secondary">{stats.uniqueCountries.size}</Badge>
                         </div>
                       )}
                     </div>
@@ -603,12 +649,12 @@ export default function AccountNew() {
                     <Separator />
                     <div className="flex justify-between">
                       <dt className="text-sm text-gray-600 dark:text-gray-400">Cities Explored</dt>
-                      <dd className="font-semibold">{uniqueCities.size}</dd>
+                      <dd className="font-semibold">{stats.uniqueCities.size}</dd>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
                       <dt className="text-sm text-gray-600 dark:text-gray-400">Countries</dt>
-                      <dd className="font-semibold">{uniqueCountries.size}</dd>
+                      <dd className="font-semibold">{stats.uniqueCountries.size}</dd>
                     </div>
                     <Separator />
                     <div className="flex justify-between">
