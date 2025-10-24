@@ -156,7 +156,7 @@ export default function Home() {
         !selectedCity || dest.city === selectedCity;
 
       const matchesCategory =
-        !selectedCategory || dest.category.toLowerCase() === selectedCategory.toLowerCase();
+        !selectedCategory || dest.category === selectedCategory;
 
       return matchesSearch && matchesCity && matchesCategory;
     });
@@ -209,12 +209,10 @@ export default function Home() {
             <div className="flex flex-wrap gap-2">
               {[
                 { emoji: '🌍', label: 'All', value: '' },
-                { emoji: '🍽️', label: 'Restaurant', value: 'restaurant' },
-                { emoji: '☕', label: 'Cafe', value: 'cafe' },
-                { emoji: '🏨', label: 'Hotel', value: 'hotel' },
-                { emoji: '🍸', label: 'Bar', value: 'bar' },
-                { emoji: '🛍️', label: 'Shop', value: 'shop' },
-                { emoji: '🥐', label: 'Bakery', value: 'bakery' },
+                { emoji: '🍽️', label: 'Eat & Drink', value: 'Eat & Drink' },
+                { emoji: '🏨', label: 'Stay', value: 'Stay' },
+                { emoji: '🏛️', label: 'Space', value: 'Space' },
+                { emoji: '✨', label: 'Other', value: 'Other' },
               ].map((cat) => (
                 <button
                   key={cat.value}
