@@ -12,7 +12,11 @@ import {
   Plane,
   Globe2,
   Sparkles,
-  BarChart3
+  BarChart3,
+  Bot,
+  MessageCircle,
+  CalendarClock,
+  Compass
 } from "lucide-react";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { Destination } from "@/types/destination";
@@ -143,6 +147,14 @@ export default function Account() {
     const dest = allDestinations.find(d => d.slug === destinationSlug);
     if (dest) {
       setSelectedDestination(dest);
+      setIsDrawerOpen(true);
+    }
+  };
+
+  const handleDrawerSuggestion = (slug: string) => {
+    const match = allDestinations.find(destination => destination.slug === slug);
+    if (match) {
+      setSelectedDestination(match);
       setIsDrawerOpen(true);
     }
   };
@@ -363,6 +375,31 @@ export default function Account() {
     }
   ];
 
+  const aiModules = [
+    {
+      title: "Conversational discovery",
+      description: "Use the floating Modern AI chat to ask for vibes, cuisines, or hidden gems across any city.",
+      icon: MessageCircle
+    },
+    {
+      title: "Instant itineraries",
+      description: "Generate day-by-day plans from the AI itinerary tool and personalize them with your saved places.",
+      icon: CalendarClock
+    },
+    {
+      title: "Drawer pairings",
+      description: "Tap the new AI suggestions inside the destination drawer to hop to curated companions in one tap.",
+      icon: Compass
+    }
+  ];
+
+  const aiShortcuts = [
+    "Plan a 3-day weekend in Kyoto",
+    "Find Michelin-star dinners in Paris",
+    "Show design hotels in Copenhagen",
+    "Where should I grab coffee in Seoul?"
+  ];
+
   return (
     <div className="min-h-screen bg-[#f6f3ef]">
       <Header />
@@ -499,6 +536,60 @@ export default function Account() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              <div className="rounded-3xl bg-white p-6 shadow-[0_30px_60px_rgba(15,23,42,0.04)]">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-600">
+                      <Sparkles className="h-3.5 w-3.5 text-neutral-500" /> AI copilots
+                    </div>
+                    <h2 className="text-2xl font-medium text-neutral-900">Unlock faster planning with AI</h2>
+                    <p className="text-sm text-neutral-500">
+                      Three assistants now collaborate to surface ideas, build itineraries, and chain similar spots together.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid gap-4 md:grid-cols-3">
+                  {aiModules.map(({ title, description, icon: Icon }) => (
+                    <div
+                      key={title}
+                      className="rounded-2xl border border-neutral-200/70 bg-neutral-50 p-4 transition hover:border-neutral-300 hover:bg-white"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900 text-white">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
+                      </div>
+                      <p className="mt-3 text-sm text-neutral-600">{description}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 rounded-2xl bg-neutral-900 p-5 text-neutral-100">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
+                    <Bot className="h-4 w-4" /> Quick starters
+                  </div>
+                  <p className="mt-3 text-sm text-white/80">
+                    Try one of these prompts when you open the AI chat on the Explore page.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {aiShortcuts.map(prompt => (
+                      <button
+                        key={prompt}
+                        onClick={() => setLocation("/")}
+                        className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white transition hover:bg-white/20"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-4 text-xs text-white/60">
+                    New: destination drawers now surface AI-powered follow-up picks so you can keep exploring without closing the overlay.
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -803,6 +894,7 @@ export default function Account() {
             setIsDrawerOpen(false);
             setSelectedDestination(null);
           }}
+          onSelectDestination={handleDrawerSuggestion}
         />
       )}
     </div>
