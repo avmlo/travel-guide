@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { User } from "@/types/user";
 import { MapPin, Globe, Star, Calendar } from "lucide-react";
 
 interface VisitedPlace {
@@ -27,7 +28,7 @@ interface VisitedPlace {
 export default function Preferences() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");

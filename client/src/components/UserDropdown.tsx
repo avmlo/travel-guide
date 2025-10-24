@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { User, Settings, LogOut, ChevronDown } from "lucide-react";
+import { Settings, LogOut, ChevronDown } from "lucide-react";
+import { User } from "@/types/user";
 import { useLocation } from "wouter";
 
 export function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
 

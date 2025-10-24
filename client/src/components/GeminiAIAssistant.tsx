@@ -3,6 +3,7 @@ import { Sparkles, X, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
+import { User } from "@/types/user";
 
 interface Message {
   role: "user" | "assistant";
@@ -14,7 +15,7 @@ export function GeminiAIAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [destinations, setDestinations] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();

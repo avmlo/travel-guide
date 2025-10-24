@@ -3,17 +3,12 @@ import { useLocation, useRoute } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
+import { User } from "@/types/user";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { capitalizeCity } from "@/lib/stringUtils";
 
 export default function City() {
   const [, setLocation] = useLocation();
@@ -26,7 +21,7 @@ export default function City() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // Load user's saved and visited places
   useEffect(() => {

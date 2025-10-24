@@ -1,13 +1,6 @@
 import { Crown, MapPin } from "lucide-react";
 import { Destination } from "@/types/destination";
-
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { capitalizeCity } from "@/lib/stringUtils";
 
 interface DestinationCardProps {
   destination: Destination;

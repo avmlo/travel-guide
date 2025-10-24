@@ -5,16 +5,11 @@ import { toast } from "sonner";
 import { MapPin, Heart, CheckCircle2 } from "lucide-react";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { Destination } from "@/types/destination";
+import { User } from "@/types/user";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { capitalizeCity } from "@/lib/stringUtils";
 
 interface SavedPlace {
   destination_slug: string;
@@ -42,7 +37,7 @@ interface VisitedPlace {
 export default function Account() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<VisitedPlace[]>([]);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);

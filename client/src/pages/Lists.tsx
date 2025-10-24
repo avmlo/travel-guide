@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { Plus, Lock, Globe, Heart, MapPin, Trash2, Edit2 } from "lucide-react";
 import { toast } from "sonner";
+import { User } from "@/types/user";
 
 interface List {
   id: string;
@@ -22,7 +23,7 @@ interface List {
 
 export default function Lists() {
   const [, setLocation] = useLocation();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [lists, setLists] = useState<List[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);

@@ -4,18 +4,13 @@ import { supabase } from "@/lib/supabase";
 import { Header } from "@/components/Header";
 import { EnhancedFooter } from "@/components/EnhancedFooter";
 
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { capitalizeCity } from "@/lib/stringUtils";
+import { Destination } from "@/types/destination";
 
 export default function DestinationShowcase() {
   const [, params] = useRoute("/showcase/:slug");
   const slug = params?.slug || "";
-  const [destination, setDestination] = useState<any>(null);
+  const [destination, setDestination] = useState<Destination | null>(null);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState<any[]>([]);
 

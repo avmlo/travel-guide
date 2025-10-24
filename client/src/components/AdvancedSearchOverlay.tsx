@@ -11,13 +11,7 @@ interface AdvancedSearchOverlayProps {
   onSelectDestination: (destination: Destination) => void;
 }
 
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { capitalizeCity } from "@/lib/stringUtils";
 
 export function AdvancedSearchOverlay({ isOpen, onClose, destinations, onSelectDestination }: AdvancedSearchOverlayProps) {
   const [query, setQuery] = useState("");

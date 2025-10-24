@@ -5,13 +5,7 @@ import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
 
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { capitalizeCity } from "@/lib/stringUtils";
 
 
 

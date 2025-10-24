@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { Star, ThumbsUp, Edit2, Trash2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { ReviewForm } from "./ReviewForm";
+import { User } from "@/types/user";
 
 interface Review {
   id: string;
@@ -29,7 +30,7 @@ interface ReviewsListProps {
 export function ReviewsList({ destinationSlug, destinationName }: ReviewsListProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [helpfulVotes, setHelpfulVotes] = useState<Set<string>>(new Set());

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Share2, Navigation, Heart, CheckCircle2, Maximize2, Minimize2 } from "lucide-react";
 import { Destination } from "@/types/destination";
+import { User } from "@/types/user";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GoogleMap } from "@/components/GoogleMap";
@@ -12,13 +13,7 @@ interface DestinationDrawerProps {
   onClose: () => void;
 }
 
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { capitalizeCity } from "@/lib/stringUtils";
 
 // Category color mapping
 const categoryColors: Record<string, string> = {
@@ -35,7 +30,7 @@ const categoryColors: Record<string, string> = {
 
 export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {
   const [copied, setCopied] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isVisited, setIsVisited] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);

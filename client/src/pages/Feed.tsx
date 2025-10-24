@@ -4,9 +4,10 @@ import { SimpleFooter } from "@/components/SimpleFooter";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "wouter";
+import { User } from "@/types/user";
 
 export default function Feed() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<'all' | 'following'>('all');
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Destination } from "@/types/destination";
+import { User } from "@/types/user";
 import { supabase } from "@/lib/supabase";
 import { trpc } from "@/lib/trpc";
 
@@ -22,7 +23,7 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // Load destinations and user data
   useEffect(() => {

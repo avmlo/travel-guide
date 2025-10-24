@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Plus, Check, List } from "lucide-react";
 import { toast } from "sonner";
+import { User } from "@/types/user";
 
 interface List {
   id: string;
@@ -21,7 +22,7 @@ export function AddToListButton({
   variant = 'button',
   className = '' 
 }: AddToListButtonProps) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [lists, setLists] = useState<List[]>([]);
   const [addedToLists, setAddedToLists] = useState<Set<string>>(new Set());
   const [showModal, setShowModal] = useState(false);

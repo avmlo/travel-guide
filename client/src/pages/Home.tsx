@@ -1,9 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
@@ -13,15 +9,13 @@ import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { ChatGPTStyleAI } from "@/components/ChatGPTStyleAI";
+import { SearchBar } from "@/components/SearchBar";
+import { CategoryFilter } from "@/components/CategoryFilter";
+import { CityFilter } from "@/components/CityFilter";
+import { DestinationGrid } from "@/components/DestinationGrid";
+import { ResultsCount } from "@/components/ResultsCount";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
-
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { User } from "@/types/user";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -36,7 +30,7 @@ export default function Home() {
   const [showAllCities, setShowAllCities] = useState(false);
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Load user's saved and visited places
@@ -188,187 +182,34 @@ export default function Home() {
       {/* Main Content */}
       <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-[1920px] mx-auto">
-          {/* Search Bar */}
-          <div className="mb-8">
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className="relative max-w-[500px] w-full text-left"
-            >
-              <div className="flex items-center gap-3 px-4 py-3 bg-[#efefef] dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <Search className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-500 dark:text-gray-400">Search {destinations.length} items...</span>
-              </div>
-            </button>
-          </div>
+          <SearchBar
+            onSearchClick={() => setIsSearchOpen(true)}
+            destinationCount={destinations.length}
+          />
 
-          {/* Category Filter - App Store Style */}
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedCategory("")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  !selectedCategory
-                    ? "bg-black dark:bg-white text-white dark:text-black"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <span>🌍</span>
-                <span>All</span>
-              </button>
-              <button
-                onClick={() => setSelectedCategory("restaurant")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === "restaurant"
-                    ? "bg-black dark:bg-white text-white dark:text-black"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <span>🍽️</span>
-                <span>Restaurant</span>
-              </button>
-              <button
-                onClick={() => setSelectedCategory("cafe")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === "cafe"
-                    ? "bg-black dark:bg-white text-white dark:text-black"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <span>☕</span>
-                <span>Cafe</span>
-              </button>
-              <button
-                onClick={() => setSelectedCategory("hotel")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === "hotel"
-                    ? "bg-black dark:bg-white text-white dark:text-black"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <span>🏨</span>
-                <span>Hotel</span>
-              </button>
-              <button
-                onClick={() => setSelectedCategory("bar")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === "bar"
-                    ? "bg-black dark:bg-white text-white dark:text-black"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <span>🍸</span>
-                <span>Bar</span>
-              </button>
-              <button
-                onClick={() => setSelectedCategory("shop")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === "shop"
-                    ? "bg-black dark:bg-white text-white dark:text-black"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <span>🛍️</span>
-                <span>Shop</span>
-              </button>
-              <button
-                onClick={() => setSelectedCategory("bakery")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === "bakery"
-                    ? "bg-black dark:bg-white text-white dark:text-black"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <span>🥐</span>
-                <span>Bakery</span>
-              </button>
-            </div>
-          </div>
+          <CategoryFilter
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
 
-          {/* City Filter */}
-          <div className="mb-8">
-            <div className="mb-3">
-              <h2 className="text-xs font-bold uppercase">Places</h2>
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
-              <button
-                onClick={() => setSelectedCity("")}
-                className={`transition-colors ${
-                  !selectedCity ? "font-medium text-black dark:text-white" : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
-                }`}
-              >
-                All
-              </button>
-              {(showAllCities ? cities : cities.slice(0, 20)).map((city) => (
-                <button
-                  key={city}
-                  onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                  className={`transition-colors ${
-                    selectedCity === city ? "font-medium text-black dark:text-white" : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
-                  }`}
-                >
-                  {capitalizeCity(city)}
-                </button>
-              ))}
-              {cities.length > 20 && (
-                <button
-                  onClick={() => setShowAllCities(!showAllCities)}
-                  className="font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300 transition-colors"
-                >
-                  {showAllCities ? '- Show Less' : '+ Show More'}
-                </button>
-              )}
-            </div>
-          </div>
+          <CityFilter
+            cities={cities}
+            selectedCity={selectedCity}
+            onCityChange={setSelectedCity}
+            showAllCities={showAllCities}
+            onToggleShowAll={() => setShowAllCities(!showAllCities)}
+          />
 
-          {/* Results Count */}
-          <div className="mb-6">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
-            </p>
-          </div>
+          <ResultsCount count={filteredDestinations.length} />
 
-          {/* Destination Grid */}
-          {filteredDestinations.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-xl text-gray-400 mb-6">
-                No destinations found.
-              </p>
-              <Button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCity("");
-                }}
-              >
-                Clear filters
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6 animate-in fade-in duration-500">
-                {displayedDestinations.map((destination, index) => (
-                  <DestinationCard
-                    key={destination.slug}
-                    destination={destination}
-                    colorIndex={index}
-                    onClick={() => handleCardClick(destination)}
-                    isSaved={savedPlaces.includes(destination.slug)}
-                    isVisited={visitedPlaces.includes(destination.slug)}
-                  />
-                ))}
-              </div>
-              
-              {hasMore && (
-                <div className="flex justify-center mt-12">
-                  <button
-                    onClick={() => setDisplayCount(prev => prev + 40)}
-                    className="px-8 py-3 border border-gray-300 dark:border-gray-700 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-600 transition-all"
-                  >
-                    Load More
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+          <DestinationGrid
+            destinations={displayedDestinations}
+            savedPlaces={savedPlaces}
+            visitedPlaces={visitedPlaces}
+            onCardClick={handleCardClick}
+            onLoadMore={() => setDisplayCount(prev => prev + 40)}
+            hasMore={hasMore}
+          />
         </div>
       </main>
 

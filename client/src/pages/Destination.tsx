@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { Destination as DestinationType } from "@/types/destination";
+import { User } from "@/types/user";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { Navigation, Heart, CheckCircle2, Share2 } from "lucide-react";
@@ -9,20 +10,14 @@ import { GoogleMap } from "@/components/GoogleMap";
 import { ReviewsList } from "@/components/ReviewsList";
 import { toast } from "sonner";
 
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { capitalizeCity } from "@/lib/stringUtils";
 
 export default function Destination() {
   const params = useParams<{ slug: string }>();
   const [, setLocation] = useLocation();
   const [destination, setDestination] = useState<DestinationType | null>(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isVisited, setIsVisited] = useState(false);
   const [copied, setCopied] = useState(false);

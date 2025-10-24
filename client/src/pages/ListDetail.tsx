@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { DestinationCard } from "@/components/DestinationCard";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { Destination } from "@/types/destination";
+import { User } from "@/types/user";
 
 interface List {
   id: string;
@@ -34,7 +35,7 @@ export default function ListDetail() {
   const [, setLocation] = useLocation();
   const [list, setList] = useState<List | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);

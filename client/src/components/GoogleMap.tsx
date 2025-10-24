@@ -7,7 +7,7 @@ interface GoogleMapProps {
 }
 
 export function GoogleMap({ destination }: GoogleMapProps) {
-  const [placeData, setPlaceData] = useState<any>(null);
+  const [placeData, setPlaceData] = useState<google.maps.places.PlaceResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -235,7 +235,7 @@ interface PlaceInfoProps {
 }
 
 export function PlaceInfo({ placeName, city }: PlaceInfoProps) {
-  const [placeData, setPlaceData] = useState<any>(null);
+  const [placeData, setPlaceData] = useState<google.maps.places.PlaceResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

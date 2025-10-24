@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { Menu, X } from "lucide-react";
+import { User } from "@/types/user";
 
 export function Header() {
   const [, setLocation] = useLocation();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {

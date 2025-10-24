@@ -11,6 +11,24 @@ import {
 import { Calendar, Loader2, MapPin, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Destination } from "@/types/destination";
+import { User } from "@/types/user";
+
+interface Itinerary {
+  title: string;
+  description: string;
+  days: Array<{
+    day: number;
+    title: string;
+    activities: Array<{
+      time: string;
+      activity: string;
+      destination: string;
+      destinationSlug: string;
+      description: string;
+    }>;
+  }>;
+  tips: string[];
+}
 import { useLocation } from "wouter";
 
 interface ItineraryGeneratorProps {
@@ -24,7 +42,7 @@ export function ItineraryGenerator({ destinations, cities }: ItineraryGeneratorP
   const [city, setCity] = useState("");
   const [days, setDays] = useState(3);
   const [interests, setInterests] = useState("");
-  const [itinerary, setItinerary] = useState<any>(null);
+  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
 
   const generateMutation = trpc.ai.generateItinerary.useMutation();
 
