@@ -195,32 +195,6 @@ export default function ListDetail() {
     }
   }
 
-  const toDestination = (record: any): Destination => ({
-    name: record.name,
-    slug: record.slug,
-    city: record.city,
-    category: record.category,
-    content: record.content || record.description || '',
-    mainImage: record.image || record.mainImage || '',
-    michelinStars: record.michelin_stars || record.michelinStars || 0,
-    crown: record.crown || false,
-    brand: record.brand || '',
-    cardTags: record.cardTags || record.card_tags || '',
-    lat: record.lat || 0,
-    long: record.long || 0,
-    myRating: 0,
-    reviewed: false,
-    subline: record.description || record.subline || '',
-  });
-
-  const handleDrawerSuggestion = (slug: string) => {
-    const match = destinations.find(destination => destination.slug === slug);
-    if (match) {
-      setSelectedDestination(toDestination(match));
-      setDrawerOpen(true);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
@@ -331,7 +305,7 @@ export default function ListDetail() {
                 <DestinationCard
                   destination={destination}
                   onClick={() => {
-                    setSelectedDestination(toDestination(destination));
+                    setSelectedDestination(destination);
                     setDrawerOpen(true);
                   }}
                 />
@@ -364,7 +338,6 @@ export default function ListDetail() {
             setDrawerOpen(false);
             setSelectedDestination(null);
           }}
-          onSelectDestination={handleDrawerSuggestion}
         />
       )}
     </div>

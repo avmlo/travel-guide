@@ -30,7 +30,7 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
       // Load all destinations
       const { data: destData } = await supabase
         .from('destinations')
-        .select('slug, name, city, category, content, description, image, michelin_stars, crown');
+        .select('*');
       
       if (destData) {
         const transformed: Destination[] = destData.map(d => ({
@@ -60,7 +60,7 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
       if (session?.user) {
         // Load saved places
         const { data: savedData } = await supabase
-          .from('saved_destinations')
+          .from('saved_places')
           .select('destination_slug')
           .eq('user_id', session.user.id);
         
@@ -70,7 +70,7 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
 
         // Load visited places
         const { data: visitedData } = await supabase
-          .from('visited_destinations')
+          .from('visited_places')
           .select('destination_slug')
           .eq('user_id', session.user.id);
         

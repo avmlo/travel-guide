@@ -1,12 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
+import { Header } from "@/components/Header";
+import { SimpleFooter } from "@/components/SimpleFooter";
+import { supabase } from "@/lib/supabase";
 import { useLocation } from "wouter";
 import { TrendingUp, Award, MapPin, Star, Users } from "lucide-react";
-
-import { supabase } from "@/lib/supabase";
-import { PageHero } from "@/components/layout/PageHero";
-import { SiteShell } from "@/components/layout/SiteShell";
-import { ContentSection } from "@/components/layout/ContentSection";
-import { Button } from "@/components/ui/button";
 
 interface TrendingDestination {
   slug: string;
@@ -242,176 +239,273 @@ export default function Explore() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-lg text-slate-400">Loading...</div>
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+          <div className="text-center">
+            <div className="animate-pulse text-gray-400">Loading...</div>
+          </div>
+        </div>
+        <SimpleFooter />
       </div>
     );
   }
 
-  const featuredDestination = useMemo(() => trendingDestinations[0], [trendingDestinations]);
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
 
-  const hero = (
-    <PageHero
-      eyebrow="Community pulse"
-      title="See what's trending across the Urban Manual community"
-      description="Track the destinations everyone is bookmarking, the voices shaping reviews, and the travelers logging the most journeys right now."
-      actions={
-        <>
-          <Button
-            onClick={() => setLocation("/account")}
-            className="rounded-full bg-emerald-600 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.32em] text-white shadow-sm transition hover:bg-emerald-700"
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* Page Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold mb-2">Explore</h1>
+          <p className="text-gray-600">
+            Discover trending destinations and top contributors
+          </p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mb-8 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('trending')}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors relative ${
+              activeTab === 'trending'
+                ? 'text-black'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
           >
-            Personalize feed
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setLocation("/")}
-            className="rounded-full border-emerald-500/40 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.32em] text-emerald-700 transition hover:border-emerald-500 hover:text-emerald-600 dark:border-emerald-400/40 dark:text-emerald-200"
+            <TrendingUp className="h-4 w-4" />
+            Trending Destinations
+            {activeTab === 'trending' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('reviewers')}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors relative ${
+              activeTab === 'reviewers'
+                ? 'text-black'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
           >
-            Browse atlas
-          </Button>
-        </>
-      }
-      stats={[
-        { label: "Trending spots", value: `${trendingDestinations.length}`, hint: "Past 30 days" },
-        { label: "Top reviewers", value: `${topReviewers.length}`, hint: "Active voices" },
-        { label: "Top travelers", value: `${topTravelers.length}`, hint: "Journeys logged" },
-      ]}
-      media={
-        featuredDestination && (
-          <div className="space-y-4">
-            <div className="rounded-3xl border border-emerald-500/20 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-emerald-400/20 dark:bg-slate-950/70">
-              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600/80 dark:text-emerald-300/80">
-                <TrendingUp className="h-3.5 w-3.5" /> Spotlight
-              </p>
-              <h3 className="mt-3 text-lg font-semibold text-slate-900 dark:text-white">{featuredDestination.name}</h3>
-              <p className="mt-1 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
-                <MapPin className="h-4 w-4" /> {featuredDestination.city}
-              </p>
-              <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 px-3 py-1 text-xs font-medium uppercase tracking-[0.3em] text-emerald-600/80 dark:border-emerald-400/20 dark:text-emerald-200">
-                  <Users className="h-3.5 w-3.5" /> {featuredDestination.visit_count} visits
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 px-3 py-1 text-xs font-medium uppercase tracking-[0.3em] text-emerald-600/80 dark:border-emerald-400/20 dark:text-emerald-200">
-                  <Star className="h-3.5 w-3.5" /> {featuredDestination.avg_rating.toFixed(1)} avg
-                </span>
+            <Star className="h-4 w-4" />
+            Top Reviewers
+            {activeTab === 'reviewers' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('travelers')}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors relative ${
+              activeTab === 'travelers'
+                ? 'text-black'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <MapPin className="h-4 w-4" />
+            Top Travelers
+            {activeTab === 'travelers' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black" />
+            )}
+          </button>
+        </div>
+
+        {/* Content */}
+        {activeTab === 'trending' && (
+          <div>
+            {trendingDestinations.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <p className="text-gray-500">No trending destinations yet</p>
               </div>
-            </div>
-          </div>
-        )
-      }
-    />
-  );
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {trendingDestinations.map((dest, index) => (
+                  <button
+                    key={dest.slug}
+                    onClick={() => setLocation(`/destination/${dest.slug}`)}
+                    className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-gray-300 transition-all text-left"
+                  >
+                    {/* Rank Badge */}
+                    <div className="relative">
+                      <img
+                        src={dest.main_image}
+                        alt={dest.name}
+                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute top-3 left-3 bg-black text-white px-3 py-1 rounded-full text-sm font-bold">
+                        #{index + 1}
+                      </div>
+                    </div>
 
-  const renderTrending = () => (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {trendingDestinations.map((destination) => (
-        <button
-          key={destination.slug}
-          onClick={() => setLocation(`/destination/${destination.slug}`)}
-          className="group flex flex-col overflow-hidden rounded-3xl border border-emerald-500/15 bg-white/80 text-left shadow-sm transition hover:border-emerald-500/40 hover:shadow-[0_12px_40px_rgba(16,112,87,0.15)] dark:border-emerald-400/20 dark:bg-slate-950/70"
-        >
-          <div className="aspect-[4/3] overflow-hidden bg-emerald-100/60 dark:bg-emerald-900/40">
-            {destination.main_image && (
-              <img
-                src={destination.main_image}
-                alt={destination.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+                    {/* Content */}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg mb-1 group-hover:underline">
+                        {dest.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-3">
+                        {dest.city} • {dest.category}
+                      </p>
+
+                      {/* Stats */}
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        {dest.save_count > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {dest.save_count} saved
+                          </span>
+                        )}
+                        {dest.visit_count > 0 && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {dest.visit_count} visited
+                          </span>
+                        )}
+                        {dest.review_count > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            {dest.avg_rating} ({dest.review_count})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-          <div className="flex flex-1 flex-col gap-3 p-4">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:text-emerald-300/80">
-              <TrendingUp className="h-4 w-4" /> Momentum
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{destination.name}</h3>
-            <p className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
-              <MapPin className="h-4 w-4" /> {destination.city}
-            </p>
-            <div className="mt-auto grid grid-cols-3 gap-3 text-xs text-slate-500 dark:text-slate-400">
-              <div className="rounded-2xl border border-emerald-500/15 bg-white/70 p-2 text-center dark:border-emerald-400/20 dark:bg-slate-950/60">
-                <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{destination.save_count}</div>
-                <div className="uppercase tracking-[0.3em]">Saves</div>
-              </div>
-              <div className="rounded-2xl border border-emerald-500/15 bg-white/70 p-2 text-center dark:border-emerald-400/20 dark:bg-slate-950/60">
-                <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{destination.visit_count}</div>
-                <div className="uppercase tracking-[0.3em]">Visits</div>
-              </div>
-              <div className="rounded-2xl border border-emerald-500/15 bg-white/70 p-2 text-center dark:border-emerald-400/20 dark:bg-slate-950/60">
-                <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{destination.review_count}</div>
-                <div className="uppercase tracking-[0.3em]">Reviews</div>
-              </div>
-            </div>
-          </div>
-        </button>
-      ))}
-    </div>
-  );
+        )}
 
-  const renderUsers = (users: TopUser[], emptyMessage: string) => (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {users.length === 0 ? (
-        <div className="col-span-full rounded-3xl border border-dashed border-emerald-500/20 bg-white/80 px-6 py-14 text-center text-sm text-slate-500 dark:border-emerald-400/20 dark:bg-slate-950/70 dark:text-slate-300">
-          {emptyMessage}
-        </div>
-      ) : (
-        users.map((user) => (
-          <button
-            key={user.user_id}
-            onClick={() => setLocation(`/user/${user.username || user.user_id}`)}
-            className="flex items-center gap-4 rounded-3xl border border-emerald-500/15 bg-white/80 p-4 text-left shadow-sm transition hover:border-emerald-500/40 dark:border-emerald-400/20 dark:bg-slate-950/70"
-          >
-            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-emerald-100/60 text-lg font-semibold text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200">
-              {user.profile_photo ? <img src={user.profile_photo} alt={user.display_name} className="h-full w-full object-cover" /> : user.display_name.charAt(0)}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">{user.display_name}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-300">@{user.username}</p>
-            </div>
-            <div className="rounded-2xl border border-emerald-500/20 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600/80 dark:border-emerald-400/20 dark:bg-slate-950/60 dark:text-emerald-200">
-              {user.count}
-            </div>
-          </button>
-        ))
-      )}
-    </div>
-  );
+        {activeTab === 'reviewers' && (
+          <div>
+            {topReviewers.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <p className="text-gray-500">No reviewers yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {topReviewers.map((user, index) => (
+                  <button
+                    key={user.user_id}
+                    onClick={() => setLocation(`/user/${user.username}`)}
+                    className="w-full flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors text-left"
+                  >
+                    {/* Rank */}
+                    <div className="flex-shrink-0 w-12 text-center">
+                      {index < 3 ? (
+                        <Award className={`h-8 w-8 mx-auto ${
+                          index === 0 ? 'text-yellow-500' :
+                          index === 1 ? 'text-gray-400' :
+                          'text-orange-600'
+                        }`} />
+                      ) : (
+                        <span className="text-2xl font-bold text-gray-400">
+                          #{index + 1}
+                        </span>
+                      )}
+                    </div>
 
-  return (
-    <SiteShell hero={hero}>
-      <div className="space-y-16">
-        <ContentSection
-          tone="muted"
-          title="Explore signals"
-          description="Switch between destinations that are heating up and the community members driving the conversation."
-        >
-          <div className="flex flex-wrap gap-2">
-            {[
-              { key: "trending", label: "Trending destinations" },
-              { key: "reviewers", label: "Top reviewers" },
-              { key: "travelers", label: "Top travelers" },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
-                  activeTab === tab.key
-                    ? "bg-emerald-600 text-white"
-                    : "border border-emerald-500/20 text-emerald-700 hover:border-emerald-500/40 hover:text-emerald-600 dark:border-emerald-400/20 dark:text-emerald-200"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+                    {/* Avatar */}
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                        {user.profile_photo ? (
+                          <img
+                            src={user.profile_photo}
+                            alt={user.display_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-lg font-semibold text-gray-600">
+                            {user.display_name[0].toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-          <div className="mt-8">
-            {activeTab === "trending" && renderTrending()}
-            {activeTab === "reviewers" && renderUsers(topReviewers, "No reviewers have logged activity recently.")}
-            {activeTab === "travelers" && renderUsers(topTravelers, "No recent travel logs yet. Be the first to share.")}
+                    {/* Info */}
+                    <div className="flex-1">
+                      <div className="font-semibold">{user.display_name}</div>
+                      <div className="text-sm text-gray-500">@{user.username}</div>
+                    </div>
+
+                    {/* Count */}
+                    <div className="flex-shrink-0 text-right">
+                      <div className="text-2xl font-bold">{user.count}</div>
+                      <div className="text-xs text-gray-500">reviews</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        </ContentSection>
+        )}
+
+        {activeTab === 'travelers' && (
+          <div>
+            {topTravelers.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <p className="text-gray-500">No travelers yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {topTravelers.map((user, index) => (
+                  <button
+                    key={user.user_id}
+                    onClick={() => setLocation(`/user/${user.username}`)}
+                    className="w-full flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors text-left"
+                  >
+                    {/* Rank */}
+                    <div className="flex-shrink-0 w-12 text-center">
+                      {index < 3 ? (
+                        <Award className={`h-8 w-8 mx-auto ${
+                          index === 0 ? 'text-yellow-500' :
+                          index === 1 ? 'text-gray-400' :
+                          'text-orange-600'
+                        }`} />
+                      ) : (
+                        <span className="text-2xl font-bold text-gray-400">
+                          #{index + 1}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Avatar */}
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                        {user.profile_photo ? (
+                          <img
+                            src={user.profile_photo}
+                            alt={user.display_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-lg font-semibold text-gray-600">
+                            {user.display_name[0].toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1">
+                      <div className="font-semibold">{user.display_name}</div>
+                      <div className="text-sm text-gray-500">@{user.username}</div>
+                    </div>
+
+                    {/* Count */}
+                    <div className="flex-shrink-0 text-right">
+                      <div className="text-2xl font-bold">{user.count}</div>
+                      <div className="text-xs text-gray-500">places visited</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
-    </SiteShell>
+
+      <SimpleFooter />
+    </div>
   );
 }
+

@@ -22,31 +22,31 @@ export default function CityPage() {
     async function loadDestinations() {
       try {
         const { data, error } = await supabase
-          .from("destinations")
-          .select("*")
-          .order("name");
-
+          .from('destinations')
+          .select('*')
+          .order('name');
+        
         if (error) throw error;
-
+        
         // Transform Supabase data to match Destination type
-        const transformedData: Destination[] = (data || []).map((d) => ({
+        const transformedData: Destination[] = (data || []).map(d => ({
           name: d.name,
           slug: d.slug,
           city: d.city,
           category: d.category,
-          content: d.content || d.description || "",
-          mainImage: d.image || "",
+          content: d.content || d.description || '',
+          mainImage: d.image || '',
           michelinStars: d.michelin_stars || 0,
           crown: d.crown || false,
-          brand: "",
-          cardTags: "",
+          brand: '',
+          cardTags: '',
           lat: 0,
           long: 0,
           myRating: 0,
           reviewed: false,
-          subline: d.description || "",
+          subline: d.description || ''
         }));
-
+        
         setDestinations(transformedData);
       } catch (error) {
         console.error("Error loading destinations:", error);
@@ -228,3 +228,4 @@ export default function CityPage() {
     </div>
   );
 }
+

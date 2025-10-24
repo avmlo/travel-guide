@@ -180,59 +180,6 @@ export default function Profile() {
     solo: { label: '🎒 Solo Traveler', color: 'bg-indigo-100 text-indigo-800' },
   };
 
-  const openDestinationFromRecord = (record: any) => {
-    if (!record) return;
-
-    const transformed: Destination = {
-      name: record.name,
-      slug: record.slug,
-      city: record.city,
-      category: record.category,
-      content: record.content || record.description || '',
-      mainImage: record.image || record.mainImage || '',
-      michelinStars: record.michelin_stars || record.michelinStars || 0,
-      crown: record.crown || false,
-      brand: record.brand || '',
-      cardTags: record.cardTags || record.card_tags || '',
-      lat: record.lat || 0,
-      long: record.long || 0,
-      myRating: 0,
-      reviewed: false,
-      subline: record.description || record.subline || '',
-    };
-
-    setSelectedDestination(transformed);
-    setDrawerOpen(true);
-  };
-
-  const handleDrawerSuggestion = async (slug: string) => {
-    if (!slug) return;
-
-    const savedMatch = savedDestinations.find(dest => dest.slug === slug);
-    if (savedMatch) {
-      setSelectedDestination(savedMatch);
-      setDrawerOpen(true);
-      return;
-    }
-
-    const visitedMatch = visitedDestinations.find(dest => dest.slug === slug);
-    if (visitedMatch) {
-      setSelectedDestination(visitedMatch);
-      setDrawerOpen(true);
-      return;
-    }
-
-    const { data } = await supabase
-      .from('destinations')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-
-    if (data) {
-      openDestinationFromRecord(data);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
@@ -499,7 +446,6 @@ export default function Profile() {
             setDrawerOpen(false);
             setSelectedDestination(null);
           }}
-          onSelectDestination={handleDrawerSuggestion}
         />
       )}
     </div>
