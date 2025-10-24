@@ -12,7 +12,7 @@ import { AdvancedSearchOverlay } from "@/components/AdvancedSearchOverlay";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
-import { ModernAIChat } from "@/components/ModernAIChat";
+import { ChatGPTStyleAI } from "@/components/ChatGPTStyleAI";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
 
 // Helper function to capitalize city names
@@ -29,6 +29,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [displayCount, setDisplayCount] = useState(40);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -154,9 +155,12 @@ export default function Home() {
       const matchesCity =
         !selectedCity || dest.city === selectedCity;
 
-      return matchesSearch && matchesCity;
+      const matchesCategory =
+        !selectedCategory || dest.category.toLowerCase() === selectedCategory.toLowerCase();
+
+      return matchesSearch && matchesCity && matchesCategory;
     });
-  }, [destinations, searchQuery, selectedCity]);
+  }, [destinations, searchQuery, selectedCity, selectedCategory]);
 
   const displayedDestinations = filteredDestinations.slice(0, displayCount);
   const hasMore = displayCount < filteredDestinations.length;
@@ -164,7 +168,7 @@ export default function Home() {
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(40);
-  }, [searchQuery, selectedCity]);
+  }, [searchQuery, selectedCity, selectedCategory]);
 
   const handleCardClick = (destination: Destination) => {
     setSelectedDestination(destination);
@@ -195,6 +199,37 @@ export default function Home() {
                 <span className="text-gray-500 dark:text-gray-400">Search {destinations.length} items...</span>
               </div>
             </button>
+          </div>
+
+          {/* Category Filter */}
+          <div className="mb-8">
+            <div className="mb-3">
+              <h2 className="text-xs font-bold uppercase">Categories</h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { emoji: '🌍', label: 'All', value: '' },
+                { emoji: '🍽️', label: 'Restaurant', value: 'restaurant' },
+                { emoji: '☕', label: 'Cafe', value: 'cafe' },
+                { emoji: '🏨', label: 'Hotel', value: 'hotel' },
+                { emoji: '🍸', label: 'Bar', value: 'bar' },
+                { emoji: '🛍️', label: 'Shop', value: 'shop' },
+                { emoji: '🥐', label: 'Bakery', value: 'bakery' },
+              ].map((cat) => (
+                <button
+                  key={cat.value}
+                  onClick={() => setSelectedCategory(cat.value)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedCategory === cat.value
+                      ? 'bg-black text-white dark:bg-white dark:text-black'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="mr-1.5">{cat.emoji}</span>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* City Filter */}
@@ -314,7 +349,7 @@ export default function Home() {
       )}
 
       {/* AI Assistant */}
-      <ModernAIChat />
+      <ChatGPTStyleAI />
     </div>
   );
 }
