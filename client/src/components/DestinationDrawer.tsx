@@ -4,11 +4,13 @@ import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GoogleMap } from "@/components/GoogleMap";
+import { AISuggestions } from "@/components/AISuggestions";
 
 interface DestinationDrawerProps {
   destination: Destination | null;
   isOpen: boolean;
   onClose: () => void;
+  onSelectDestination?: (destination: Destination) => void;
 }
 
 // Helper function to capitalize city names
@@ -32,12 +34,23 @@ const categoryColors: Record<string, string> = {
   'default': 'bg-gray-100 text-gray-800'
 };
 
-export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {
+export function DestinationDrawer({ destination, isOpen, onClose, onSelectDestination }: DestinationDrawerProps) {
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isVisited, setIsVisited] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeDestination, setActiveDestination] = useState<Destination | null>(destination);
+
+  useEffect(() => {
+    setActiveDestination(destination);
+  }, [destination]);
+
+  const handleSuggestionSelect = (suggested: Destination) => {
+    setActiveDestination(suggested);
+    setCopied(false);
+    onSelectDestination?.(suggested);
+  };
 
   useEffect(() => {
     async function checkAuth() {
@@ -49,14 +62,14 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
   useEffect(() => {
     async function checkSavedAndVisited() {
-      if (!user || !destination) return;
+      if (!user || !activeDestination) return;
 
       // Check if saved
       const { data: savedData } = await supabase
         .from('saved_destinations')
         .select('*')
         .eq('user_id', user.id)
-        .eq('destination_slug', destination.slug)
+        .eq('destination_slug', activeDestination.slug)
         .single();
 
       setIsSaved(!!savedData);
@@ -66,19 +79,19 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         .from('visited_destinations')
         .select('*')
         .eq('user_id', user.id)
-        .eq('destination_slug', destination.slug)
+        .eq('destination_slug', activeDestination.slug)
         .single();
 
       setIsVisited(!!visitedData);
     }
 
     checkSavedAndVisited();
-  }, [user, destination]);
+  }, [user, activeDestination?.slug]);
 
   const handleShare = async () => {
-    if (!destination) return;
-    
-    const url = `${window.location.origin}?place=${destination.slug}`;
+    if (!activeDestination) return;
+
+    const url = `${window.location.origin}?place=${activeDestination.slug}`;
     
     try {
       await navigator.clipboard.writeText(url);
@@ -96,7 +109,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
       return;
     }
 
-    if (!destination) return;
+    if (!activeDestination) return;
 
     if (isSaved) {
       // Remove from saved
@@ -104,7 +117,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         .from('saved_destinations')
         .delete()
         .eq('user_id', user.id)
-        .eq('destination_slug', destination.slug);
+        .eq('destination_slug', activeDestination.slug);
 
       if (error) {
         toast.error("Failed to remove from saved");
@@ -118,7 +131,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         .from('saved_destinations')
         .insert({
           user_id: user.id,
-          destination_slug: destination.slug
+          destination_slug: activeDestination.slug
         });
 
       if (error) {
@@ -136,7 +149,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
       return;
     }
 
-    if (!destination) return;
+    if (!activeDestination) return;
 
     if (isVisited) {
       // Remove from visited
@@ -144,7 +157,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         .from('visited_destinations')
         .delete()
         .eq('user_id', user.id)
-        .eq('destination_slug', destination.slug);
+        .eq('destination_slug', activeDestination.slug);
 
       if (error) {
         toast.error("Failed to remove from visited");
@@ -158,7 +171,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
         .from('visited_destinations')
         .insert({
           user_id: user.id,
-          destination_slug: destination.slug,
+          destination_slug: activeDestination.slug,
           visited_at: new Date().toISOString()
         });
 
@@ -171,9 +184,9 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
     }
   };
 
-  if (!destination) return null;
+  if (!activeDestination) return null;
 
-  const categoryColor = categoryColors[destination.category] || categoryColors.default;
+  const categoryColor = categoryColors[activeDestination.category] || categoryColors.default;
 
   return (
     <>
@@ -216,28 +229,28 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-80px)]">
               {/* Left Column: Metadata */}
               <div className="px-12 py-16 bg-gray-50 dark:bg-gray-900">
-                <h1 className="text-4xl lg:text-5xl font-normal mb-12 text-black dark:text-white">{destination.name}</h1>
+                <h1 className="text-4xl lg:text-5xl font-normal mb-12 text-black dark:text-white">{activeDestination.name}</h1>
 
                 {/* Metadata Grid */}
                 <div className="space-y-8">
                   {/* Category */}
                   <div>
                     <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Category</div>
-                    <div className="text-base text-black dark:text-white">{destination.category}</div>
+                    <div className="text-base text-black dark:text-white">{activeDestination.category}</div>
                   </div>
 
                   {/* City */}
                   <div>
                     <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Location</div>
-                    <div className="text-base text-black dark:text-white">{capitalizeCity(destination.city)}</div>
+                    <div className="text-base text-black dark:text-white">{capitalizeCity(activeDestination.city)}</div>
                   </div>
 
                   {/* Michelin Stars */}
-                  {destination.michelinStars > 0 && (
+                  {activeDestination.michelinStars > 0 && (
                     <div>
                       <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Michelin Stars</div>
                       <div className="flex items-center gap-2">
-                        {[...Array(destination.michelinStars)].map((_, i) => (
+                        {[...Array(activeDestination.michelinStars)].map((_, i) => (
                           <img 
                             key={i}
                             src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
@@ -285,7 +298,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                   {/* Directions */}
                   <div>
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeDestination.name + ' ' + activeDestination.city)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-black dark:text-white"
@@ -313,8 +326,8 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                 {/* Hero Image */}
                 <div className="w-full aspect-square max-h-[60vh]">
                   <img
-                    src={destination.mainImage}
-                    alt={destination.name}
+                    src={activeDestination.mainImage}
+                    alt={activeDestination.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
@@ -322,16 +335,16 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
                 {/* Description */}
                 <div className="px-12 py-16">
-                  {destination.content && (
+                  {activeDestination.content && (
                     <p className="text-lg lg:text-xl leading-relaxed text-gray-700 dark:text-gray-300">
-                      {destination.content.replace(/<[^>]*>/g, '')}
+                      {activeDestination.content.replace(/<[^>]*>/g, '')}
                     </p>
                   )}
 
                   {/* Map */}
                   <div className="mt-16">
                     <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">Location</div>
-                    <GoogleMap destination={destination} />
+                    <GoogleMap destination={activeDestination} />
                   </div>
                 </div>
               </div>
@@ -342,21 +355,21 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               {/* Hero Image */}
               <div className="w-full aspect-square max-h-[60vh] mb-8">
                 <img
-                  src={destination.mainImage}
-                  alt={destination.name}
+                  src={activeDestination.mainImage}
+                  alt={activeDestination.name}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
               </div>
 
               {/* Title and Category */}
-              <h1 className="text-3xl sm:text-4xl font-normal mb-4 text-black dark:text-white">{destination.name}</h1>
+              <h1 className="text-3xl sm:text-4xl font-normal mb-4 text-black dark:text-white">{activeDestination.name}</h1>
               
               <div className="flex items-center gap-3 mb-6">
                 <span className={`px-3 py-1 text-xs font-medium ${categoryColor}`}>
-                  {destination.category}
+                  {activeDestination.category}
                 </span>
-                <span className="text-base text-gray-600 dark:text-gray-400">{capitalizeCity(destination.city)}</span>
+                <span className="text-base text-gray-600 dark:text-gray-400">{capitalizeCity(activeDestination.city)}</span>
               </div>
 
               {/* Action Buttons */}
@@ -391,7 +404,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               {/* Directions Button */}
               <div className="mb-12">
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeDestination.name + ' ' + activeDestination.city)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-black dark:text-white"
@@ -402,10 +415,10 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               </div>
 
               {/* Michelin Stars */}
-              {destination.michelinStars > 0 && (
+              {activeDestination.michelinStars > 0 && (
                 <div className="mb-12">
                   <div className="flex items-center gap-2">
-                    {[...Array(destination.michelinStars)].map((_, i) => (
+                    {[...Array(activeDestination.michelinStars)].map((_, i) => (
                       <img 
                         key={i}
                         src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
@@ -419,12 +432,12 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               )}
 
               {/* Description Section */}
-              {destination.content && (
+              {activeDestination.content && (
                 <>
                   <h2 className="text-lg font-normal mb-6 text-black dark:text-white">About</h2>
                   <div className="mb-12">
                     <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {destination.content.replace(/<[^>]*>/g, '')}
+                      {activeDestination.content.replace(/<[^>]*>/g, '')}
                     </p>
                   </div>
                 </>
@@ -436,7 +449,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               {/* Map Section */}
               <div className="mb-12">
                 <h2 className="text-lg font-normal mb-6 text-black dark:text-white">Location</h2>
-                <GoogleMap destination={destination} />
+                <GoogleMap destination={activeDestination} />
               </div>
 
               {/* Share Button */}
@@ -451,6 +464,10 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               </div>
             </div>
           )}
+
+          <div className={`pb-12 ${isExpanded ? 'px-12' : 'px-8'}`}>
+            <AISuggestions destination={activeDestination} onSelectDestination={handleSuggestionSelect} />
+          </div>
         </div>
       </div>
     </>

@@ -6,7 +6,7 @@ import { trpc } from "@/lib/trpc";
 
 interface AISuggestionsProps {
   destination: Destination;
-  onSelectDestination: (slug: string) => void;
+  onSelectDestination: (destination: Destination) => void;
 }
 
 interface Suggestion {
@@ -182,7 +182,7 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
           return (
             <button
               key={dest.slug}
-              onClick={() => onSelectDestination(dest.slug)}
+              onClick={() => onSelectDestination(dest)}
               className="w-full text-left p-4 rounded-lg bg-white hover:bg-gray-50 border border-gray-200 transition-all group"
             >
               <div className="flex gap-4">
