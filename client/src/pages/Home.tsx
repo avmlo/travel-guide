@@ -322,13 +322,13 @@ export default function Home() {
                     <SlidersHorizontal className="h-4 w-4 text-white/35" />
                     Places
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-x-6 gap-y-3 text-[11px] font-semibold uppercase tracking-[0.28em]">
                     <button
                       onClick={() => setSelectedCity("")}
-                      className={`rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] transition ${
+                      className={`border-b pb-1 transition-colors ${
                         !selectedCity
-                          ? "border-white/60 bg-white/15 text-white"
-                          : "border-white/15 bg-white/5 text-white/60 hover:text-white"
+                          ? "border-white/80 text-white"
+                          : "border-transparent text-white/45 hover:border-white/30 hover:text-white/75"
                       }`}
                     >
                       Everywhere
@@ -339,10 +339,10 @@ export default function Home() {
                         <button
                           key={city}
                           onClick={() => setSelectedCity(isActive ? "" : city)}
-                          className={`rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] transition ${
+                          className={`border-b pb-1 transition-colors ${
                             isActive
-                              ? "border-white/60 bg-white/15 text-white"
-                              : "border-white/15 bg-white/5 text-white/60 hover:text-white"
+                              ? "border-white/80 text-white"
+                              : "border-transparent text-white/45 hover:border-white/30 hover:text-white/75"
                           }`}
                         >
                           {capitalizeCity(city)}
@@ -352,7 +352,9 @@ export default function Home() {
                     {cities.length > 18 && (
                       <button
                         onClick={() => setShowAllCities((previous) => !previous)}
-                        className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/60 transition hover:text-white"
+                        className={`border-b pb-1 text-white/45 transition-colors hover:border-white/30 hover:text-white/75 ${
+                          showAllCities ? "border-white/40 text-white/70" : "border-transparent"
+                        }`}
                       >
                         {showAllCities ? "Show less" : "Show more"}
                       </button>
