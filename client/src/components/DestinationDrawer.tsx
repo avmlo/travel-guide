@@ -15,6 +15,8 @@ interface DestinationDrawerProps {
   destination: Destination | null;
   isOpen: boolean;
   onClose: () => void;
+  onSaveToggle?: (slug: string, saved: boolean) => void;
+  onVisitToggle?: (slug: string, visited: boolean) => void;
 }
 
 // Helper function to capitalize city names
@@ -38,7 +40,7 @@ const categoryColors: Record<string, string> = {
   'default': 'bg-gray-100 text-gray-800'
 };
 
-export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {
+export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, onVisitToggle }: DestinationDrawerProps) {
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);
@@ -125,37 +127,44 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
     if (!destination) return;
 
-    if (isSaved) {
-      // Remove from saved
-      const { error } = await supabase
-        .from('saved_destinations')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('destination_slug', destination.slug);
+    // Optimistic update - immediately update UI
+    const previousState = isSaved;
+    const newState = !isSaved;
+    setIsSaved(newState);
+    onSaveToggle?.(destination.slug, newState);
 
-      if (error) {
-        toast.error("Failed to remove from saved");
-      } else {
-        setIsSaved(false);
+    try {
+      if (previousState) {
+        // Remove from saved
+        const { error } = await supabase
+          .from('saved_destinations')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('destination_slug', destination.slug);
+
+        if (error) throw error;
+
         toast.success("Removed from saved");
         trackAction('unsave', destination.slug, { name: destination.name });
-      }
-    } else {
-      // Add to saved
-      const { error } = await supabase
-        .from('saved_destinations')
-        .insert({
-          user_id: user.id,
-          destination_slug: destination.slug
-        });
-
-      if (error) {
-        toast.error("Failed to save destination");
       } else {
-        setIsSaved(true);
+        // Add to saved
+        const { error } = await supabase
+          .from('saved_destinations')
+          .insert({
+            user_id: user.id,
+            destination_slug: destination.slug
+          });
+
+        if (error) throw error;
+
         toast.success("Saved to your collection");
         trackAction('save', destination.slug, { name: destination.name });
       }
+    } catch (error) {
+      // Revert on error
+      setIsSaved(previousState);
+      onSaveToggle?.(destination.slug, previousState);
+      toast.error(previousState ? "Failed to remove from saved" : "Failed to save destination");
     }
   };
 
@@ -167,38 +176,45 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
     if (!destination) return;
 
-    if (isVisited) {
-      // Remove from visited
-      const { error } = await supabase
-        .from('visited_destinations')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('destination_slug', destination.slug);
+    // Optimistic update - immediately update UI
+    const previousState = isVisited;
+    const newState = !isVisited;
+    setIsVisited(newState);
+    onVisitToggle?.(destination.slug, newState);
 
-      if (error) {
-        toast.error("Failed to remove from visited");
-      } else {
-        setIsVisited(false);
+    try {
+      if (previousState) {
+        // Remove from visited
+        const { error } = await supabase
+          .from('visited_destinations')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('destination_slug', destination.slug);
+
+        if (error) throw error;
+
         toast.success("Removed from visited");
         trackAction('unvisit', destination.slug, { name: destination.name });
-      }
-    } else {
-      // Add to visited
-      const { error } = await supabase
-        .from('visited_destinations')
-        .insert({
-          user_id: user.id,
-          destination_slug: destination.slug,
-          visited_at: new Date().toISOString()
-        });
-
-      if (error) {
-        toast.error("Failed to mark as visited");
       } else {
-        setIsVisited(true);
+        // Add to visited
+        const { error } = await supabase
+          .from('visited_destinations')
+          .insert({
+            user_id: user.id,
+            destination_slug: destination.slug,
+            visited_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+
         toast.success("Marked as visited!");
         trackAction('visit', destination.slug, { name: destination.name });
       }
+    } catch (error) {
+      // Revert on error
+      setIsVisited(previousState);
+      onVisitToggle?.(destination.slug, previousState);
+      toast.error(previousState ? "Failed to remove from visited" : "Failed to mark as visited");
     }
   };
 
@@ -232,7 +248,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
+        className={`fixed inset-0 bg-black transition-opacity duration-500 ease-out z-40 ${
           isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -240,7 +256,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full bg-white dark:bg-gray-950 shadow-xl transition-all duration-300 z-50 ${
+        className={`fixed top-0 right-0 h-full bg-white dark:bg-gray-950 shadow-xl transition-all duration-500 ease-out z-50 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } ${isExpanded ? "w-full" : "w-full sm:w-[600px]"}`}
       >
