@@ -1,8 +1,21 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
-import { MapPin, Heart, CheckCircle2 } from "lucide-react";
+import {
+  MapPin,
+  CheckCircle2,
+  LogOut,
+  Settings2,
+  ArrowUpRight,
+  Bookmark,
+  Plane,
+  Globe2,
+  Sparkles,
+  BarChart3,
+  MessageCircle,
+  CalendarClock,
+  Compass
+} from "lucide-react";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { Destination } from "@/types/destination";
 import { Header } from "@/components/Header";
@@ -39,6 +52,53 @@ interface VisitedPlace {
   } | null;
 }
 
+const countryLabel = (city: string) => {
+  const cityCountryMap: Record<string, string> = {
+    "tokyo": "Japan",
+    "kyoto": "Japan",
+    "osaka": "Japan",
+    "paris": "France",
+    "lyon": "France",
+    "london": "United Kingdom",
+    "new-york": "United States",
+    "los-angeles": "United States",
+    "barcelona": "Spain",
+    "madrid": "Spain",
+    "rome": "Italy",
+    "milan": "Italy"
+  };
+
+  return cityCountryMap[city.toLowerCase()] || "Other";
+};
+
+const formatVisitedDate = (dateString: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric"
+  });
+};
+
+const renderRating = (rating: number) => {
+  if (!rating || rating <= 0) return null;
+
+  const rounded = Math.round(rating);
+
+  return (
+    <div className="mt-3 flex items-center gap-2 text-xs text-neutral-500">
+      <div className="flex gap-0.5 text-sm text-amber-500">
+        {[...Array(5)].map((_, i) => (
+          <span key={i} className={i < rounded ? "" : "text-neutral-200"}>
+            ★
+          </span>
+        ))}
+      </div>
+      <span className="font-medium text-neutral-600">{rating.toFixed(1)}</span>
+    </div>
+  );
+};
+
 export default function Account() {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(true);
@@ -48,7 +108,7 @@ export default function Account() {
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
-  const [activeTab, setActiveTab] = useState<'saved' | 'visited'>('saved');
+  const [visitedFilter, setVisitedFilter] = useState<"all" | "rated" | "notes">("all");
 
   // Load all destinations for drawer
   useEffect(() => {
@@ -85,6 +145,14 @@ export default function Account() {
     const dest = allDestinations.find(d => d.slug === destinationSlug);
     if (dest) {
       setSelectedDestination(dest);
+      setIsDrawerOpen(true);
+    }
+  };
+
+  const handleDrawerSuggestion = (slug: string) => {
+    const match = allDestinations.find(destination => destination.slug === slug);
+    if (match) {
+      setSelectedDestination(match);
       setIsDrawerOpen(true);
     }
   };
@@ -184,178 +252,511 @@ export default function Account() {
     );
   }
 
+  const displayName =
+    user?.user_metadata?.name || user?.email?.split("@")[0] || "Traveler";
+
   const uniqueCities = new Set([
     ...savedPlaces.map(p => p.destination.city),
     ...visitedPlaces.filter(p => p.destination).map(p => p.destination!.city)
   ]);
 
-  const uniqueCountries = new Set([
-    ...savedPlaces.map(p => p.destination.city),
-    ...visitedPlaces.filter(p => p.destination).map(p => p.destination!.city)
-  ].map(city => {
-    // Simple country mapping for major cities
-    const cityCountryMap: Record<string, string> = {
-      'tokyo': 'Japan', 'kyoto': 'Japan', 'osaka': 'Japan',
-      'paris': 'France', 'lyon': 'France',
-      'london': 'United Kingdom',
-      'new-york': 'United States', 'los-angeles': 'United States',
-      'barcelona': 'Spain', 'madrid': 'Spain',
-      'rome': 'Italy', 'milan': 'Italy',
-    };
-    return cityCountryMap[city] || 'Other';
-  }));
+  const uniqueCountries = new Set(
+    [
+      ...savedPlaces.map(p => p.destination.city),
+      ...visitedPlaces.filter(p => p.destination).map(p => p.destination!.city)
+    ].map(city => countryLabel(city))
+  );
+
+  const visitedTimeline = visitedPlaces
+    .filter(place => place.destination)
+    .map(place => ({
+      ...place,
+      destination: place.destination!
+    }))
+    .sort((a, b) =>
+      new Date(b.visited_date || 0).getTime() -
+      new Date(a.visited_date || 0).getTime()
+    );
+
+  const filteredVisitedTimeline = visitedTimeline.filter(place => {
+    if (visitedFilter === "rated") {
+      return (place.rating || 0) >= 4;
+    }
+    if (visitedFilter === "notes") {
+      return Boolean(place.notes);
+    }
+    return true;
+  });
+
+  const ratingValues = visitedTimeline
+    .map(place => place.rating)
+    .filter((rating): rating is number => typeof rating === "number" && rating > 0);
+  const averageRating =
+    ratingValues.length > 0
+      ? ratingValues.reduce((sum, rating) => sum + rating, 0) / ratingValues.length
+      : 0;
+
+  const categoryCounts = visitedTimeline.reduce<Record<string, number>>((acc, place) => {
+    const category = place.destination.category || "Other";
+    acc[category] = (acc[category] || 0) + 1;
+    return acc;
+  }, {});
+
+  const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+
+  const cityCounts = visitedTimeline.reduce<Record<string, number>>((acc, place) => {
+    const city = place.destination.city;
+    acc[city] = (acc[city] || 0) + 1;
+    return acc;
+  }, {});
+
+  const topCity = Object.entries(cityCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+
+  const goalTarget = 12;
+  const goalProgress = Math.min(Math.round((visitedTimeline.length / goalTarget) * 100), 100);
+
+  const cadence = visitedTimeline.reduce<Record<string, number>>((acc, place) => {
+    const year = new Date(place.visited_date || new Date()).getFullYear();
+    if (!Number.isFinite(year)) {
+      return acc;
+    }
+    acc[year] = (acc[year] || 0) + 1;
+    return acc;
+  }, {});
+
+  const cadenceEntries = Object.entries(cadence)
+    .map(([year, count]) => ({
+      year,
+      count
+    }))
+    .sort((a, b) => Number(b.year) - Number(a.year));
+
+  const maxCadenceCount = cadenceEntries.reduce((max, entry) => Math.max(max, entry.count), 0);
+
+  const savedByCity = savedPlaces.reduce<Record<string, number>>((acc, place) => {
+    const city = place.destination.city;
+    acc[city] = (acc[city] || 0) + 1;
+    return acc;
+  }, {});
+
+  const savedHeatmap = Object.entries(savedByCity)
+    .map(([city, count]) => ({ city, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6);
+
+  const spotlightCities = Array.from(uniqueCities).slice(0, 6);
+
+  const stats = [
+    {
+      label: "Trips Logged",
+      value: visitedPlaces.length,
+      sublabel: "Documented adventures",
+      icon: Plane
+    },
+    {
+      label: "Saved Gems",
+      value: savedPlaces.length,
+      sublabel: "Handpicked spots",
+      icon: Bookmark
+    },
+    {
+      label: "Cities",
+      value: uniqueCities.size,
+      sublabel: "Urban stories",
+      icon: MapPin
+    },
+    {
+      label: "Countries",
+      value: uniqueCountries.size,
+      sublabel: "Global footprint",
+      icon: Globe2
+    }
+  ];
+
+  const aiModules = [
+    {
+      title: "Conversational discovery",
+      description: "Use the floating Modern AI chat to ask for vibes, cuisines, or hidden gems across any city.",
+      icon: MessageCircle
+    },
+    {
+      title: "Instant itineraries",
+      description: "Generate day-by-day plans from the AI itinerary tool and personalize them with your saved places.",
+      icon: CalendarClock
+    },
+    {
+      title: "Drawer pairings",
+      description: "Tap the new AI suggestions inside the destination drawer to hop to curated companions in one tap.",
+      icon: Compass
+    }
+  ];
+
+  const aiShortcuts = [
+    "Plan a 3-day weekend in Kyoto",
+    "Find Michelin-star dinners in Paris",
+    "Show design hotels in Copenhagen",
+    "Where should I grab coffee in Seoul?"
+  ];
+
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
 
-      {/* Main Content */}
-      <main className="px-6 md:px-10 py-12">
-        <div className="max-w-[1920px] mx-auto">
-          
-          {/* Profile Section */}
-          <div className="mb-12">
-            <h1 className="text-4xl font-normal mb-2">{user?.user_metadata?.name || user?.email?.split('@')[0] || 'Traveler'}</h1>
-            <p className="text-base text-gray-600">{user?.email}</p>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 mb-12 pb-12 border-b border-gray-200">
-            <div>
-              <div className="text-3xl font-normal mb-1">{visitedPlaces.length}</div>
-              <div className="text-sm text-gray-600 uppercase tracking-wide">Places Visited</div>
-            </div>
-            <div>
-              <div className="text-3xl font-normal mb-1">{savedPlaces.length}</div>
-              <div className="text-sm text-gray-600 uppercase tracking-wide">Saved</div>
-            </div>
-            <div>
-              <div className="text-3xl font-normal mb-1">{uniqueCities.size}</div>
-              <div className="text-sm text-gray-600 uppercase tracking-wide">Cities</div>
-            </div>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="mb-8 border-b border-gray-200">
-            <div className="flex gap-8">
-              <button
-                onClick={() => setActiveTab('saved')}
-                className={`pb-4 text-sm font-bold uppercase tracking-wide transition-colors ${
-                  activeTab === 'saved' 
-                    ? 'border-b-2 border-black text-black' 
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                Saved ({savedPlaces.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('visited')}
-                className={`pb-4 text-sm font-bold uppercase tracking-wide transition-colors ${
-                  activeTab === 'visited' 
-                    ? 'border-b-2 border-black text-black' 
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                Visited ({visitedPlaces.length})
-              </button>
-            </div>
-          </div>
-
-          {/* Content Grid */}
-          {activeTab === 'saved' && (
-            <>
-              {savedPlaces.length === 0 ? (
-                <div className="text-center py-16">
-                  <Heart className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-400">No saved places yet</p>
-                  <button 
-                    onClick={() => setLocation('/')}
-                    className="mt-4 text-sm font-bold uppercase hover:opacity-60 transition-opacity"
+      <main className="bg-neutral-50 px-4 pb-24 pt-10 md:px-10">
+        <div className="mx-auto max-w-6xl space-y-12">
+          <section className="rounded-3xl border border-neutral-200 bg-white p-8">
+            <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                  <Plane className="h-3.5 w-3.5" /> Account overview
+                </span>
+                <h1 className="mt-5 text-4xl font-semibold tracking-tight text-neutral-900 md:text-5xl">{displayName}</h1>
+                <p className="mt-2 text-sm text-neutral-500">{user?.email}</p>
+                <p className="mt-6 max-w-xl text-sm text-neutral-600">
+                  Keep your travel journal, curate future getaways, and let Urban Manual surface timely ideas for where to head next.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setLocation("/preferences")}
+                    className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
                   >
-                    Explore Destinations
+                    <Settings2 className="h-4 w-4" /> Manage preferences
+                  </button>
+                  <button
+                    onClick={handleSignOut}
+                    className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-5 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign out
                   </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {savedPlaces.map((place) => (
-                    <button
-                      key={place.destination_slug}
-                      onClick={() => handleCardClick(place.destination_slug)}
-                      className="group text-left"
-                    >
-                      <div className="aspect-square bg-gray-100 mb-3 overflow-hidden">
-                        {place.destination.image && (
-                          <img
-                            src={place.destination.image}
-                            alt={place.destination.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                        )}
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {stats.map(({ label, value, sublabel, icon: Icon }) => (
+                  <div key={label} className="rounded-2xl border border-neutral-200 p-5">
+                    <div className="flex items-center justify-between text-neutral-500">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.25em]">{label}</span>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <p className="mt-5 text-3xl font-semibold text-neutral-900">{value}</p>
+                    <p className="mt-2 text-xs text-neutral-500">{sublabel}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+            <div className="rounded-3xl border border-neutral-200 bg-white p-8">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-semibold text-neutral-900">Journey insights</h2>
+                  <p className="text-sm text-neutral-500">Understand your recent patterns at a glance.</p>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-600">
+                  <Globe2 className="h-3.5 w-3.5" /> Live metrics
+                </div>
+              </div>
+              <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl border border-neutral-200 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Avg rating</p>
+                  <p className="mt-4 text-4xl font-semibold text-neutral-900">
+                    {averageRating > 0 ? averageRating.toFixed(1) : "—"}
+                  </p>
+                  <p className="mt-2 text-xs text-neutral-500">Across {ratingValues.length || "no"} logged reviews</p>
+                </div>
+                <div className="rounded-2xl border border-neutral-200 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Go-to category</p>
+                  <p className="mt-4 text-lg font-semibold text-neutral-900">{topCategory}</p>
+                  <p className="mt-2 text-xs text-neutral-500">Your most frequented experience type</p>
+                </div>
+                <div className="rounded-2xl border border-neutral-200 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">City crush</p>
+                  <p className="mt-4 text-lg font-semibold text-neutral-900">
+                    {topCity !== "—" ? capitalizeCity(topCity) : "—"}
+                  </p>
+                  <p className="mt-2 text-xs text-neutral-500">Where you keep returning</p>
+                </div>
+                <div className="rounded-2xl border border-neutral-200 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Trips goal</p>
+                  <div className="mt-4">
+                    <div className="flex items-baseline justify-between text-neutral-900">
+                      <span className="text-4xl font-semibold">{visitedTimeline.length}</span>
+                      <span className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-400">/{goalTarget}</span>
+                    </div>
+                    <div className="mt-3 h-2 rounded-full bg-neutral-100">
+                      <div
+                        className="h-full rounded-full bg-neutral-900"
+                        style={{ width: `${goalProgress}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-xs text-neutral-500">{goalProgress}% complete</p>
+                  </div>
+                </div>
+              </div>
+              {cadenceEntries.length > 0 && (
+                <div className="mt-8">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Travel cadence</p>
+                  <div className="mt-4 flex flex-wrap gap-4">
+                    {cadenceEntries.map(entry => (
+                      <div key={entry.year} className="flex-1 min-w-[120px] rounded-2xl border border-neutral-200 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">{entry.year}</p>
+                        <div className="mt-4 flex h-16 items-end gap-2">
+                          <div className="w-full rounded-full bg-neutral-100">
+                            <div
+                              className="h-full rounded-full bg-neutral-900"
+                              style={{ height: `${Math.round((entry.count / maxCadenceCount) * 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium text-neutral-900">{entry.count}</span>
+                        </div>
                       </div>
-                      <h3 className="font-medium text-sm mb-1 line-clamp-2">{place.destination.name}</h3>
-                      <p className="text-xs text-gray-600">{capitalizeCity(place.destination.city)}</p>
-                    </button>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
-            </>
-          )}
+            </div>
 
-          {activeTab === 'visited' && (
-            <>
-              {visitedPlaces.length === 0 ? (
-                <div className="text-center py-16">
-                  <CheckCircle2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-400">No visited places yet</p>
-                  <button 
-                    onClick={() => setLocation('/')}
-                    className="mt-4 text-sm font-bold uppercase hover:opacity-60 transition-opacity"
-                  >
-                    Explore Destinations
-                  </button>
+            <aside className="space-y-6">
+              <div className="rounded-3xl border border-neutral-200 bg-white p-7">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+                  <Globe2 className="h-4 w-4" /> Travel footprint
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {visitedPlaces.map((place) => (
-                    place.destination && (
-                      <button
-                        key={place.destination_slug}
-                        onClick={() => handleCardClick(place.destination_slug)}
-                        className="group text-left"
+                <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-3xl font-semibold text-neutral-900">{uniqueCountries.size}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.2em] text-neutral-500">Countries</p>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-semibold text-neutral-900">{uniqueCities.size}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.2em] text-neutral-500">Cities</p>
+                  </div>
+                </div>
+                <div className="mt-6 border-t border-neutral-200 pt-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Spotlight cities</p>
+                  {spotlightCities.length === 0 ? (
+                    <p className="mt-4 text-sm text-neutral-500">
+                      Save or log destinations to build your personal atlas.
+                    </p>
+                  ) : (
+                    <ul className="mt-4 space-y-3 text-sm text-neutral-700">
+                      {spotlightCities.map(city => (
+                        <li key={city} className="flex items-center justify-between">
+                          <span>{capitalizeCity(city)}</span>
+                          <span className="text-neutral-400">{countryLabel(city)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-neutral-200 bg-white p-7">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+                  <BarChart3 className="h-4 w-4" /> Saved city heatmap
+                </div>
+                {savedHeatmap.length === 0 ? (
+                  <p className="mt-4 text-sm text-neutral-500">
+                    Bookmark destinations to see which hubs you gravitate toward.
+                  </p>
+                ) : (
+                  <ul className="mt-6 space-y-4">
+                    {savedHeatmap.map(city => (
+                      <li key={city.city} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm text-neutral-600">
+                          <span>{capitalizeCity(city.city)}</span>
+                          <span className="text-neutral-400">{city.count} saved</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-neutral-100">
+                          <div
+                            className="h-full rounded-full bg-neutral-900"
+                            style={{ width: `${Math.min((city.count / savedHeatmap[0].count) * 100, 100)}%` }}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="rounded-3xl border border-neutral-200 bg-white p-7">
+                <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+                  <Sparkles className="h-4 w-4" /> AI copilots
+                </div>
+                <p className="mt-4 text-sm text-neutral-600">
+                  Tap into the assistant anywhere on Urban Manual to surface ideas tailored to your saved and visited places.
+                </p>
+                <div className="mt-5 space-y-4">
+                  {aiModules.map(({ title, description, icon: Icon }) => (
+                    <div key={title} className="rounded-2xl border border-neutral-200 p-4">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                        <Icon className="h-4 w-4" /> {title}
+                      </div>
+                      <p className="mt-2 text-sm text-neutral-600">{description}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5 border-t border-neutral-200 pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">Quick prompts</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {aiShortcuts.map(shortcut => (
+                      <span
+                        key={shortcut}
+                        className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600"
                       >
-                        <div className="aspect-square bg-gray-100 mb-3 overflow-hidden relative">
-                          {place.destination.image && (
+                        {shortcut}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </section>
+
+          <section className="rounded-3xl border border-neutral-200 bg-white p-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-semibold text-neutral-900">Saved destinations</h2>
+                <p className="text-sm text-neutral-500">Keep track of the places waiting on your list.</p>
+              </div>
+              <button
+                onClick={() => setLocation("/")}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100"
+              >
+                Discover more <ArrowUpRight className="h-4 w-4" />
+              </button>
+            </div>
+            {savedPlaces.length === 0 ? (
+              <div className="mt-10 flex flex-col items-center justify-center gap-4 py-12 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-100">
+                  <Bookmark className="h-6 w-6 text-neutral-400" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-neutral-900">No saved spots yet</p>
+                  <p className="mt-1 text-sm text-neutral-500">Start bookmarking destinations you want to experience.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {savedPlaces.map(place => (
+                  <button
+                    key={place.destination_slug}
+                    onClick={() => handleCardClick(place.destination_slug)}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 text-left transition-shadow hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)]"
+                  >
+                    <div className="aspect-[4/3] overflow-hidden bg-neutral-100">
+                      <img
+                        src={place.destination.image || "/images/placeholder-destination.jpg"}
+                        alt={place.destination.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="flex flex-1 flex-col gap-2 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-400">
+                        {place.destination.category || "Destination"}
+                      </p>
+                      <h3 className="text-lg font-semibold text-neutral-900">{place.destination.name}</h3>
+                      <p className="flex items-center gap-2 text-sm text-neutral-500">
+                        <MapPin className="h-4 w-4" /> {capitalizeCity(place.destination.city)}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-3xl border border-neutral-200 bg-white p-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-semibold text-neutral-900">Visited timeline</h2>
+                <p className="text-sm text-neutral-500">Your documented destinations, stories, and ratings.</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { key: "all", label: "All" },
+                  { key: "rated", label: "Rated" },
+                  { key: "notes", label: "With notes" }
+                ].map(filter => (
+                  <button
+                    key={filter.key}
+                    onClick={() => setVisitedFilter(filter.key as typeof visitedFilter)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] transition-colors ${
+                      visitedFilter === filter.key
+                        ? "bg-neutral-900 text-white"
+                        : "border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {filteredVisitedTimeline.length === 0 ? (
+              <div className="mt-10 flex flex-col items-center justify-center gap-4 py-16 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100">
+                  <CheckCircle2 className="h-8 w-8 text-neutral-400" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-neutral-900">No visits logged yet</p>
+                  <p className="mt-1 text-sm text-neutral-500">Keep track of your journeys to build a personal travel log.</p>
+                </div>
+                <button
+                  onClick={() => setLocation("/")}
+                  className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
+                >
+                  Discover places <ArrowUpRight className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <ol className="mt-10 space-y-8">
+                {filteredVisitedTimeline.map(place => (
+                  <li key={place.destination_slug}>
+                    <button
+                      onClick={() => handleCardClick(place.destination_slug)}
+                      className="group flex w-full flex-col gap-4 rounded-2xl border border-neutral-200 p-5 text-left transition-colors hover:border-neutral-900/20 hover:bg-neutral-50"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
+                          {formatVisitedDate(place.visited_date)}
+                        </div>
+                        {place.notes && (
+                          <span className="rounded-full bg-neutral-900/5 px-3 py-1 text-xs font-medium text-neutral-600">
+                            Personal note
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold text-neutral-900">{place.destination.name}</h3>
+                          <p className="mt-1 flex items-center gap-2 text-sm text-neutral-500">
+                            <MapPin className="h-4 w-4" /> {capitalizeCity(place.destination.city)}
+                          </p>
+                          {renderRating(place.rating)}
+                        </div>
+                        {place.destination.image && (
+                          <div className="overflow-hidden rounded-xl bg-neutral-100">
                             <img
                               src={place.destination.image}
                               alt={place.destination.name}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              className="h-24 w-40 object-cover transition-transform duration-500 group-hover:scale-105"
                             />
-                          )}
-                          {place.visited_date && (
-                            <div className="absolute bottom-2 left-2 bg-white px-2 py-1 text-xs">
-                              {new Date(place.visited_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                            </div>
-                          )}
-                        </div>
-                        <h3 className="font-medium text-sm mb-1 line-clamp-2">{place.destination.name}</h3>
-                        <p className="text-xs text-gray-600">{capitalizeCity(place.destination.city)}</p>
-                        {place.rating > 0 && (
-                          <div className="flex gap-0.5 mt-1">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className={`text-xs ${i < place.rating ? 'text-black' : 'text-gray-300'}`}>★</span>
-                            ))}
                           </div>
                         )}
-                      </button>
-                    )
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+                      </div>
+                      {place.notes && (
+                        <p className="rounded-2xl bg-white p-4 text-sm text-neutral-600 shadow-inner">
+                          “{place.notes}”
+                        </p>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
         </div>
       </main>
-
       <SimpleFooter />
 
       {/* Destination Drawer */}
@@ -367,6 +768,7 @@ export default function Account() {
             setIsDrawerOpen(false);
             setSelectedDestination(null);
           }}
+          onSelectDestination={handleDrawerSuggestion}
         />
       )}
     </div>
