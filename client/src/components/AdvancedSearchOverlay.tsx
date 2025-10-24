@@ -140,7 +140,7 @@ export function AdvancedSearchOverlay({ isOpen, onClose, destinations, onSelectD
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-white dark:bg-gray-950 z-50 overflow-y-auto transition-colors duration-300">
+    <div className="fixed inset-x-0 top-16 bottom-0 bg-white dark:bg-gray-950 z-40 overflow-y-auto transition-colors duration-300">
       {/* Header */}
       <div className="sticky top-0 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 py-4 z-10">
         <div className="flex items-center gap-4">
