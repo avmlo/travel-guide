@@ -1,10 +1,21 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Minimize2, X, Sparkles } from "lucide-react";
+import { Send, Minimize2, X, Sparkles, MapPin, Star } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useLocation } from "wouter";
+
+interface Destination {
+  slug: string;
+  name: string;
+  city: string;
+  category: string;
+  michelin_stars: number | null;
+  image_url: string;
+}
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  destinations?: Destination[];
 }
 
 export function ChatGPTStyleAI() {
@@ -14,6 +25,7 @@ export function ChatGPTStyleAI() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [, setLocation] = useLocation();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -35,64 +47,84 @@ export function ChatGPTStyleAI() {
     
     try {
       let response = "";
+      let destinations: Destination[] = [];
       
+      // City query
       if (query.includes("in ") || query.includes("places in") || query.includes("destinations in")) {
         const cityMatch = query.match(/in ([a-z\-]+)/);
         if (cityMatch) {
           const city = cityMatch[1];
           const { data } = await supabase
             .from("destinations")
-            .select("*")
+            .select("slug, name, city, category, michelin_stars, image_url")
             .eq("city", city)
-            .limit(5);
+            .limit(6);
           
           if (data && data.length > 0) {
-            response = `Here are some great places in ${city}:\\n\\n`;
-            data.forEach((dest: any) => {
-              response += `**${dest.name}** - ${dest.category}${dest.michelin_stars ? ` (${dest.michelin_stars}⭐)` : ""}\\n`;
-            });
+            response = `Here are some great places in ${city}:`;
+            destinations = data;
           } else {
             response = `I couldn't find destinations in ${city}. Try searching for Paris, Tokyo, New York, or other cities!`;
           }
         }
-      } else if (query.includes("restaurant") || query.includes("cafe") || query.includes("hotel") || query.includes("bar")) {
-        let category = "";
-        if (query.includes("restaurant")) category = "restaurant";
-        else if (query.includes("cafe")) category = "cafe";
-        else if (query.includes("hotel")) category = "hotel";
-        else if (query.includes("bar")) category = "bar";
-        
+      }
+      // Category query
+      else if (query.includes("eat") || query.includes("drink") || query.includes("restaurant") || query.includes("food")) {
         const { data } = await supabase
           .from("destinations")
-          .select("*")
-          .eq("category", category)
-          .limit(5);
+          .select("slug, name, city, category, michelin_stars, image_url")
+          .eq("category", "Eat & Drink")
+          .limit(6);
         
         if (data && data.length > 0) {
-          response = `Here are some amazing ${category}s:\\n\\n`;
-          data.forEach((dest: any) => {
-            response += `**${dest.name}** in ${dest.city}${dest.michelin_stars ? ` (${dest.michelin_stars}⭐)` : ""}\\n`;
-          });
+          response = "Here are some amazing places to eat & drink:";
+          destinations = data;
         }
-      } else if (query.includes("michelin")) {
+      }
+      else if (query.includes("stay") || query.includes("hotel") || query.includes("accommodation")) {
         const { data } = await supabase
           .from("destinations")
-          .select("*")
+          .select("slug, name, city, category, michelin_stars, image_url")
+          .eq("category", "Stay")
+          .limit(6);
+        
+        if (data && data.length > 0) {
+          response = "Here are some great places to stay:";
+          destinations = data;
+        }
+      }
+      else if (query.includes("space")) {
+        const { data } = await supabase
+          .from("destinations")
+          .select("slug, name, city, category, michelin_stars, image_url")
+          .eq("category", "Space")
+          .limit(6);
+        
+        if (data && data.length > 0) {
+          response = "Here are some interesting spaces:";
+          destinations = data;
+        }
+      }
+      // Michelin query
+      else if (query.includes("michelin")) {
+        const { data } = await supabase
+          .from("destinations")
+          .select("slug, name, city, category, michelin_stars, image_url")
           .not("michelin_stars", "is", null)
           .order("michelin_stars", { ascending: false })
-          .limit(5);
+          .limit(6);
         
         if (data && data.length > 0) {
-          response = "Here are some Michelin-starred restaurants:\\n\\n";
-          data.forEach((dest: any) => {
-            response += `**${dest.name}** in ${dest.city} - ${dest.michelin_stars}⭐\\n`;
-          });
+          response = "Here are some Michelin-starred restaurants:";
+          destinations = data;
         }
-      } else {
-        response = "I can help you discover amazing destinations! Try asking:\\n\\n- Places in Paris\\n- Best restaurants\\n- Michelin-starred restaurants\\n- Hotels in Tokyo";
+      }
+      // Default
+      else {
+        response = "I can help you discover amazing destinations! Try asking:\n\n• Places in Paris\n• Eat & drink recommendations\n• Michelin-starred restaurants\n• Hotels to stay";
       }
 
-      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: response, destinations }]);
     } catch (error) {
       setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I encountered an error. Please try again!" }]);
     } finally {
@@ -105,6 +137,12 @@ export function ChatGPTStyleAI() {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleDestinationClick = (slug: string) => {
+    setLocation(`/destination/${slug}`);
+    setIsOpen(false);
+    setMessages([]);
   };
 
   if (!isOpen) {
@@ -144,10 +182,11 @@ export function ChatGPTStyleAI() {
   }
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-4">
+      {/* Chat History */}
       {messages.length > 0 && (
         <div 
-          className="mb-4 max-h-96 overflow-y-auto rounded-2xl p-4 space-y-4"
+          className="mb-4 max-h-[32rem] overflow-y-auto rounded-2xl p-4 space-y-4"
           style={{
             background: 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(10px)',
@@ -157,23 +196,54 @@ export function ChatGPTStyleAI() {
           }}
         >
           {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] px-4 py-2 rounded-2xl ${
-                  msg.role === "user"
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                    : "bg-white/90 text-gray-800 border border-gray-200"
-                }`}
-              >
-                <div className="text-sm whitespace-pre-wrap">
-                  {msg.content.split("**").map((part, i) =>
-                    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-                  )}
+            <div key={idx} className="space-y-3">
+              <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+                    msg.role === "user"
+                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                      : "bg-white/90 text-gray-800 border border-gray-200"
+                  }`}
+                >
+                  <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
                 </div>
               </div>
+              
+              {/* Destination Cards */}
+              {msg.destinations && msg.destinations.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {msg.destinations.map((dest) => (
+                    <button
+                      key={dest.slug}
+                      onClick={() => handleDestinationClick(dest.slug)}
+                      className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group text-left"
+                    >
+                      <div className="aspect-square relative overflow-hidden">
+                        <img
+                          src={dest.image_url}
+                          alt={dest.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        {dest.michelin_stars && (
+                          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            {dest.michelin_stars}
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <h3 className="font-medium text-sm text-gray-900 line-clamp-1 group-hover:text-purple-600 transition-colors">
+                          {dest.name}
+                        </h3>
+                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                          <MapPin className="w-3 h-3" />
+                          <span>{dest.city}</span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
           {isTyping && (
@@ -191,6 +261,7 @@ export function ChatGPTStyleAI() {
         </div>
       )}
 
+      {/* Input Bar */}
       <div 
         className="rounded-full p-2 flex items-center gap-2"
         style={{
@@ -252,3 +323,4 @@ export function ChatGPTStyleAI() {
     </div>
   );
 }
+
