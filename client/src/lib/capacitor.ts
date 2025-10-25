@@ -29,7 +29,7 @@ export async function initializeNativeFeatures() {
 
     // Listen for app state changes
     App.addListener('appStateChange', ({ isActive }) => {
-      console.log('App state changed. Is active?', isActive);
+      // App state changed
     });
 
     // Listen for back button (Android)
@@ -43,14 +43,14 @@ export async function initializeNativeFeatures() {
 
     // Keyboard listeners
     Keyboard.addListener('keyboardWillShow', info => {
-      console.log('Keyboard will show with height:', info.keyboardHeight);
+      // Keyboard will show
     });
 
     Keyboard.addListener('keyboardWillHide', () => {
-      console.log('Keyboard will hide');
+      // Keyboard will hide
     });
 
-    console.log('Native features initialized successfully');
+    // Native features initialized
   } catch (error) {
     console.error('Error initializing native features:', error);
   }
