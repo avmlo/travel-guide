@@ -14,7 +14,6 @@ import Login from "./pages/Login";
 // Lazy load secondary pages
 const Destination = lazy(() => import("./pages/Destination"));
 const SavedPlaces = lazy(() => import("./pages/SavedPlaces"));
-const CityPage = lazy(() => import("./pages/CityPage"));
 const Cities = lazy(() => import("./pages/Cities"));
 const City = lazy(() => import("./pages/City"));
 const Account = lazy(() => import("./pages/Account"));
