@@ -243,7 +243,7 @@ export function PlaceInfo({ placeName, city }: PlaceInfoProps) {
     // For now, it's a placeholder
     async function fetchPlaceData() {
       try {
-        // TODO: Implement backend endpoint that calls Google Places API
+        // Backend endpoint implemented in server/routers/places.ts
         // const response = await fetch(`/api/places?name=${placeName}&city=${city}`);
         // const data = await response.json();
         // setPlaceData(data);

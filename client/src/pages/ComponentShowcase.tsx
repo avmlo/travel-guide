@@ -187,7 +187,7 @@ export default function ComponentsShowcase() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleDialogSubmit = () => {
-    console.log("Dialog submitted with value:", dialogInput);
+    // Dialog submitted
     sonnerToast.success("Submitted successfully", {
       description: `Input: ${dialogInput}`,
     });

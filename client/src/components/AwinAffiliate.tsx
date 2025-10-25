@@ -52,12 +52,12 @@ export function BookingComAffiliate({
       clickRef={`dest-${destinationName.toLowerCase().replace(/\s+/g, '-')}`}
       className={className}
     >
-      <div className="flex items-center justify-between p-4 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+      <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:opacity-60 transition-opacity">
         <div>
-          <h4 className="font-semibold text-blue-600">Find Hotels Nearby</h4>
-          <p className="text-sm text-gray-600">Book accommodation on Booking.com</p>
+          <h4 className="text-xs font-bold uppercase text-black dark:text-white">Find Hotels Nearby</h4>
+          <p className="text-xs text-gray-600 dark:text-gray-400">Book accommodation on Booking.com</p>
         </div>
-        <ExternalLink className="h-5 w-5 text-blue-600" />
+        <ExternalLink className="h-5 w-5 text-black dark:text-white" />
       </div>
     </AwinLink>
   );
@@ -83,10 +83,10 @@ export function ExpediaAffiliate({
       clickRef={`dest-${destinationName.toLowerCase().replace(/\s+/g, '-')}`}
       className={className}
     >
-      <div className="flex items-center justify-between p-4 border border-yellow-600 rounded-lg hover:bg-yellow-50 transition-colors">
+      <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:opacity-60 transition-opacity">
         <div>
-          <h4 className="font-semibold text-yellow-700">Book on Expedia</h4>
-          <p className="text-sm text-gray-600">Hotels, flights & vacation packages</p>
+          <h4 className="text-xs font-bold uppercase text-black dark:text-white">Book on Expedia</h4>
+          <p className="text-xs text-gray-600 dark:text-gray-400">Hotels, flights & vacation packages</p>
         </div>
         <ExternalLink className="h-5 w-5 text-yellow-700" />
       </div>
@@ -111,12 +111,12 @@ export function GetYourGuideAffiliate({
       clickRef={`city-${city.toLowerCase().replace(/\s+/g, '-')}`}
       className={className}
     >
-      <div className="flex items-center justify-between p-4 border border-green-600 rounded-lg hover:bg-green-50 transition-colors">
+      <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:opacity-60 transition-opacity">
         <div>
-          <h4 className="font-semibold text-green-600">Book Tours & Activities</h4>
-          <p className="text-sm text-gray-600">Discover experiences with GetYourGuide</p>
+          <h4 className="text-xs font-bold uppercase text-black dark:text-white">Book Tours & Activities</h4>
+          <p className="text-xs text-gray-600 dark:text-gray-400">Discover experiences with GetYourGuide</p>
         </div>
-        <ExternalLink className="h-5 w-5 text-green-600" />
+        <ExternalLink className="h-5 w-5 text-black dark:text-white" />
       </div>
     </AwinLink>
   );
@@ -139,12 +139,12 @@ export function ViatorAffiliate({
       clickRef={`city-${city.toLowerCase().replace(/\s+/g, '-')}`}
       className={className}
     >
-      <div className="flex items-center justify-between p-4 border border-red-600 rounded-lg hover:bg-red-50 transition-colors">
+      <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:opacity-60 transition-opacity">
         <div>
-          <h4 className="font-semibold text-red-600">Explore with Viator</h4>
-          <p className="text-sm text-gray-600">Tours, activities & experiences</p>
+          <h4 className="text-xs font-bold uppercase text-black dark:text-white">Explore with Viator</h4>
+          <p className="text-xs text-gray-600 dark:text-gray-400">Tours, activities & experiences</p>
         </div>
-        <ExternalLink className="h-5 w-5 text-red-600" />
+        <ExternalLink className="h-5 w-5 text-black dark:text-white" />
       </div>
     </AwinLink>
   );

@@ -154,7 +154,7 @@ export function AdvancedSearchOverlay({ isOpen, onClose, destinations, onSelectD
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-white dark:bg-gray-950 z-50 overflow-y-auto transition-colors duration-300">
+    <div className="fixed inset-x-0 top-16 bottom-0 bg-white dark:bg-gray-950 z-40 overflow-y-auto transition-colors duration-300">
       {/* Header */}
       <div className="sticky top-0 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 py-4 z-10">
         <div className="flex items-center gap-4">
@@ -171,7 +171,7 @@ export function AdvancedSearchOverlay({ isOpen, onClose, destinations, onSelectD
                   saveSearch(query);
                 }
               }}
-              className="pl-10 h-12 text-base border-gray-200 dark:border-gray-700 focus:border-black dark:focus:border-white dark:bg-gray-900 dark:text-white"
+              className="pl-10 h-12 text-sm border-gray-200 dark:border-gray-800 focus:border-black dark:focus:border-white dark:bg-gray-900 dark:text-white rounded-lg"
               autoFocus
             />
           </div>
@@ -368,9 +368,9 @@ export function AdvancedSearchOverlay({ isOpen, onClose, destinations, onSelectD
               {query.trim() && ` for "${query}"`}
             </div>
 
-            {/* Results List */}
+            {/* Results List/Grid */}
             {filteredResults.length > 0 ? (
-              <div className="space-y-4">
+              <div className="md:hidden space-y-4">
                 {filteredResults.map((destination) => (
                   <button
                     key={destination.slug}
@@ -420,6 +420,59 @@ export function AdvancedSearchOverlay({ isOpen, onClose, destinations, onSelectD
 
                     {/* Arrow */}
                     <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {/* Desktop Grid */}
+            {filteredResults.length > 0 ? (
+              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredResults.map((destination) => (
+                  <button
+                    key={destination.slug}
+                    onClick={() => {
+                      onSelectDestination(destination);
+                      saveSearch(query);
+                      onClose();
+                    }}
+                    className="group text-left"
+                  >
+                    {/* Image */}
+                    <div className="aspect-square rounded-lg overflow-hidden mb-3 bg-gray-100 dark:bg-gray-800">
+                      {destination.mainImage ? (
+                        <img
+                          src={destination.mainImage}
+                          alt={destination.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <Search className="h-12 w-12" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-sm font-medium truncate text-black dark:text-white group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+                          {destination.name}
+                        </h3>
+                        {destination.michelinStars > 0 && (
+                          <div className="flex items-center gap-0.5 flex-shrink-0">
+                            {[...Array(destination.michelinStars)].map((_, i) => (
+                              <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span>{destination.category}</span>
+                        <span>•</span>
+                        <span>{capitalizeCity(destination.city)}</span>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>

@@ -20,23 +20,22 @@ export function Navigation({ cities, currentCity }: NavigationProps) {
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit',
+      hour: 'numeric', 
+      minute: '2-digit',
       hour12: true 
     });
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-black">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <nav className="sticky top-0 z-50 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
+      <div className="max-w-[1920px] mx-auto px-6 md:px-10 py-6">
         {/* Mobile Header */}
         <div className="flex items-center justify-between md:hidden mb-4">
           <button
             onClick={() => setLocation("/")}
-            className="hover:opacity-70 transition-opacity"
+            className="hover:opacity-60 transition-opacity"
           >
-            <h1 className="text-4xl font-black uppercase tracking-tighter">
+            <h1 className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight text-black dark:text-white">
               THE URBAN MANUAL
             </h1>
           </button>
@@ -44,7 +43,7 @@ export function Navigation({ cities, currentCity }: NavigationProps) {
             <UserMenuSupabase />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:opacity-60 rounded-lg transition-opacity"
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -53,75 +52,76 @@ export function Navigation({ cities, currentCity }: NavigationProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-black pt-4 pb-2 space-y-3">
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-800 pt-4 pb-2 space-y-2">
             <button 
               onClick={() => { setLocation("/"); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-6 py-3 bg-blue-600 text-white font-black uppercase text-base tracking-wider rounded-full hover:bg-blue-700 transition-colors"
+              className="block w-full text-left px-4 py-2 text-xs font-bold uppercase hover:opacity-60 transition-opacity border border-gray-200 dark:border-gray-800 rounded-lg"
             >
               CATALOGUE
             </button>
             <button 
               onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-left px-6 py-3 bg-orange-500 text-white font-black uppercase text-base tracking-wider rounded-full hover:bg-orange-600 transition-colors"
+              className="block w-full text-left px-4 py-2 text-xs font-bold uppercase hover:opacity-60 transition-opacity border border-gray-200 dark:border-gray-800 rounded-lg"
             >
               INFO
             </button>
             <button 
               onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-left px-6 py-3 bg-purple-600 text-white font-black uppercase text-base tracking-wider rounded-full hover:bg-purple-700 transition-colors"
+              className="block w-full text-left px-4 py-2 text-xs font-bold uppercase hover:opacity-60 transition-opacity border border-gray-200 dark:border-gray-800 rounded-lg"
             >
               ARCHIVE
             </button>
             <button 
               onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-left px-6 py-3 bg-teal-500 text-white font-black uppercase text-base tracking-wider rounded-full hover:bg-teal-600 transition-colors"
+              className="block w-full text-left px-4 py-2 text-xs font-bold uppercase hover:opacity-60 transition-opacity border border-gray-200 dark:border-gray-800 rounded-lg"
             >
               EDITORIAL
             </button>
-            <div className="pt-3 border-t border-black">
-              <div className="text-sm font-black text-black uppercase tracking-wider">NEW YORK</div>
-              <div className="text-sm font-black text-black uppercase tracking-wider">{formatTime(currentTime)}</div>
+            <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
+              <div className="text-xs font-bold uppercase text-black dark:text-white">NEW YORK</div>
+              <div className="text-xs font-bold text-black dark:text-white">{formatTime(currentTime)}</div>
             </div>
           </div>
         )}
 
         {/* Desktop Header */}
         <div className="hidden md:block">
-          {/* Top Row: Massive Logo */}
+          {/* Top Row: Logo */}
           <div className="mb-4">
             <button
               onClick={() => setLocation("/")}
-              className="hover:opacity-70 transition-opacity"
+              className="hover:opacity-60 transition-opacity"
             >
-              <h1 className="text-7xl lg:text-8xl xl:text-9xl font-black uppercase tracking-tighter leading-none">
+              <h1 className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight text-black dark:text-white">
                 THE URBAN MANUAL
               </h1>
             </button>
           </div>
 
-          {/* Middle Row: Colored Navigation Tabs */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+          {/* Middle Row: Navigation Tabs */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <button 
                 onClick={() => setLocation("/")}
-                className="px-6 py-2 bg-blue-600 text-white font-black uppercase text-sm tracking-wider rounded-full hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 text-xs font-bold uppercase hover:opacity-60 transition-opacity border border-gray-200 dark:border-gray-800 rounded-lg"
               >
                 CATALOGUE
               </button>
-              <button className="px-6 py-2 bg-orange-500 text-white font-black uppercase text-sm tracking-wider rounded-full hover:bg-orange-600 transition-colors">
+              <button className="px-4 py-2 text-xs font-bold uppercase hover:opacity-60 transition-opacity border border-gray-200 dark:border-gray-800 rounded-lg">
                 INFO
               </button>
-              <button className="px-6 py-2 bg-purple-600 text-white font-black uppercase text-sm tracking-wider rounded-full hover:bg-purple-700 transition-colors">
+              <button className="px-4 py-2 text-xs font-bold uppercase hover:opacity-60 transition-opacity border border-gray-200 dark:border-gray-800 rounded-lg">
                 ARCHIVE
               </button>
-              <button className="px-6 py-2 bg-teal-500 text-white font-black uppercase text-sm tracking-wider rounded-full hover:bg-teal-600 transition-colors">
+              <button className="px-4 py-2 text-xs font-bold uppercase hover:opacity-60 transition-opacity border border-gray-200 dark:border-gray-800 rounded-lg">
                 EDITORIAL
               </button>
             </div>
             
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <div className="text-sm font-black uppercase tracking-wider">NEW YORK {formatTime(currentTime)}</div>
+                <span className="text-xs font-bold uppercase">NEW YORK</span>
+                <span className="text-xs font-bold ml-2">{formatTime(currentTime)}</span>
               </div>
               <UserMenuSupabase />
             </div>

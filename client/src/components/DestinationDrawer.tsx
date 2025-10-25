@@ -27,17 +27,17 @@ function capitalizeCity(city: string): string {
     .join(' ');
 }
 
-// Category color mapping
+// Category styling - monochrome for design consistency
 const categoryColors: Record<string, string> = {
-  'Hotel': 'bg-blue-100 text-blue-800',
-  'Restaurant': 'bg-red-100 text-red-800',
-  'Cafe': 'bg-yellow-100 text-yellow-800',
-  'Bar': 'bg-purple-100 text-purple-800',
-  'Museum': 'bg-green-100 text-green-800',
-  'Gallery': 'bg-pink-100 text-pink-800',
-  'Shop': 'bg-orange-100 text-orange-800',
-  'Park': 'bg-teal-100 text-teal-800',
-  'default': 'bg-gray-100 text-gray-800'
+  'Hotel': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white',
+  'Restaurant': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white',
+  'Cafe': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white',
+  'Bar': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white',
+  'Museum': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white',
+  'Gallery': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white',
+  'Shop': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white',
+  'Park': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white',
+  'default': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
 };
 
 export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, onVisitToggle }: DestinationDrawerProps) {

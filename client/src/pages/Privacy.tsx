@@ -8,8 +8,8 @@ export default function Privacy() {
 
       <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold mb-4 text-black dark:text-white">Privacy Policy</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+          <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight mb-2 text-black dark:text-white">Privacy Policy</h1>
+          <p className="text-xs font-bold uppercase text-black/60 dark:text-white/60 mb-8">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
 
           <div className="prose prose-lg max-w-none dark:prose-invert">
             <section className="mb-8">
