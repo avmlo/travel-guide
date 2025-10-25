@@ -1,15 +1,7 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "public",
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "buildCommand": "cd urban-manual-next && npm install && npm run build",
+  "outputDirectory": "urban-manual-next/.next",
+  "installCommand": "cd urban-manual-next && npm install",
+  "framework": "nextjs",
+  "rootDirectory": "urban-manual-next"
 }
-
