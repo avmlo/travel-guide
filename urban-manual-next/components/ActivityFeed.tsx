@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { Heart, MapPin, Star, List, User } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -36,6 +36,7 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: ActivityFeedProps) {
+  const supabase = getSupabaseClient();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setLocation] = useLocation();
