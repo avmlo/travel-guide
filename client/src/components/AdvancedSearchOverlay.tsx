@@ -157,7 +157,7 @@ export function AdvancedSearchOverlay({ isOpen, onClose, destinations, onSelectD
                   saveSearch(query);
                 }
               }}
-              className="pl-10 h-12 text-base border-gray-200 dark:border-gray-700 focus:border-black dark:focus:border-white dark:bg-gray-900 dark:text-white"
+              className="pl-10 h-12 text-sm border-gray-200 dark:border-gray-800 focus:border-black dark:focus:border-white dark:bg-gray-900 dark:text-white rounded-lg"
               autoFocus
             />
           </div>

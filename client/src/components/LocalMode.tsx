@@ -88,17 +88,17 @@ export function LocalMode({ destinations, onSelectDestination }: LocalModeProps)
       <button
         onClick={activateLocalMode}
         disabled={isLoading}
-        className="fixed bottom-6 right-6 z-30 flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+        className="fixed bottom-6 right-6 z-30 flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg shadow-lg hover:opacity-60 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-xs font-bold uppercase"
       >
         {isLoading ? (
           <>
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="font-medium">Getting location...</span>
+            <span>Getting location...</span>
           </>
         ) : (
           <>
             <Navigation className="h-5 w-5" />
-            <span className="font-medium">Local Mode</span>
+            <span>Local Mode</span>
           </>
         )}
       </button>
@@ -115,8 +115,8 @@ export function LocalMode({ destinations, onSelectDestination }: LocalModeProps)
               <MapPin className="h-5 w-5 text-white dark:text-black" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Local Mode</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <h2 className="text-sm font-bold uppercase">Local Mode</h2>
+              <p className="text-xs text-black/60 dark:text-white/60">
                 {locationName} • {nearbyDestinations.length} places nearby
               </p>
             </div>

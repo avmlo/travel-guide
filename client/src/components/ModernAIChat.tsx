@@ -144,21 +144,21 @@ export function ModernAIChat() {
   }
 
   return (
-    <div className="fixed bottom-8 right-8 z-50 w-[400px] h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
+    <div className="fixed bottom-8 right-8 z-50 w-[400px] h-[600px] bg-white dark:bg-gray-950 rounded-lg shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800">
       {/* Header */}
-      <div className="bg-gray-900 text-white p-5 flex items-center justify-between">
+      <div className="bg-black dark:bg-white text-white dark:text-black p-5 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-white/10 dark:bg-black/10 rounded-full flex items-center justify-center">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-semibold text-base">AI Travel Assistant</h3>
-            <p className="text-xs text-gray-300">Ask me anything</p>
+            <h3 className="text-sm font-bold uppercase">AI Travel Assistant</h3>
+            <p className="text-xs text-white/60 dark:text-black/60">Ask me anything</p>
           </div>
         </div>
         <button
           onClick={() => setIsOpen(false)}
-          className="hover:bg-white/10 rounded-full p-2 transition-colors"
+          className="hover:opacity-60 rounded-full p-2 transition-opacity"
         >
           <X className="h-5 w-5" />
         </button>
