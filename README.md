@@ -1,46 +1,44 @@
-# Travel Guide
+# The Urban Manual
 
-A modern, curated travel guide featuring 897 destinations across the world with AI-powered recommendations.
+A modern, curated travel guide featuring 897 destinations across the world.
 
-## Features
+> **⚠️ IMPORTANT**: This project is being migrated to Next.js 16. Please use the **`urban-manual-next/`** directory for active development.
+
+## Active Development (Next.js 16)
+
+**Location**: `/urban-manual-next/`
+
+### Features
 
 - 🌍 **897 Curated Destinations** - Handpicked places across major cities worldwide
-- 🤖 **AI Travel Assistant** - Powered by Google Gemini for personalized recommendations
 - 🗺️ **Interactive Map** - Visualize countries you've visited
 - ⭐ **Michelin-Starred Restaurants** - Discover award-winning dining experiences
 - 👤 **User Accounts** - Track visited places, save favorites, and build your travel profile
 - 📱 **Responsive Design** - Beautiful on desktop and mobile
 - 🎨 **Urban Manual Inspired** - Clean, minimal, editorial design
+- 🌙 **Dark Mode** - Full dark mode support
 
-## Tech Stack
+### Tech Stack (Next.js)
 
-- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS
-- **Backend**: Node.js, tRPC, Express
-- **Database**: Supabase (PostgreSQL)
-- **AI**: Google Gemini API
-- **Authentication**: Supabase Auth
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS
+- **Database**: Supabase (PostgreSQL) with direct client integration
+- **Authentication**: Supabase Auth with Google OAuth
 - **Deployment**: Vercel
 
 ## Environment Variables
 
-Create a `.env` file in the root directory with:
+Create a `.env.local` file in the `urban-manual-next/` directory with:
 
 ```env
 # Supabase
-VITE_SUPABASE_URL=https://avdnefdfwvpjkuanhdwk.supabase.co
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_URL=https://avdnefdfwvpjkuanhdwk.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# Google Gemini AI
-GEMINI_API_KEY=your_gemini_api_key
-
-# Manus OAuth (if using)
-APP_ID=your_app_id
-APP_SECRET=your_app_secret
-
-# Server
-PORT=3002
-NODE_ENV=production
+# Google Maps (optional - for map embeds)
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 ```
+
+**Note**: Next.js requires the `NEXT_PUBLIC_` prefix for environment variables that need to be accessible in the browser.
 
 ## Deployment to Vercel
 
@@ -76,21 +74,26 @@ NODE_ENV=production
    - Site URL: `https://your-project.vercel.app`
    - Redirect URLs: `https://your-project.vercel.app/**`
 
-## Local Development
+## Local Development (Next.js)
 
 ```bash
-# Install dependencies
-pnpm install
+# Navigate to Next.js app
+cd urban-manual-next
 
-# Run development server
-pnpm dev
+# Install dependencies
+npm install
+
+# Run development server (http://localhost:3000)
+npm run dev
 
 # Build for production
-pnpm build
+npm run build
 
 # Start production server
-pnpm start
+npm start
 ```
+
+**Note**: The old Vite app in `/client/` is deprecated and should not be used.
 
 ## Database Setup
 
