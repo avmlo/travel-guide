@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { MapPin, Navigation, X, Loader2 } from "lucide-react";
 import { Destination } from "@/types/destination";
-import { getUserLocation, calculateDistance, formatDistance } from "@/lib/distance";
+import { formatDistance } from "@/lib/distance";
+import { useNearbyFromCurrentLocation } from "@/hooks/useNearbyDestinations";
 import { DestinationCard } from "@/components/DestinationCard";
 import { toast } from "sonner";
 
@@ -12,12 +13,11 @@ interface LocalModeProps {
 
 export function LocalMode({ destinations, onSelectDestination }: LocalModeProps) {
   const [isActive, setIsActive] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [nearbyDestinations, setNearbyDestinations] = useState<
-    Array<Destination & { distance: number }>
-  >([]);
+  const [radiusKm, setRadiusKm] = useState(5);
   const [locationName, setLocationName] = useState<string>("");
+  
+  // Use PostGIS hook for accurate nearby search
+  const { destinations: nearbyDestinations, userLocation, isLoading } = useNearbyFromCurrentLocation(radiusKm);
 
   // Get location name from coordinates using reverse geocoding
   const getLocationName = async (lat: number, lng: number) => {
@@ -39,47 +39,37 @@ export function LocalMode({ destinations, onSelectDestination }: LocalModeProps)
   };
 
   const activateLocalMode = async () => {
-    setIsLoading(true);
+    if (!userLocation) {
+      toast.error("Getting your location...");
+      return;
+    }
+    
     try {
-      const location = await getUserLocation();
-      setUserLocation(location);
-      
       // Get location name
-      const name = await getLocationName(location.lat, location.lng);
+      const name = await getLocationName(userLocation.lat, userLocation.lng);
       setLocationName(name);
-
-      // Calculate distances and sort by nearest
-      const destinationsWithDistance = destinations
-        .map((dest) => ({
-          ...dest,
-          distance: calculateDistance(location.lat, location.lng, dest.lat, dest.long),
-        }))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 50); // Show top 50 nearest
-
-      setNearbyDestinations(destinationsWithDistance);
       setIsActive(true);
-      toast.success(`Found ${destinationsWithDistance.length} places nearby`);
-    } catch (error: any) {
-      console.error("Error getting location:", error);
-      if (error.code === 1) {
-        toast.error("Location permission denied. Please enable location access.");
-      } else if (error.code === 2) {
-        toast.error("Location unavailable. Please check your device settings.");
-      } else if (error.code === 3) {
-        toast.error("Location request timed out. Please try again.");
+      
+      if (nearbyDestinations.length > 0) {
+        toast.success(`Found ${nearbyDestinations.length} places within ${radiusKm}km`);
       } else {
-        toast.error("Failed to get your location. Please try again.");
+        toast.info(`No destinations found within ${radiusKm}km. Try increasing the radius.`);
       }
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error("Error activating local mode:", error);
+      toast.error("Failed to activate local mode. Please try again.");
     }
   };
+  
+  // Auto-activate when location is available
+  useEffect(() => {
+    if (userLocation && !isActive && nearbyDestinations.length > 0) {
+      activateLocalMode();
+    }
+  }, [userLocation, nearbyDestinations]);
 
   const deactivateLocalMode = () => {
     setIsActive(false);
-    setUserLocation(null);
-    setNearbyDestinations([]);
     setLocationName("");
   };
 
