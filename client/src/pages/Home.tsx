@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
+import { User } from "@/types/user";
 import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { CookieBanner } from "@/components/CookieBanner";
@@ -13,7 +14,7 @@ import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { ChatGPTStyleAI } from "@/components/ChatGPTStyleAI";
-import { LocalMode } from "@/components/LocalMode";
+
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
 
 // Helper function to capitalize city names
@@ -37,7 +38,7 @@ export default function Home() {
   const [showAllCities, setShowAllCities] = useState(false);
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Load user's saved and visited places
@@ -350,14 +351,7 @@ export default function Home() {
       {/* AI Assistant */}
       <ChatGPTStyleAI />
 
-      {/* Local Mode */}
-      <LocalMode
-        destinations={destinations}
-        onSelectDestination={(dest) => {
-          setSelectedDestination(dest);
-          setIsDrawerOpen(true);
-        }}
-      />
+
     </div>
   );
 }
