@@ -13,8 +13,6 @@ function capitalizeCity(city: string): string {
     .join(' ');
 }
 
-
-
 interface CityData {
   city: string;
   count: number;
@@ -25,6 +23,7 @@ export default function Cities() {
   const [, setLocation] = useLocation();
   const [cities, setCities] = useState<CityData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
 
   useEffect(() => {
     async function loadCities() {
@@ -43,7 +42,7 @@ export default function Cities() {
         const citiesArray: CityData[] = Object.entries(cityCount)
           .map(([city, count]) => ({
             city,
-            count,
+            count: count as number,
             country: cityCountryMap[city] || 'Other'
           }));
 
@@ -78,14 +77,29 @@ export default function Cities() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center transition-colors duration-300">
         <div className="text-xs font-bold uppercase text-black/60 dark:text-white/60">Loading...</div>
       </div>
     );
   }
 
-  const totalCities = cities.length;
-  const totalPlaces = cities.reduce((sum, city) => sum + city.count, 0);
+  // Get unique countries
+  const countries = Array.from(new Set(cities.map(c => c.country))).sort((a, b) => {
+    const indexA = countryOrder.indexOf(a);
+    const indexB = countryOrder.indexOf(b);
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+
+  // Filter cities by selected country
+  const filteredCities = selectedCountry 
+    ? cities.filter(c => c.country === selectedCountry)
+    : cities;
+
+  const totalCities = filteredCities.length;
+  const totalPlaces = filteredCities.reduce((sum, city) => sum + city.count, 0);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
@@ -96,24 +110,59 @@ export default function Cities() {
         <div className="max-w-[1920px] mx-auto">
           {/* Page Title */}
           <div className="mb-12">
-            <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight mb-2 text-black dark:text-white">Cities</h1>
+            <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight mb-4 text-black dark:text-white">
+              Cities
+            </h1>
             <p className="text-xs font-bold uppercase text-black/60 dark:text-white/60">
-              {totalCities} cities · {totalPlaces} places
+              {totalCities} {totalCities === 1 ? 'city' : 'cities'} · {totalPlaces} {totalPlaces === 1 ? 'place' : 'places'}
             </p>
           </div>
 
-          {/* Cities Grid */}
+          {/* Country Filter */}
+          <div className="mb-8">
+            <div className="mb-3">
+              <h2 className="text-xs font-bold uppercase text-black dark:text-white">Countries</h2>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              <button
+                onClick={() => setSelectedCountry("")}
+                className={`text-xs font-bold uppercase transition-opacity ${
+                  !selectedCountry ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
+                }`}
+              >
+                ALL
+              </button>
+              {countries.map((country) => (
+                <button
+                  key={country}
+                  onClick={() => setSelectedCountry(country === selectedCountry ? "" : country)}
+                  className={`text-xs font-bold uppercase transition-opacity ${
+                    selectedCountry === country ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
+                  }`}
+                >
+                  {country}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Cities Grid - Matching Home page grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
-            {cities.map((cityData) => (
+            {filteredCities.map((cityData) => (
               <button
                 key={cityData.city}
                 onClick={() => setLocation(`/city/${cityData.city}`)}
-                className="border border-gray-200 dark:border-gray-700 p-6 hover:border-black dark:hover:border-white transition-colors text-left group bg-white dark:bg-gray-900"
+                className="aspect-square border border-gray-200 dark:border-gray-800 hover:opacity-60 transition-opacity text-left group bg-white dark:bg-gray-900 flex flex-col justify-between p-4"
               >
-                <h3 className="text-sm font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity text-black dark:text-white">
-                  {capitalizeCity(cityData.city)}
-                </h3>
-                <p className="text-xs text-black/60 dark:text-white/60">
+                <div>
+                  <p className="text-[10px] font-bold uppercase mb-2 text-black/40 dark:text-white/40">
+                    {cityData.country}
+                  </p>
+                  <h3 className="text-sm font-bold uppercase text-black dark:text-white leading-tight">
+                    {capitalizeCity(cityData.city)}
+                  </h3>
+                </div>
+                <p className="text-xs text-black/60 dark:text-white/60 mt-auto">
                   {cityData.count} {cityData.count === 1 ? 'place' : 'places'}
                 </p>
               </button>

@@ -4,9 +4,9 @@ import { supabase } from "@/lib/supabase";
 import { DestinationCard } from "@/components/DestinationCard";
 import { Destination } from "@/types/destination";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
-
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
+
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
   return city
@@ -27,6 +27,7 @@ export default function City() {
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   // Load user's saved and visited places
   useEffect(() => {
@@ -101,10 +102,18 @@ export default function City() {
     setIsDrawerOpen(true);
   };
 
+  // Get unique categories
+  const categories = Array.from(new Set(destinations.map(d => d.category))).sort();
+
+  // Filter destinations by category
+  const filteredDestinations = selectedCategory
+    ? destinations.filter(d => d.category === selectedCategory)
+    : destinations;
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-lg text-gray-400">Loading...</div>
+      <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center transition-colors duration-300">
+        <div className="text-xs font-bold uppercase text-black/60 dark:text-white/60">Loading...</div>
       </div>
     );
   }
@@ -118,32 +127,76 @@ export default function City() {
         <div className="max-w-[1920px] mx-auto">
           {/* Breadcrumb */}
           <div className="mb-6">
-            <button onClick={() => setLocation("/cities")} className="text-xs text-gray-500 hover:text-black">
-              ← Back to Cities
+            <button 
+              onClick={() => setLocation("/cities")} 
+              className="text-xs font-bold uppercase text-black/60 dark:text-white/60 hover:opacity-60 transition-opacity"
+            >
+              ← CITIES
             </button>
           </div>
 
           {/* Page Title */}
           <div className="mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4">
+            <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight mb-4 text-black dark:text-white">
               {capitalizeCity(citySlug)}
             </h1>
-            <p className="text-sm text-gray-600">
-              {destinations.length} {destinations.length === 1 ? 'destination' : 'destinations'}
+            <p className="text-xs font-bold uppercase text-black/60 dark:text-white/60">
+              {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
             </p>
           </div>
 
-          {/* Destinations Grid */}
-          {destinations.length === 0 ? (
+          {/* Category Filter */}
+          {categories.length > 1 && (
+            <div className="mb-8">
+              <div className="mb-3">
+                <h2 className="text-xs font-bold uppercase text-black dark:text-white">Categories</h2>
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                <button
+                  onClick={() => setSelectedCategory("")}
+                  className={`text-xs font-bold uppercase transition-opacity ${
+                    !selectedCategory ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
+                  }`}
+                >
+                  ALL
+                </button>
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category === selectedCategory ? "" : category)}
+                    className={`text-xs font-bold uppercase transition-opacity ${
+                      selectedCategory === category ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Destinations Grid - Matching Home page grid */}
+          {filteredDestinations.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-xl text-gray-400">No destinations found in this city.</p>
+              <p className="text-xs font-bold uppercase text-black/40 dark:text-white/40">
+                No destinations found.
+              </p>
+              {selectedCategory && (
+                <button
+                  onClick={() => setSelectedCategory("")}
+                  className="mt-4 text-xs font-bold uppercase text-black dark:text-white hover:opacity-60 transition-opacity"
+                >
+                  Clear filter
+                </button>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {destinations.map((destination) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
+              {filteredDestinations.map((destination, index) => (
                 <DestinationCard
                   key={destination.slug}
                   destination={destination}
+                  colorIndex={index}
                   onClick={() => handleCardClick(destination)}
                   isSaved={savedPlaces.includes(destination.slug)}
                   isVisited={visitedPlaces.includes(destination.slug)}
@@ -154,21 +207,7 @@ export default function City() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 mt-20">
-        <div className="max-w-[1920px] mx-auto px-6 md:px-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6 text-xs">
-              <a href="#" className="hover:underline">INSTAGRAM</a>
-              <a href="#" className="hover:underline">TWITTER</a>
-              <a href="#" className="hover:underline">SAVEE</a>
-            </div>
-            <div className="text-xs text-gray-500">
-              © {new Date().getFullYear()} ALL RIGHTS RESERVED
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SimpleFooter />
 
       {/* Destination Drawer */}
       <DestinationDrawer
