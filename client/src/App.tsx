@@ -6,6 +6,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { lazy, Suspense } from "react";
 import { queryClient } from "./lib/queryClient";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Eager load critical pages
 import Home from "./pages/Home";
@@ -80,6 +82,8 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <Router />
+            <Analytics />
+            <SpeedInsights />
           </TooltipProvider>
         </QueryClientProvider>
       </ThemeProvider>
