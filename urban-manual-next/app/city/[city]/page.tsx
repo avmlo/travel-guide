@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { DestinationCardEnhanced } from "@/components/DestinationCardEnhanced";
 import { Destination } from "@/types/destination";
 import { SkeletonGrid } from "@/components/SkeletonCard";
@@ -27,6 +27,7 @@ interface CityPageProps {
 }
 
 export default function City({ params }: CityPageProps) {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const citySlug = params.city;
 

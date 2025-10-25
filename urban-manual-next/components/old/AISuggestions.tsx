@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Destination } from "@/types/destination";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { trpc } from "@/lib/trpc";
 
 interface AISuggestionsProps {
@@ -16,6 +16,7 @@ interface Suggestion {
 }
 
 export function AISuggestions({ destination, onSelectDestination }: AISuggestionsProps) {
+  const supabase = getSupabaseClient();
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

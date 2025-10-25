@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import {
   MapPin, Heart, CheckCircle2, Map, Loader2
 } from "lucide-react";
@@ -26,6 +26,7 @@ function capitalizeCity(city: string): string {
 }
 
 export default function Account() {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [savedPlaces, setSavedPlaces] = useState<any[]>([]);

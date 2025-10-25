@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Send, Sparkles } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { useLocation } from "wouter";
 
 interface Message {
@@ -9,6 +9,7 @@ interface Message {
 }
 
 export function ModernAIChat() {
+  const supabase = getSupabaseClient();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");

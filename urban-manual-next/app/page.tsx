@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Loader2 } from "lucide-react";
 import { DestinationCardEnhanced } from "@/components/DestinationCardEnhanced";
 import { Destination } from "@/types/destination";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { CookieBanner } from "@/components/CookieBanner";
 import { AdvancedSearchOverlay } from "@/components/AdvancedSearchOverlay";
 import { SkeletonGrid } from "@/components/SkeletonCard";
@@ -39,6 +39,7 @@ const CATEGORIES = [
 ];
 
 export default function Home() {
+  const supabase = getSupabaseClient();
   const router = useRouter();
 
   // State

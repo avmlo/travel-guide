@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { getSupabaseClient } from './supabase';
 
 // Check if user has consented to analytics
 export function hasAnalyticsConsent(): boolean {
@@ -18,6 +18,7 @@ function getSessionId(): string {
 
 // Get user ID if logged in, otherwise use session ID
 async function getUserIdentifier(): Promise<{ userId: string | null; sessionId: string }> {
+  const supabase = getSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   return {
     userId: session?.user?.id || null,
@@ -30,8 +31,9 @@ export async function trackPageView(page: string, title?: string) {
   if (!hasAnalyticsConsent()) return;
 
   try {
+    const supabase = getSupabaseClient();
     const { userId, sessionId } = await getUserIdentifier();
-    
+
     await supabase.from('analytics_page_views').insert({
       user_id: userId,
       session_id: sessionId,
@@ -53,8 +55,9 @@ export async function trackSearch(query: string, resultsCount: number, filters?:
   if (!hasAnalyticsConsent()) return;
 
   try {
+    const supabase = getSupabaseClient();
     const { userId, sessionId } = await getUserIdentifier();
-    
+
     await supabase.from('analytics_searches').insert({
       user_id: userId,
       session_id: sessionId,
@@ -73,8 +76,9 @@ export async function trackDestinationView(destinationSlug: string, destinationN
   if (!hasAnalyticsConsent()) return;
 
   try {
+    const supabase = getSupabaseClient();
     const { userId, sessionId } = await getUserIdentifier();
-    
+
     await supabase.from('analytics_destination_views').insert({
       user_id: userId,
       session_id: sessionId,
@@ -97,8 +101,9 @@ export async function trackAction(
   if (!hasAnalyticsConsent()) return;
 
   try {
+    const supabase = getSupabaseClient();
     const { userId, sessionId } = await getUserIdentifier();
-    
+
     await supabase.from('analytics_actions').insert({
       user_id: userId,
       session_id: sessionId,
@@ -133,8 +138,9 @@ export function initScrollTracking(page: string) {
     clearTimeout(scrollTrackingTimeout);
     scrollTrackingTimeout = setTimeout(async () => {
       try {
+        const supabase = getSupabaseClient();
         const { userId, sessionId } = await getUserIdentifier();
-        
+
         await supabase.from('analytics_scroll_depth').upsert({
           user_id: userId,
           session_id: sessionId,
@@ -169,10 +175,11 @@ export function initTimeTracking(page: string) {
 
   const trackTime = async () => {
     const timeSpent = Math.round((Date.now() - pageStartTime) / 1000); // seconds
-    
+
     try {
+      const supabase = getSupabaseClient();
       const { userId, sessionId } = await getUserIdentifier();
-      
+
       await supabase.from('analytics_time_on_page').insert({
         user_id: userId,
         session_id: sessionId,
@@ -203,8 +210,9 @@ export async function trackClick(element: string, text?: string, destination?: s
   if (!hasAnalyticsConsent()) return;
 
   try {
+    const supabase = getSupabaseClient();
     const { userId, sessionId } = await getUserIdentifier();
-    
+
     await supabase.from('analytics_clicks').insert({
       user_id: userId,
       session_id: sessionId,
@@ -220,6 +228,7 @@ export async function trackClick(element: string, text?: string, destination?: s
 
 // Get popular searches (for admin dashboard)
 export async function getPopularSearches(limit = 10, days = 7) {
+  const supabase = getSupabaseClient();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
@@ -247,6 +256,7 @@ export async function getPopularSearches(limit = 10, days = 7) {
 
 // Get zero-result searches (for content improvement)
 export async function getZeroResultSearches(limit = 20, days = 7) {
+  const supabase = getSupabaseClient();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
@@ -263,6 +273,7 @@ export async function getZeroResultSearches(limit = 20, days = 7) {
 
 // Get most viewed destinations
 export async function getMostViewedDestinations(limit = 10, days = 7) {
+  const supabase = getSupabaseClient();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
@@ -294,6 +305,7 @@ export async function getMostViewedDestinations(limit = 10, days = 7) {
 
 // Get analytics summary
 export async function getAnalyticsSummary(days = 7) {
+  const supabase = getSupabaseClient();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
   const startDateStr = startDate.toISOString();

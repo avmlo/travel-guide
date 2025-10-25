@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ interface Trip {
 }
 
 export default function Trips() {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [trips, setTrips] = useState<Trip[]>([]);

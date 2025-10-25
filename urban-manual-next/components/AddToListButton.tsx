@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { Plus, Check, List } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,11 +16,12 @@ interface AddToListButtonProps {
   className?: string;
 }
 
-export function AddToListButton({ 
-  destinationSlug, 
+export function AddToListButton({
+  destinationSlug,
   variant = 'button',
-  className = '' 
+  className = ''
 }: AddToListButtonProps) {
+  const supabase = getSupabaseClient();
   const [user, setUser] = useState<any>(null);
   const [lists, setLists] = useState<List[]>([]);
   const [addedToLists, setAddedToLists] = useState<Set<string>>(new Set());

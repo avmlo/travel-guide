@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, Crown, MapPin, ArrowLeft, ExternalLink, Heart, CheckCircle2 } from "lucide-react";
 import { Destination } from "@/types/destination";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 
@@ -17,6 +17,7 @@ interface DestinationDetailProps {
 }
 
 export default function DestinationDetail({ params }: DestinationDetailProps) {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const [destination, setDestination] = useState<Destination | null>(null);
   const [loading, setLoading] = useState(true);

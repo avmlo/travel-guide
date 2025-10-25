@@ -9,12 +9,13 @@ import { Destination } from "@/types/destination";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { SkeletonGrid } from "@/components/SkeletonCard";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export default function SavedPlaces() {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [savedSlugs, setSavedSlugs] = useState<string[]>([]);

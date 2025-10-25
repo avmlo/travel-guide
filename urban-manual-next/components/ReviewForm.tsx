@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { Star, X, Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,6 +25,7 @@ export function ReviewForm({
   onSuccess,
   onCancel
 }: ReviewFormProps) {
+  const supabase = getSupabaseClient();
   const [rating, setRating] = useState(existingReview?.rating || 0);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState(existingReview?.title || "");

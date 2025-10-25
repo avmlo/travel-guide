@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, Heart, Settings, LogOut } from "lucide-react";
 import { useLocation } from "wouter";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export function UserMenuSupabase() {
+  const supabase = getSupabaseClient();
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);

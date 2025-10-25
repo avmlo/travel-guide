@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
@@ -26,6 +26,7 @@ interface CityData {
 }
 
 export default function Cities() {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const [cities, setCities] = useState<CityData[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,12 +1,13 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
+import { getSupabaseClient } from "@/lib/supabase";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { Menu, X } from "lucide-react";
 
 export function Header() {
+  const supabase = getSupabaseClient();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
