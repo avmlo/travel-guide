@@ -195,9 +195,9 @@ export default function Home() {
               onClick={() => setIsSearchOpen(true)}
               className="relative max-w-[500px] w-full text-left"
             >
-              <div className="flex items-center gap-3 px-4 py-3 bg-[#efefef] dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+              <div className="flex items-center gap-3 px-4 py-3 bg-[#FAFAFA] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg hover:opacity-60 transition-opacity">
                 <Search className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-500 dark:text-gray-400">Search {destinations.length} items...</span>
+                <span className="text-xs font-bold uppercase text-black/60 dark:text-white/60">SEARCH {destinations.length} DESTINATIONS</span>
               </div>
             </button>
           </div>
@@ -210,18 +210,18 @@ export default function Home() {
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
               <button
                 onClick={() => setSelectedCity("")}
-                className={`transition-colors ${
-                  !selectedCity ? "font-medium text-black dark:text-white" : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
+                className={`text-xs font-bold uppercase transition-opacity ${
+                  !selectedCity ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
                 }`}
               >
-                All
+                ALL
               </button>
               {(showAllCities ? cities : cities.slice(0, 20)).map((city) => (
                 <button
                   key={city}
                   onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                  className={`transition-colors ${
-                    selectedCity === city ? "font-medium text-black dark:text-white" : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
+                  className={`text-xs font-bold uppercase transition-opacity ${
+                    selectedCity === city ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
                   }`}
                 >
                   {capitalizeCity(city)}
@@ -230,9 +230,9 @@ export default function Home() {
               {cities.length > 20 && (
                 <button
                   onClick={() => setShowAllCities(!showAllCities)}
-                  className="font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300 transition-colors"
+                  className="text-xs font-bold uppercase text-black/30 dark:text-white/30 hover:opacity-60 transition-opacity"
                 >
-                  {showAllCities ? '- Show Less' : '+ Show More'}
+                  {showAllCities ? '- SHOW LESS' : '+ SHOW MORE'}
                 </button>
               )}
             </div>
@@ -254,10 +254,10 @@ export default function Home() {
                 <button
                   key={cat.value}
                   onClick={() => setSelectedCategory(cat.value)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-opacity ${
                     selectedCategory === cat.value
                       ? 'bg-black text-white dark:bg-white dark:text-black'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                      : 'border border-gray-200 dark:border-gray-800 text-black dark:text-white hover:opacity-60'
                   }`}
                 >
                   <span className="mr-1.5">{cat.emoji}</span>
