@@ -4,11 +4,10 @@ import { useState, useEffect } from "react";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { Menu, X } from "lucide-react";
-import { User } from "@/types/user";
 
 export function Header() {
   const [, setLocation] = useLocation();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -55,7 +54,7 @@ export function Header() {
             <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
             <button onClick={() => setLocation("/explore")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Explore</button>
             {user && <button onClick={() => setLocation("/feed")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Feed</button>}
-            {user && <button onClick={() => setLocation("/stats")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Stats</button>}
+            {user && <button onClick={() => setLocation("/trips")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Trips</button>}
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
             <button onClick={() => setLocation("/editorial")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</button>
           </div>
@@ -78,13 +77,13 @@ export function Header() {
             <div className="hidden md:flex items-center gap-4">
               {user ? (
                 <>
-                  <button 
+                  <button
                     onClick={() => setLocation('/account')}
                     className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
                   >
                     Account
                   </button>
-                  <button 
+                  <button
                     onClick={handleSignOut}
                     className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
                   >
@@ -92,7 +91,7 @@ export function Header() {
                   </button>
                 </>
               ) : (
-                <button 
+                <button
                   onClick={() => setLocation('/account')}
                   className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
                 >
@@ -127,7 +126,7 @@ export function Header() {
               Explore
             </button>
             {user && (
-              <button 
+              <button
                 onClick={() => { setLocation("/feed"); setIsMenuOpen(false); }}
                 className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
               >
@@ -135,31 +134,31 @@ export function Header() {
               </button>
             )}
             {user && (
-              <button 
-                onClick={() => { setLocation("/stats"); setIsMenuOpen(false); }}
+              <button
+                onClick={() => { setLocation("/trips"); setIsMenuOpen(false); }}
                 className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
               >
-                Stats
+                Trips
               </button>
             )}
             <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Archive</a>
-            <button 
+            <button
               onClick={() => { setLocation("/editorial"); setIsMenuOpen(false); }}
               className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
             >
               Editorial
             </button>
-            
+
             <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
               {user ? (
                 <>
-                  <button 
+                  <button
                     onClick={() => { setLocation('/account'); setIsMenuOpen(false); }}
                     className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
                   >
                     Account
                   </button>
-                  <button 
+                  <button
                     onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
                     className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
                   >
@@ -167,7 +166,7 @@ export function Header() {
                   </button>
                 </>
               ) : (
-                <button 
+                <button
                   onClick={() => { setLocation('/account'); setIsMenuOpen(false); }}
                   className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
                 >

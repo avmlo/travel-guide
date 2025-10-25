@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { supabase } from "@/lib/supabase";
-import { DestinationCard } from "@/components/DestinationCard";
+import { DestinationCardEnhanced } from "@/components/DestinationCardEnhanced";
 import { Destination } from "@/types/destination";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
+import { SkeletonGrid } from "@/components/SkeletonCard";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
-
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
   return city
@@ -27,7 +27,6 @@ export default function City() {
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   // Load user's saved and visited places
   useEffect(() => {
@@ -102,36 +101,41 @@ export default function City() {
     setIsDrawerOpen(true);
   };
 
-  // Category mapping with emojis (matching Home page)
-  const categoryMap: Record<string, { emoji: string; label: string }> = {
-    'Eat & Drink': { emoji: '🍽️', label: 'Eat & Drink' },
-    'Stay': { emoji: '🏨', label: 'Stay' },
-    'Space': { emoji: '🏛️', label: 'Space' },
-    'Other': { emoji: '✨', label: 'Other' },
+  const handleSaveToggle = (slug: string, saved: boolean) => {
+    if (saved) {
+      setSavedPlaces(prev => [...prev, slug]);
+    } else {
+      setSavedPlaces(prev => prev.filter(s => s !== slug));
+    }
   };
 
-  // Get unique categories from destinations
-  const uniqueCategories = Array.from(new Set(destinations.map(d => d.category))).sort();
-  
-  // Build category buttons with emojis
-  const categoryButtons = [
-    { emoji: '🌍', label: 'All', value: '' },
-    ...uniqueCategories.map(cat => ({
-      emoji: categoryMap[cat]?.emoji || '✨',
-      label: categoryMap[cat]?.label || cat,
-      value: cat
-    }))
-  ];
-
-  // Filter destinations by category
-  const filteredDestinations = selectedCategory
-    ? destinations.filter(d => d.category === selectedCategory)
-    : destinations;
+  const handleVisitToggle = (slug: string, visited: boolean) => {
+    if (visited) {
+      setVisitedPlaces(prev => [...prev, slug]);
+    } else {
+      setVisitedPlaces(prev => prev.filter(v => v !== slug));
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center transition-colors duration-300">
-        <div className="text-xs font-bold uppercase text-black/60 dark:text-white/60">Loading...</div>
+      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+        <Header />
+        <main className="px-6 md:px-10 py-12 dark:text-white">
+          <div className="max-w-[1920px] mx-auto">
+            {/* Breadcrumb skeleton */}
+            <div className="mb-6 h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
+
+            {/* Title skeleton */}
+            <div className="mb-12">
+              <div className="h-12 w-64 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-4" />
+              <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
+            </div>
+
+            {/* Grid skeleton */}
+            <SkeletonGrid count={16} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -141,78 +145,40 @@ export default function City() {
       <Header />
 
       {/* Main Content */}
-      <main className="px-6 md:px-10 py-12">
+      <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-[1920px] mx-auto">
           {/* Breadcrumb */}
-          <div className="mb-6">
-            <button 
-              onClick={() => setLocation("/cities")} 
-              className="text-xs font-bold uppercase text-black/60 dark:text-white/60 hover:opacity-60 transition-opacity"
-            >
-              ← CITIES
+          <div className="mb-6 animate-fade-in">
+            <button onClick={() => setLocation("/cities")} className="text-xs text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+              ← Back to Cities
             </button>
           </div>
 
           {/* Page Title */}
-          <div className="mb-12">
-            <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight mb-4 text-black dark:text-white">
+          <div className="mb-12 animate-fade-in" style={{ animationDelay: '50ms' }}>
+            <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4 text-black dark:text-white">
               {capitalizeCity(citySlug)}
             </h1>
-            <p className="text-xs font-bold uppercase text-black/60 dark:text-white/60">
-              {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {destinations.length} {destinations.length === 1 ? 'destination' : 'destinations'}
             </p>
           </div>
 
-          {/* Category Filter - Matching Home page emoji pill design */}
-          {uniqueCategories.length > 0 && (
-            <div className="mb-8">
-              <div className="mb-3">
-                <h2 className="text-xs font-bold uppercase text-black dark:text-white">Categories</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {categoryButtons.map((cat) => (
-                  <button
-                    key={cat.value}
-                    onClick={() => setSelectedCategory(cat.value)}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-opacity ${
-                      selectedCategory === cat.value
-                        ? 'bg-black text-white dark:bg-white dark:text-black'
-                        : 'border border-gray-200 dark:border-gray-800 text-black dark:text-white hover:opacity-60'
-                    }`}
-                  >
-                    <span className="mr-1.5">{cat.emoji}</span>
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Destinations Grid - Matching Home page grid */}
-          {filteredDestinations.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-xs font-bold uppercase text-black/40 dark:text-white/40">
-                No destinations found.
-              </p>
-              {selectedCategory && (
-                <button
-                  onClick={() => setSelectedCategory("")}
-                  className="mt-4 text-xs font-bold uppercase text-black dark:text-white hover:opacity-60 transition-opacity"
-                >
-                  Clear filter
-                </button>
-              )}
+          {/* Destinations Grid with staggered animations */}
+          {destinations.length === 0 ? (
+            <div className="text-center py-20 animate-fade-in">
+              <p className="text-xl text-gray-400 dark:text-gray-600">No destinations found in this city.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
-              {filteredDestinations.map((destination, index) => (
-                <DestinationCard
+              {destinations.map((destination, index) => (
+                <DestinationCardEnhanced
                   key={destination.slug}
                   destination={destination}
-                  colorIndex={index}
                   onClick={() => handleCardClick(destination)}
                   isSaved={savedPlaces.includes(destination.slug)}
                   isVisited={visitedPlaces.includes(destination.slug)}
+                  animationDelay={Math.min(index * 30, 500)}
                 />
               ))}
             </div>
@@ -223,11 +189,18 @@ export default function City() {
       <SimpleFooter />
 
       {/* Destination Drawer */}
-      <DestinationDrawer
-        destination={selectedDestination}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
+      {selectedDestination && (
+        <DestinationDrawer
+          destination={selectedDestination}
+          isOpen={isDrawerOpen}
+          onClose={() => {
+            setIsDrawerOpen(false);
+            setTimeout(() => setSelectedDestination(null), 300);
+          }}
+          onSaveToggle={handleSaveToggle}
+          onVisitToggle={handleVisitToggle}
+        />
+      )}
     </div>
   );
 }

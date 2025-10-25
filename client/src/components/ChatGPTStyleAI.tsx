@@ -1,324 +1,260 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Minimize2, X, Sparkles, MapPin, Star } from "lucide-react";
+import { Send, Sparkles, X, Minimize2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { useLocation } from "wouter";
-
-interface Destination {
-  slug: string;
-  name: string;
-  city: string;
-  category: string;
-  michelin_stars: number | null;
-  image_url: string;
-}
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
-  destinations?: Destination[];
 }
 
 export function ChatGPTStyleAI() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [, setLocation] = useLocation();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { user } = useAuth();
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  // Focus input when chat opens
+  useEffect(() => {
+    if (isOpen) {
+      inputRef.current?.focus();
+    }
+  }, [isOpen]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-    setIsTyping(true);
+    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    setIsLoading(true);
 
-    const query = userMessage.toLowerCase();
-    
     try {
-      let response = "";
-      let destinations: Destination[] = [];
-      
-      // City query
-      if (query.includes("in ") || query.includes("places in") || query.includes("destinations in")) {
-        const cityMatch = query.match(/in ([a-z\-]+)/);
-        if (cityMatch) {
-          const city = cityMatch[1];
-          const { data } = await supabase
-            .from("destinations")
-            .select("slug, name, city, category, michelin_stars, image_url")
-            .eq("city", city)
-            .limit(6);
-          
-          if (data && data.length > 0) {
-            response = `Here are some great places in ${city}:`;
-            destinations = data;
-          } else {
-            response = `I couldn't find destinations in ${city}. Try searching for Paris, Tokyo, New York, or other cities!`;
-          }
-        }
-      }
-      // Category query
-      else if (query.includes("eat") || query.includes("drink") || query.includes("restaurant") || query.includes("food")) {
-        const { data } = await supabase
-          .from("destinations")
-          .select("slug, name, city, category, michelin_stars, image_url")
-          .eq("category", "Eat & Drink")
-          .limit(6);
-        
-        if (data && data.length > 0) {
-          response = "Here are some amazing places to eat & drink:";
-          destinations = data;
-        }
-      }
-      else if (query.includes("stay") || query.includes("hotel") || query.includes("accommodation")) {
-        const { data } = await supabase
-          .from("destinations")
-          .select("slug, name, city, category, michelin_stars, image_url")
-          .eq("category", "Stay")
-          .limit(6);
-        
-        if (data && data.length > 0) {
-          response = "Here are some great places to stay:";
-          destinations = data;
-        }
-      }
-      else if (query.includes("space")) {
-        const { data } = await supabase
-          .from("destinations")
-          .select("slug, name, city, category, michelin_stars, image_url")
-          .eq("category", "Space")
-          .limit(6);
-        
-        if (data && data.length > 0) {
-          response = "Here are some interesting spaces:";
-          destinations = data;
-        }
-      }
-      // Michelin query
-      else if (query.includes("michelin")) {
-        const { data } = await supabase
-          .from("destinations")
-          .select("slug, name, city, category, michelin_stars, image_url")
-          .not("michelin_stars", "is", null)
-          .order("michelin_stars", { ascending: false })
-          .limit(6);
-        
-        if (data && data.length > 0) {
-          response = "Here are some Michelin-starred restaurants:";
-          destinations = data;
-        }
-      }
-      // Default
-      else {
-        response = "I can help you discover amazing destinations! Try asking:\n\n• Places in Paris\n• Eat & drink recommendations\n• Michelin-starred restaurants\n• Hotels to stay";
-      }
-
-      setMessages((prev) => [...prev, { role: "assistant", content: response, destinations }]);
+      // Simple keyword-based responses (replace with actual AI API call)
+      const response = await getAIResponse(userMessage);
+      setMessages(prev => [...prev, { role: "assistant", content: response }]);
     } catch (error) {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I encountered an error. Please try again!" }]);
+      console.error("AI error:", error);
+      setMessages(prev => [...prev, { 
+        role: "assistant", 
+        content: "Sorry, I encountered an error. Please try again." 
+      }]);
     } finally {
-      setIsTyping(false);
+      setIsLoading(false);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
+  const getAIResponse = async (query: string): Promise<string> => {
+    const lowerQuery = query.toLowerCase();
 
-  const handleDestinationClick = (slug: string) => {
-    setLocation(`/destination/${slug}`);
-    setIsOpen(false);
-    setMessages([]);
+    // Check for city queries
+    const cityMatch = lowerQuery.match(/(?:in|at|near)\s+([a-z\s-]+)/i);
+    if (cityMatch) {
+      const city = cityMatch[1].trim().replace(/\s+/g, '-');
+      const { data } = await supabase
+        .from('destinations')
+        .select('*')
+        .ilike('city', `%${city}%`)
+        .limit(5);
+
+      if (data && data.length > 0) {
+        const list = data.map(d => `• **${d.name}** - ${d.category}`).join('\n');
+        return `I found these places in ${city}:\n\n${list}\n\nWould you like to know more about any of these?`;
+      }
+    }
+
+    // Check for category queries
+    const categories = ['restaurant', 'cafe', 'hotel', 'bar', 'shop'];
+    const foundCategory = categories.find(cat => lowerQuery.includes(cat));
+    if (foundCategory) {
+      const { data } = await supabase
+        .from('destinations')
+        .select('*')
+        .ilike('category', `%${foundCategory}%`)
+        .limit(5);
+
+      if (data && data.length > 0) {
+        const list = data.map(d => `• **${d.name}** in ${d.city.replace(/-/g, ' ')}`).join('\n');
+        return `Here are some great ${foundCategory}s:\n\n${list}`;
+      }
+    }
+
+    // Check for Michelin queries
+    if (lowerQuery.includes('michelin') || lowerQuery.includes('star')) {
+      const { data } = await supabase
+        .from('destinations')
+        .select('*')
+        .gt('michelin_stars', 0)
+        .order('michelin_stars', { ascending: false })
+        .limit(5);
+
+      if (data && data.length > 0) {
+        const list = data.map(d => {
+          const stars = '⭐'.repeat(d.michelin_stars);
+          return `• **${d.name}** ${stars} - ${d.city.replace(/-/g, ' ')}`;
+        }).join('\n');
+        return `Here are our top Michelin-starred restaurants:\n\n${list}`;
+      }
+    }
+
+    // Default greeting
+    const greetings = ['hi', 'hello', 'hey'];
+    if (greetings.some(g => lowerQuery.includes(g))) {
+      const userName = user?.name || 'there';
+      return `Hello ${userName}! 👋 I can help you discover amazing destinations. Try asking me about:\n\n• Places in a specific city\n• Restaurants, cafes, or hotels\n• Michelin-starred restaurants\n\nWhat would you like to explore?`;
+    }
+
+    // Fallback
+    return `I can help you find destinations! Try asking about specific cities, types of places (restaurants, cafes, hotels), or Michelin-starred restaurants.`;
   };
 
   if (!isOpen) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 group"
+        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-full shadow-lg hover:scale-105 transition-transform duration-200"
       >
-        <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
+        <Sparkles className="h-5 w-5" />
         <span className="font-medium">Ask AI Travel Assistant</span>
       </button>
     );
   }
 
-  if (isMinimized) {
-    return (
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-        <button
-          onClick={() => setIsMinimized(false)}
-          className="px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-        >
-          <Sparkles className="w-5 h-5" />
-          <span className="font-medium">Travel Assistant</span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOpen(false);
-              setIsMinimized(false);
-            }}
-            className="ml-2 hover:bg-white/20 rounded-full p-1"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-4">
-      {/* Chat History */}
+    <div className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center pointer-events-none">
+      {/* Chat History - Floating Above */}
       {messages.length > 0 && (
-        <div 
-          className="mb-4 max-h-[32rem] overflow-y-auto rounded-2xl p-4 space-y-4"
-          style={{
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
-          }}
-        >
-          {messages.map((msg, idx) => (
-            <div key={idx} className="space-y-3">
-              <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+        <div className="w-full max-w-3xl mb-4 px-4 pointer-events-auto">
+          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 max-h-[60vh] overflow-y-auto">
+            <div className="p-4 space-y-4">
+              {messages.map((message, index) => (
                 <div
-                  className={`max-w-[80%] px-4 py-2 rounded-2xl ${
-                    msg.role === "user"
-                      ? "bg-black text-white"
-                      : "bg-white/90 text-gray-800 border border-gray-200"
-                  }`}
+                  key={index}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-                </div>
-              </div>
-              
-              {/* Destination Cards */}
-              {msg.destinations && msg.destinations.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {msg.destinations.map((dest) => (
-                    <button
-                      key={dest.slug}
-                      onClick={() => handleDestinationClick(dest.slug)}
-                      className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group text-left"
-                    >
-                      <div className="aspect-square relative overflow-hidden">
-                        <img
-                          src={dest.image_url}
-                          alt={dest.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        {dest.michelin_stars && (
-                          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            {dest.michelin_stars}
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                      message.role === 'user'
+                        ? 'bg-black dark:bg-white text-white dark:text-black'
+                        : 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
+                    }`}
+                  >
+                    {message.role === 'assistant' && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="h-4 w-4" />
+                        <span className="text-xs font-medium opacity-70">AI Assistant</span>
+                      </div>
+                    )}
+                    <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {message.content.split('\n').map((line, i) => {
+                        // Parse markdown-style bold
+                        const parts = line.split(/(\*\*.*?\*\*)/g);
+                        return (
+                          <div key={i}>
+                            {parts.map((part, j) => {
+                              if (part.startsWith('**') && part.endsWith('**')) {
+                                return <strong key={j}>{part.slice(2, -2)}</strong>;
+                              }
+                              return <span key={j}>{part}</span>;
+                            })}
                           </div>
-                        )}
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                       </div>
-                      <div className="p-3">
-                        <h3 className="font-medium text-sm text-gray-900 line-clamp-1 group-hover:text-purple-600 transition-colors">
-                          {dest.name}
-                        </h3>
-                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                          <MapPin className="w-3 h-3" />
-                          <span>{dest.city}</span>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+                    </div>
+                  </div>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
-          ))}
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="bg-white/90 text-gray-800 border border-gray-200 px-4 py-2 rounded-2xl">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+          </div>
         </div>
       )}
 
-      {/* Input Bar */}
-      <div 
-        className="rounded-full p-2 flex items-center gap-2"
-        style={{
-          background: 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
-        }}
-      >
-        <button
-          onClick={() => setIsMinimized(true)}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
-        >
-          <Minimize2 className="w-5 h-5 text-gray-600" />
-        </button>
-        
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Ask about destinations..."
-          className="flex-1 bg-transparent border-none outline-none px-2 text-gray-800 placeholder-gray-400"
-        />
-
-        {messages.length === 0 && (
-          <div className="hidden md:flex gap-2 flex-shrink-0">
-            {["Paris restaurants", "Tokyo hotels", "Michelin stars"].map((suggestion) => (
+      {/* Input Bar - Bottom Center */}
+      <div className="w-full max-w-3xl px-4 pb-6 pointer-events-auto">
+        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 p-4">
+          <form onSubmit={handleSubmit} className="flex items-end gap-3">
+            <div className="flex-1">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+                placeholder="Ask about destinations, cities, or restaurants..."
+                rows={1}
+                className="w-full resize-none bg-transparent border-none outline-none text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-base"
+                style={{ maxHeight: '120px' }}
+              />
+            </div>
+            <div className="flex items-center gap-2">
               <button
-                key={suggestion}
-                onClick={() => setInput(suggestion)}
-                className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-600 transition-colors"
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className="p-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {suggestion}
+                <Send className="h-5 w-5" />
               </button>
-            ))}
-          </div>
-        )}
-        
-        <button
-          onClick={handleSend}
-          disabled={!input.trim()}
-          className="p-2 bg-black hover:bg-gray-800 text-white rounded-full hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-        >
-          <Send className="w-5 h-5" />
-        </button>
-        
-        <button
-          onClick={() => {
-            setIsOpen(false);
-            setMessages([]);
-          }}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
-        >
-          <X className="w-5 h-5 text-gray-600" />
-        </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  setMessages([]);
+                }}
+                className="p-2 bg-gray-100 dark:bg-gray-800 text-black dark:text-white rounded-lg hover:scale-105 transition-transform"
+              >
+                {messages.length > 0 ? <Minimize2 className="h-5 w-5" /> : <X className="h-5 w-5" />}
+              </button>
+            </div>
+          </form>
+          
+          {messages.length === 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Try asking:</div>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "Best restaurants in Tokyo",
+                  "Michelin-starred restaurants",
+                  "Cafes in Paris"
+                ].map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setInput(suggestion)}
+                    className="px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 text-black dark:text-white rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

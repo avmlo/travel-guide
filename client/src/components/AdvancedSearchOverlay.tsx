@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Search, ChevronRight, Clock, TrendingUp, SlidersHorizontal, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Destination } from "@/types/destination";
+import { trackSearch, trackClick, trackAction } from "@/lib/analytics";
 
 interface AdvancedSearchOverlayProps {
   isOpen: boolean;
@@ -59,6 +60,19 @@ export function AdvancedSearchOverlay({ isOpen, onClose, destinations, onSelectD
     setRecentSearches([]);
     localStorage.removeItem('recentSearches');
   };
+
+  // Track search when query or filters change
+  useEffect(() => {
+    if (query.trim() || hasActiveFilters) {
+      const filters = {
+        categories: selectedCategories,
+        cities: selectedCities,
+        stars: selectedStars,
+        sortBy
+      };
+      trackSearch(query, filteredResults.length, filters);
+    }
+  }, [query, selectedCategories, selectedCities, selectedStars, sortBy]);
 
   // Filter and sort results
   useEffect(() => {
@@ -361,6 +375,7 @@ export function AdvancedSearchOverlay({ isOpen, onClose, destinations, onSelectD
                   <button
                     key={destination.slug}
                     onClick={() => {
+                      trackClick('search-result', destination.name, `/destination/${destination.slug}`);
                       onSelectDestination(destination);
                       saveSearch(query);
                       onClose();

@@ -1,21 +1,21 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import { DestinationCard } from "@/components/DestinationCard";
+import { Search, Loader2 } from "lucide-react";
+import { DestinationCardEnhanced } from "@/components/DestinationCardEnhanced";
 import { Destination } from "@/types/destination";
-import { User } from "@/types/user";
 import { supabase } from "@/lib/supabase";
 import { DestinationDrawer } from "@/components/DestinationDrawer";
 import { CookieBanner } from "@/components/CookieBanner";
 import { AdvancedSearchOverlay } from "@/components/AdvancedSearchOverlay";
-import { LoadingSkeleton } from "@/components/LoadingSkeleton";
+import { SkeletonGrid } from "@/components/SkeletonCard";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { ChatGPTStyleAI } from "@/components/ChatGPTStyleAI";
-
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -25,35 +25,52 @@ function capitalizeCity(city: string): string {
     .join(' ');
 }
 
+const ITEMS_PER_PAGE = 40;
+const CATEGORIES = [
+  { id: "", label: "All", icon: "🌍" },
+  { id: "restaurant", label: "Restaurant", icon: "🍽️" },
+  { id: "cafe", label: "Cafe", icon: "☕" },
+  { id: "hotel", label: "Hotel", icon: "🏨" },
+  { id: "bar", label: "Bar", icon: "🍸" },
+  { id: "shop", label: "Shop", icon: "🛍️" },
+  { id: "bakery", label: "Bakery", icon: "🥐" },
+];
+
 export default function Home() {
   const [, setLocation] = useLocation();
+
+  // State
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [displayCount, setDisplayCount] = useState(40);
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showAllCities, setShowAllCities] = useState(false);
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Debounced search for smooth UX
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Load user's saved and visited places
   useEffect(() => {
     async function loadUserData() {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
-      
+
       if (session?.user) {
         // Load saved places
         const { data: savedData } = await supabase
           .from('saved_places')
           .select('destination_slug')
           .eq('user_id', session.user.id);
-        
+
         if (savedData) {
           setSavedPlaces(savedData.map(s => s.destination_slug));
         }
@@ -63,7 +80,7 @@ export default function Home() {
           .from('visited_places')
           .select('destination_slug')
           .eq('user_id', session.user.id);
-        
+
         if (visitedData) {
           setVisitedPlaces(visitedData.map(v => v.destination_slug));
         }
@@ -80,16 +97,19 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Load destinations with smooth initial load
   useEffect(() => {
     async function loadDestinations() {
       try {
+        setLoading(true);
+
         const { data, error } = await supabase
           .from('destinations')
           .select('*')
           .order('name');
-        
+
         if (error) throw error;
-        
+
         // Transform Supabase data to match Destination type
         const transformedData: Destination[] = (data || []).map(d => ({
           name: d.name,
@@ -108,7 +128,7 @@ export default function Home() {
           reviewed: false,
           subline: '',
         }));
-        
+
         setDestinations(transformedData);
       } catch (error) {
         console.error("Error loading destinations:", error);
@@ -120,23 +140,24 @@ export default function Home() {
     loadDestinations();
   }, []);
 
+  // Get sorted cities
   const cities = useMemo(() => {
     const citySet = new Set(destinations.map((d) => d.city).filter(Boolean));
     const cityArray = Array.from(citySet);
-    
+
     // Sort cities by country priority, then alphabetically within country
     return cityArray.sort((a, b) => {
       const countryA = cityCountryMap[a] || 'Other';
       const countryB = cityCountryMap[b] || 'Other';
-      
+
       const indexA = countryOrder.indexOf(countryA);
       const indexB = countryOrder.indexOf(countryB);
-      
+
       // If same country, sort alphabetically
       if (countryA === countryB) {
         return a.localeCompare(b);
       }
-      
+
       // Sort by country priority
       if (indexA === -1 && indexB === -1) return countryA.localeCompare(countryB);
       if (indexA === -1) return 1;
@@ -145,42 +166,105 @@ export default function Home() {
     });
   }, [destinations]);
 
+  // Filter destinations with debounced search
   const filteredDestinations = useMemo(() => {
     return destinations.filter((dest) => {
       const matchesSearch =
-        searchQuery === "" ||
-        dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dest.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dest.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dest.category.toLowerCase().includes(searchQuery.toLowerCase());
+        debouncedSearchQuery === "" ||
+        dest.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        dest.content.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        dest.city.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        dest.category.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
 
       const matchesCity =
         !selectedCity || dest.city === selectedCity;
 
       const matchesCategory =
-        !selectedCategory || dest.category === selectedCategory;
+        !selectedCategory || dest.category.toLowerCase().includes(selectedCategory.toLowerCase());
 
       return matchesSearch && matchesCity && matchesCategory;
     });
-  }, [destinations, searchQuery, selectedCity, selectedCategory]);
+  }, [destinations, debouncedSearchQuery, selectedCity, selectedCategory]);
 
   const displayedDestinations = filteredDestinations.slice(0, displayCount);
   const hasMore = displayCount < filteredDestinations.length;
 
-  // Reset display count when filters change
+  // Infinite scroll handler
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadingMore) {
+      setLoadingMore(true);
+      setTimeout(() => {
+        setDisplayCount(prev => prev + ITEMS_PER_PAGE);
+        setLoadingMore(false);
+      }, 300); // Small delay for smooth UX
+    }
+  }, [hasMore, loadingMore]);
+
+  // Infinite scroll sentinel ref
+  const sentinelRef = useInfiniteScroll({
+    onLoadMore: handleLoadMore,
+    hasMore,
+    isLoading: loadingMore,
+    threshold: 400,
+  });
+
+  // Reset display count when filters change (with smooth transition)
   useEffect(() => {
-    setDisplayCount(40);
-  }, [searchQuery, selectedCity, selectedCategory]);
+    setDisplayCount(ITEMS_PER_PAGE);
+  }, [debouncedSearchQuery, selectedCity, selectedCategory]);
 
   const handleCardClick = (destination: Destination) => {
     setSelectedDestination(destination);
     setIsDrawerOpen(true);
   };
 
+  const handleCategoryChange = (categoryId: string) => {
+    // Smooth transition effect
+    setSelectedCategory(categoryId);
+  };
+
+  // Callback to update saved/visited states from drawer
+  const handleSaveToggle = (slug: string, saved: boolean) => {
+    if (saved) {
+      setSavedPlaces(prev => [...prev, slug]);
+    } else {
+      setSavedPlaces(prev => prev.filter(s => s !== slug));
+    }
+  };
+
+  const handleVisitToggle = (slug: string, visited: boolean) => {
+    if (visited) {
+      setVisitedPlaces(prev => [...prev, slug]);
+    } else {
+      setVisitedPlaces(prev => prev.filter(v => v !== slug));
+    }
+  };
+
   const displayedCities = showAllCities ? cities : cities.slice(0, 20);
 
+  // Show skeleton on initial load
   if (loading) {
-    return <LoadingSkeleton />;
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+        <Header />
+        <main className="px-6 md:px-10 py-12 dark:text-white">
+          <div className="max-w-[1920px] mx-auto">
+            {/* Search skeleton */}
+            <div className="mb-8 h-12 bg-gray-200 dark:bg-gray-800 rounded-lg w-full max-w-[500px] animate-shimmer" />
+
+            {/* Category skeleton */}
+            <div className="mb-8 flex gap-2">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="h-10 w-24 bg-gray-200 dark:bg-gray-800 rounded-full animate-shimmer" />
+              ))}
+            </div>
+
+            {/* Grid skeleton */}
+            <SkeletonGrid count={12} />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -190,39 +274,65 @@ export default function Home() {
       {/* Main Content */}
       <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-[1920px] mx-auto">
-          {/* Search Bar */}
-          <div className="mb-8">
+          {/* Search Bar with smooth focus */}
+          <div className="mb-8 animate-fade-in">
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="relative max-w-[500px] w-full text-left"
+              className="relative max-w-[500px] w-full text-left group"
             >
-              <div className="flex items-center gap-3 px-4 py-3 bg-[#FAFAFA] dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg hover:opacity-60 transition-opacity">
-                <Search className="h-4 w-4 text-gray-400" />
-                <span className="text-xs font-bold uppercase text-black/60 dark:text-white/60">SEARCH {destinations.length} DESTINATIONS</span>
+              <div className="flex items-center gap-3 px-4 py-3 bg-[#efefef] dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200">
+                <Search className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                <span className="text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                  Search {destinations.length} items...
+                </span>
               </div>
             </button>
           </div>
 
-          {/* City Filter */}
-          <div className="mb-8">
+          {/* Category Filter - App Store Style with smooth transitions */}
+          <div className="mb-8 animate-fade-in" style={{ animationDelay: '50ms' }}>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryChange(category.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    selectedCategory === category.id
+                      ? "bg-black dark:bg-white text-white dark:text-black scale-105"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:scale-102"
+                  }`}
+                >
+                  <span>{category.icon}</span>
+                  <span>{category.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* City Filter with smooth transitions */}
+          <div className="mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
             <div className="mb-3">
               <h2 className="text-xs font-bold uppercase">Places</h2>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
               <button
                 onClick={() => setSelectedCity("")}
-                className={`text-xs font-bold uppercase transition-opacity ${
-                  !selectedCity ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
+                className={`transition-all duration-200 ${
+                  !selectedCity
+                    ? "font-medium text-black dark:text-white scale-105"
+                    : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
                 }`}
               >
-                ALL
+                All
               </button>
-              {(showAllCities ? cities : cities.slice(0, 20)).map((city) => (
+              {displayedCities.map((city) => (
                 <button
                   key={city}
                   onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                  className={`text-xs font-bold uppercase transition-opacity ${
-                    selectedCity === city ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
+                  className={`transition-all duration-200 ${
+                    selectedCity === city
+                      ? "font-medium text-black dark:text-white scale-105"
+                      : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
                   }`}
                 >
                   {capitalizeCity(city)}
@@ -231,53 +341,27 @@ export default function Home() {
               {cities.length > 20 && (
                 <button
                   onClick={() => setShowAllCities(!showAllCities)}
-                  className="text-xs font-bold uppercase text-black/30 dark:text-white/30 hover:opacity-60 transition-opacity"
+                  className="font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300 transition-colors"
                 >
-                  {showAllCities ? '- SHOW LESS' : '+ SHOW MORE'}
+                  {showAllCities ? '- Show Less' : '+ Show More'}
                 </button>
               )}
             </div>
           </div>
 
-          {/* Category Filter */}
-          <div className="mb-8">
-            <div className="mb-3">
-              <h2 className="text-xs font-bold uppercase">Categories</h2>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { emoji: '🌍', label: 'All', value: '' },
-                { emoji: '🍽️', label: 'Eat & Drink', value: 'Eat & Drink' },
-                { emoji: '🏨', label: 'Stay', value: 'Stay' },
-                { emoji: '🏛️', label: 'Space', value: 'Space' },
-                { emoji: '✨', label: 'Other', value: 'Other' },
-              ].map((cat) => (
-                <button
-                  key={cat.value}
-                  onClick={() => setSelectedCategory(cat.value)}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-opacity ${
-                    selectedCategory === cat.value
-                      ? 'bg-black text-white dark:bg-white dark:text-black'
-                      : 'border border-gray-200 dark:border-gray-800 text-black dark:text-white hover:opacity-60'
-                  }`}
-                >
-                  <span className="mr-1.5">{cat.emoji}</span>
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Results Count */}
-          <div className="mb-6">
+          {/* Results Count with loading indicator */}
+          <div className="mb-6 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '150ms' }}>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
             </p>
+            {debouncedSearchQuery !== searchQuery && (
+              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+            )}
           </div>
 
-          {/* Destination Grid */}
+          {/* Destination Grid with staggered animation */}
           {filteredDestinations.length === 0 ? (
-            <div className="text-center py-20">
+            <div className="text-center py-20 animate-fade-in">
               <p className="text-xl text-gray-400 mb-6">
                 No destinations found.
               </p>
@@ -285,6 +369,7 @@ export default function Home() {
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedCity("");
+                  setSelectedCategory("");
                 }}
               >
                 Clear filters
@@ -292,27 +377,32 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6 animate-in fade-in duration-500">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
                 {displayedDestinations.map((destination, index) => (
-                  <DestinationCard
+                  <DestinationCardEnhanced
                     key={destination.slug}
                     destination={destination}
-                    colorIndex={index}
                     onClick={() => handleCardClick(destination)}
                     isSaved={savedPlaces.includes(destination.slug)}
                     isVisited={visitedPlaces.includes(destination.slug)}
+                    animationDelay={Math.min(index * 30, 500)} // Stagger animation up to 500ms
                   />
                 ))}
               </div>
-              
+
+              {/* Infinite scroll sentinel */}
               {hasMore && (
-                <div className="flex justify-center mt-12">
-                  <button
-                    onClick={() => setDisplayCount(prev => prev + 40)}
-                    className="px-8 py-3 border border-gray-300 dark:border-gray-700 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-600 transition-all"
-                  >
-                    Load More
-                  </button>
+                <div ref={sentinelRef} className="flex justify-center mt-12 py-8">
+                  {loadingMore && (
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                  )}
+                </div>
+              )}
+
+              {/* End of results indicator */}
+              {!hasMore && displayedDestinations.length > ITEMS_PER_PAGE && (
+                <div className="text-center mt-12 py-8 text-gray-400 dark:text-gray-600 text-sm">
+                  You've reached the end
                 </div>
               )}
             </>
@@ -336,23 +426,22 @@ export default function Home() {
         }}
       />
 
-      {/* Destination Drawer */}
+      {/* Destination Drawer with smooth animation */}
       {selectedDestination && (
         <DestinationDrawer
           destination={selectedDestination}
           isOpen={isDrawerOpen}
           onClose={() => {
             setIsDrawerOpen(false);
-            setSelectedDestination(null);
+            setTimeout(() => setSelectedDestination(null), 300); // Delay to allow close animation
           }}
+          onSaveToggle={handleSaveToggle}
+          onVisitToggle={handleVisitToggle}
         />
       )}
 
       {/* AI Assistant */}
       <ChatGPTStyleAI />
-
-
     </div>
   );
 }
-

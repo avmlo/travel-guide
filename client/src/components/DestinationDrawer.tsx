@@ -1,14 +1,22 @@
 import { useState, useEffect } from "react";
-import { X, Share2, Navigation, Heart, CheckCircle2, Maximize2, Minimize2 } from "lucide-react";
+import { X, Share2, Navigation, Heart, CheckCircle2, Maximize2, Minimize2, Plus } from "lucide-react";
 import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { GoogleMap } from "@/components/GoogleMap";
+import { trackDestinationView, trackAction } from "@/lib/analytics";
+import { trpc } from "@/lib/trpc";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface DestinationDrawerProps {
   destination: Destination | null;
   isOpen: boolean;
   onClose: () => void;
+  onSaveToggle?: (slug: string, saved: boolean) => void;
+  onVisitToggle?: (slug: string, visited: boolean) => void;
 }
 
 // Helper function to capitalize city names
@@ -32,12 +40,27 @@ const categoryColors: Record<string, string> = {
   'default': 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
 };
 
-export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {
+export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, onVisitToggle }: DestinationDrawerProps) {
   const [copied, setCopied] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isVisited, setIsVisited] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isAddToTripOpen, setIsAddToTripOpen] = useState(false);
+  const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
+  const [selectedDay, setSelectedDay] = useState(1);
+
+  const { data: trips } = trpc.trips.list.useQuery(undefined, { enabled: !!user });
+  const addToTripMutation = trpc.trips.addItem.useMutation({
+    onSuccess: () => {
+      toast.success("Added to trip!");
+      setIsAddToTripOpen(false);
+      setSelectedTripId(null);
+    },
+    onError: (error) => {
+      toast.error(`Failed to add to trip: ${error.message}`);
+    },
+  });
 
   useEffect(() => {
     async function checkAuth() {
@@ -48,12 +71,17 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
   }, []);
 
   useEffect(() => {
+    // Track destination view when drawer opens
+    if (destination && isOpen) {
+      trackDestinationView(destination.slug, destination.name);
+    }
+
     async function checkSavedAndVisited() {
       if (!user || !destination) return;
 
       // Check if saved
       const { data: savedData } = await supabase
-        .from('saved_destinations')
+        .from('saved_places')
         .select('*')
         .eq('user_id', user.id)
         .eq('destination_slug', destination.slug)
@@ -63,7 +91,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
       // Check if visited
       const { data: visitedData } = await supabase
-        .from('visited_destinations')
+        .from('visited_places')
         .select('*')
         .eq('user_id', user.id)
         .eq('destination_slug', destination.slug)
@@ -84,6 +112,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
       await navigator.clipboard.writeText(url);
       setCopied(true);
       toast.success("Link copied to clipboard!");
+      trackAction('share', destination.slug, { name: destination.name, method: 'clipboard' });
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       toast.error("Failed to copy link");
@@ -98,35 +127,45 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
     if (!destination) return;
 
-    if (isSaved) {
-      // Remove from saved
-      const { error } = await supabase
-        .from('saved_destinations')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('destination_slug', destination.slug);
+    // Optimistic update - immediately update UI
+    const previousState = isSaved;
+    const newState = !isSaved;
+    setIsSaved(newState);
+    onSaveToggle?.(destination.slug, newState);
 
-      if (error) {
-        toast.error("Failed to remove from saved");
-      } else {
-        setIsSaved(false);
+    try {
+      if (previousState) {
+        // Remove from saved
+        const { error } = await supabase
+          .from('saved_places')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('destination_slug', destination.slug);
+
+        if (error) throw error;
+
         toast.success("Removed from saved");
-      }
-    } else {
-      // Add to saved
-      const { error } = await supabase
-        .from('saved_destinations')
-        .insert({
-          user_id: user.id,
-          destination_slug: destination.slug
-        });
-
-      if (error) {
-        toast.error("Failed to save destination");
+        trackAction('unsave', destination.slug, { name: destination.name });
       } else {
-        setIsSaved(true);
-        toast.success("Saved!");
+        // Add to saved
+        const { error } = await supabase
+          .from('saved_places')
+          .insert({
+            user_id: user.id,
+            destination_slug: destination.slug,
+            saved_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+
+        toast.success("Saved to your collection");
+        trackAction('save', destination.slug, { name: destination.name });
       }
+    } catch (error) {
+      // Revert on error
+      setIsSaved(previousState);
+      onSaveToggle?.(destination.slug, previousState);
+      toast.error(previousState ? "Failed to remove from saved" : "Failed to save destination");
     }
   };
 
@@ -138,37 +177,68 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
     if (!destination) return;
 
-    if (isVisited) {
-      // Remove from visited
-      const { error } = await supabase
-        .from('visited_destinations')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('destination_slug', destination.slug);
+    // Optimistic update - immediately update UI
+    const previousState = isVisited;
+    const newState = !isVisited;
+    setIsVisited(newState);
+    onVisitToggle?.(destination.slug, newState);
 
-      if (error) {
-        toast.error("Failed to remove from visited");
-      } else {
-        setIsVisited(false);
+    try {
+      if (previousState) {
+        // Remove from visited
+        const { error } = await supabase
+          .from('visited_places')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('destination_slug', destination.slug);
+
+        if (error) throw error;
+
         toast.success("Removed from visited");
-      }
-    } else {
-      // Add to visited
-      const { error } = await supabase
-        .from('visited_destinations')
-        .insert({
-          user_id: user.id,
-          destination_slug: destination.slug,
-          visited_at: new Date().toISOString()
-        });
-
-      if (error) {
-        toast.error("Failed to mark as visited");
+        trackAction('unvisit', destination.slug, { name: destination.name });
       } else {
-        setIsVisited(true);
+        // Add to visited
+        const { error } = await supabase
+          .from('visited_places')
+          .insert({
+            user_id: user.id,
+            destination_slug: destination.slug,
+            visited_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+
         toast.success("Marked as visited!");
+        trackAction('visit', destination.slug, { name: destination.name });
       }
+    } catch (error) {
+      // Revert on error
+      setIsVisited(previousState);
+      onVisitToggle?.(destination.slug, previousState);
+      toast.error(previousState ? "Failed to remove from visited" : "Failed to mark as visited");
     }
+  };
+
+  const handleAddToTrip = () => {
+    if (!user) {
+      toast.error("Please sign in to add to trip");
+      return;
+    }
+    if (!selectedTripId) {
+      toast.error("Please select a trip");
+      return;
+    }
+    if (!destination) return;
+
+    addToTripMutation.mutate({
+      tripId: selectedTripId,
+      destinationSlug: destination.slug,
+      day: selectedDay,
+      orderIndex: 0,
+      title: destination.name,
+      description: destination.content || "",
+      time: "",
+    });
   };
 
   if (!destination) return null;
@@ -179,7 +249,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
+        className={`fixed inset-0 bg-black transition-opacity duration-500 ease-out z-40 ${
           isOpen ? "opacity-50" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -187,7 +257,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full bg-white dark:bg-gray-950 shadow-xl transition-all duration-300 z-50 ${
+        className={`fixed top-0 right-0 h-full bg-white dark:bg-gray-950 shadow-xl transition-all duration-500 ease-out z-50 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } ${isExpanded ? "w-full" : "w-full sm:w-[600px]"}`}
       >
@@ -254,7 +324,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                   {user && (
                     <div>
                       <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Actions</div>
-                      <div className="flex gap-3">
+                      <div className="flex flex-wrap gap-3">
                         <button
                           onClick={handleSave}
                           className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
@@ -277,6 +347,14 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                         >
                           <CheckCircle2 className={`h-4 w-4 ${isVisited ? 'fill-current' : ''}`} />
                           <span>{isVisited ? 'Visited' : 'Mark as Visited'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => setIsAddToTripOpen(true)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm border bg-white dark:bg-gray-900 text-black dark:text-white border-gray-300 dark:border-gray-700 hover:border-black dark:hover:border-white transition-colors"
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span>Add to Trip</span>
                         </button>
                       </div>
                     </div>
@@ -361,7 +439,7 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
 
               {/* Action Buttons */}
               {user && (
-                <div className="flex gap-3 mb-8">
+                <div className="flex flex-wrap gap-3 mb-8">
                   <button
                     onClick={handleSave}
                     className={`flex items-center gap-2 px-4 py-2 text-sm border transition-colors ${
@@ -384,6 +462,14 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
                   >
                     <CheckCircle2 className={`h-4 w-4 ${isVisited ? 'fill-current' : ''}`} />
                     <span>{isVisited ? 'Visited' : 'Mark as Visited'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsAddToTripOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm border bg-white dark:bg-gray-900 text-black dark:text-white border-gray-300 dark:border-gray-700 hover:border-black dark:hover:border-white transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Add to Trip</span>
                   </button>
                 </div>
               )}
@@ -453,6 +539,74 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
           )}
         </div>
       </div>
+
+      {/* Add to Trip Dialog */}
+      <Dialog open={isAddToTripOpen} onOpenChange={setIsAddToTripOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add to Trip</DialogTitle>
+            <DialogDescription>
+              Add "{destination.name}" to one of your trips
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {!trips || trips.length === 0 ? (
+              <div className="text-center py-6 text-gray-600 dark:text-gray-400">
+                <p className="mb-4">You don't have any trips yet.</p>
+                <Button onClick={() => {
+                  setIsAddToTripOpen(false);
+                  window.location.href = '/trips';
+                }}>
+                  Create Your First Trip
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="trip-select">Select Trip</Label>
+                  <select
+                    id="trip-select"
+                    className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                    value={selectedTripId || ""}
+                    onChange={(e) => setSelectedTripId(parseInt(e.target.value))}
+                  >
+                    <option value="">Choose a trip...</option>
+                    {trips.map((trip) => (
+                      <option key={trip.id} value={trip.id}>
+                        {trip.title} {trip.destination && `- ${trip.destination}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="day-select">Day Number</Label>
+                  <Input
+                    id="day-select"
+                    type="number"
+                    min="1"
+                    value={selectedDay}
+                    onChange={(e) => setSelectedDay(parseInt(e.target.value) || 1)}
+                    placeholder="Which day?"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          {trips && trips.length > 0 && (
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddToTripOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddToTrip}
+                disabled={!selectedTripId || addToTripMutation.isPending}
+              >
+                {addToTripMutation.isPending ? "Adding..." : "Add to Trip"}
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
+import { SkeletonGrid } from "@/components/SkeletonCard";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -12,6 +13,8 @@ function capitalizeCity(city: string): string {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
+
+
 
 interface CityData {
   city: string;
@@ -23,7 +26,6 @@ export default function Cities() {
   const [, setLocation] = useLocation();
   const [cities, setCities] = useState<CityData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
 
   useEffect(() => {
     async function loadCities() {
@@ -42,7 +44,7 @@ export default function Cities() {
         const citiesArray: CityData[] = Object.entries(cityCount)
           .map(([city, count]) => ({
             city,
-            count: count as number,
+            count,
             country: cityCountryMap[city] || 'Other'
           }));
 
@@ -77,92 +79,87 @@ export default function Cities() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center transition-colors duration-300">
-        <div className="text-xs font-bold uppercase text-black/60 dark:text-white/60">Loading...</div>
+      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+        <Header />
+        <main className="px-6 md:px-10 py-12 dark:text-white">
+          <div className="max-w-[1920px] mx-auto">
+            {/* Title skeleton */}
+            <div className="mb-12">
+              <div className="h-12 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-4" />
+              <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
+            </div>
+
+            {/* Grid skeleton */}
+            <SkeletonGrid count={24} />
+          </div>
+        </main>
       </div>
     );
   }
 
-  // Get unique countries
-  const countries = Array.from(new Set(cities.map(c => c.country))).sort((a, b) => {
-    const indexA = countryOrder.indexOf(a);
-    const indexB = countryOrder.indexOf(b);
-    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
-    if (indexA === -1) return 1;
-    if (indexB === -1) return -1;
-    return indexA - indexB;
-  });
-
-  // Filter cities by selected country
-  const filteredCities = selectedCountry 
-    ? cities.filter(c => c.country === selectedCountry)
-    : cities;
-
-  const totalCities = filteredCities.length;
-  const totalPlaces = filteredCities.reduce((sum, city) => sum + city.count, 0);
+  const totalCities = cities.length;
+  const totalPlaces = cities.reduce((sum, city) => sum + city.count, 0);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-      <Header />
+      {/* Header */}
+      <header className="px-6 md:px-10 py-6 border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900">
+        <div className="max-w-[1920px] mx-auto flex items-center justify-between">
+          <button 
+            onClick={() => setLocation("/")}
+            className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity text-black dark:text-white"
+          >
+            The Urban Manual
+          </button>
+          <button 
+            onClick={() => setLocation("/account")}
+            className="text-xs font-bold uppercase hover:opacity-60 transition-opacity px-4 py-2 border border-black"
+          >
+            Account
+          </button>
+        </div>
+      </header>
+
+      {/* Navigation Bar */}
+      <nav className="px-6 md:px-10 border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900">
+        <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
+          <div className="flex items-center gap-6">
+            <button onClick={() => setLocation("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
+            <button onClick={() => setLocation("/cities")} className="text-xs font-bold uppercase text-black dark:text-white">Cities</button>
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-bold uppercase">New York</span>
+            <span className="text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+          </div>
+        </div>
+      </nav>
 
       {/* Main Content */}
       <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-[1920px] mx-auto">
           {/* Page Title */}
-          <div className="mb-12">
-            <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight mb-4 text-black dark:text-white">
-              Cities
-            </h1>
-            <p className="text-xs font-bold uppercase text-black/60 dark:text-white/60">
-              {totalCities} {totalCities === 1 ? 'city' : 'cities'} · {totalPlaces} {totalPlaces === 1 ? 'place' : 'places'}
+          <div className="mb-12 animate-fade-in">
+            <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4 text-black dark:text-white">Cities</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {totalCities} cities · {totalPlaces} places
             </p>
           </div>
 
-          {/* Country Filter */}
-          <div className="mb-8">
-            <div className="mb-3">
-              <h2 className="text-xs font-bold uppercase text-black dark:text-white">Countries</h2>
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              <button
-                onClick={() => setSelectedCountry("")}
-                className={`text-xs font-bold uppercase transition-opacity ${
-                  !selectedCountry ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
-                }`}
-              >
-                ALL
-              </button>
-              {countries.map((country) => (
-                <button
-                  key={country}
-                  onClick={() => setSelectedCountry(country === selectedCountry ? "" : country)}
-                  className={`text-xs font-bold uppercase transition-opacity ${
-                    selectedCountry === country ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
-                  }`}
-                >
-                  {country}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Cities Grid - Matching Home page grid */}
+          {/* Cities Grid with staggered animations */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
-            {filteredCities.map((cityData) => (
+            {cities.map((cityData, index) => (
               <button
                 key={cityData.city}
                 onClick={() => setLocation(`/city/${cityData.city}`)}
-                className="aspect-square border border-gray-200 dark:border-gray-800 hover:opacity-60 transition-opacity text-left group bg-white dark:bg-gray-900 flex flex-col justify-between p-4"
+                className="border border-gray-200 dark:border-gray-700 p-6 hover:border-black dark:hover:border-white hover:shadow-lg transition-all duration-200 text-left group bg-white dark:bg-gray-900 animate-scale-in"
+                style={{ animationDelay: `${Math.min(index * 20, 400)}ms` }}
               >
-                <div>
-                  <p className="text-[10px] font-bold uppercase mb-2 text-black/40 dark:text-white/40">
-                    {cityData.country}
-                  </p>
-                  <h3 className="text-sm font-bold uppercase text-black dark:text-white leading-tight">
-                    {capitalizeCity(cityData.city)}
-                  </h3>
-                </div>
-                <p className="text-xs text-black/60 dark:text-white/60 mt-auto">
+                <h3 className="text-base font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity text-black dark:text-white">
+                  {capitalizeCity(cityData.city)}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {cityData.count} {cityData.count === 1 ? 'place' : 'places'}
                 </p>
               </button>
@@ -171,7 +168,21 @@ export default function Cities() {
         </div>
       </main>
 
-      <SimpleFooter />
+      {/* Footer */}
+      <footer className="border-t border-gray-200 py-8 mt-20">
+        <div className="max-w-[1920px] mx-auto px-6 md:px-10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6 text-xs">
+              <a href="#" className="hover:underline">INSTAGRAM</a>
+              <a href="#" className="hover:underline">TWITTER</a>
+              <a href="#" className="hover:underline">SAVEE</a>
+            </div>
+            <div className="text-xs text-gray-500">
+              © {new Date().getFullYear()} ALL RIGHTS RESERVED
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
