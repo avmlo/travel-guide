@@ -7,7 +7,6 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Destination from "./pages/Destination";
 import SavedPlaces from "./pages/SavedPlaces";
-import CityPage from "./pages/CityPage";
 import Cities from "./pages/Cities";
 import City from "./pages/City";
 import Login from "./pages/Login";
