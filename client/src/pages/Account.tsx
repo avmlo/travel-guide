@@ -206,54 +206,54 @@ export default function Account() {
   }));
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       <Header />
 
       {/* Main Content */}
-      <main className="px-6 md:px-10 py-12">
+      <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-[1920px] mx-auto">
           
           {/* Profile Section */}
           <div className="mb-12">
-            <h1 className="text-4xl font-normal mb-2">{user?.user_metadata?.name || user?.email?.split('@')[0] || 'Traveler'}</h1>
-            <p className="text-base text-gray-600">{user?.email}</p>
+            <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight mb-2">{user?.user_metadata?.name || user?.email?.split('@')[0] || 'Traveler'}</h1>
+            <p className="text-xs font-bold uppercase text-black/60 dark:text-white/60">{user?.email}</p>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 mb-12 pb-12 border-b border-gray-200">
+          <div className="grid grid-cols-3 gap-6 mb-12 pb-12 border-b border-gray-200 dark:border-gray-800">
             <div>
-              <div className="text-3xl font-normal mb-1">{visitedPlaces.length}</div>
-              <div className="text-sm text-gray-600 uppercase tracking-wide">Places Visited</div>
+              <div className="text-3xl font-bold mb-1">{visitedPlaces.length}</div>
+              <div className="text-xs font-bold uppercase text-black/60 dark:text-white/60">Places Visited</div>
             </div>
             <div>
-              <div className="text-3xl font-normal mb-1">{savedPlaces.length}</div>
-              <div className="text-sm text-gray-600 uppercase tracking-wide">Saved</div>
+              <div className="text-3xl font-bold mb-1">{savedPlaces.length}</div>
+              <div className="text-xs font-bold uppercase text-black/60 dark:text-white/60">Saved</div>
             </div>
             <div>
-              <div className="text-3xl font-normal mb-1">{uniqueCities.size}</div>
-              <div className="text-sm text-gray-600 uppercase tracking-wide">Cities</div>
+              <div className="text-3xl font-bold mb-1">{uniqueCities.size}</div>
+              <div className="text-xs font-bold uppercase text-black/60 dark:text-white/60">Cities</div>
             </div>
           </div>
 
           {/* Tab Navigation */}
-          <div className="mb-8 border-b border-gray-200">
+          <div className="mb-8 border-b border-gray-200 dark:border-gray-800">
             <div className="flex gap-8">
               <button
                 onClick={() => setActiveTab('saved')}
-                className={`pb-4 text-sm font-bold uppercase tracking-wide transition-colors ${
+                className={`pb-4 text-xs font-bold uppercase transition-opacity ${
                   activeTab === 'saved' 
-                    ? 'border-b-2 border-black text-black' 
-                    : 'text-gray-400 hover:text-gray-600'
+                    ? 'border-b-2 border-black dark:border-white text-black dark:text-white' 
+                    : 'text-black/30 dark:text-white/30 hover:opacity-60'
                 }`}
               >
                 Saved ({savedPlaces.length})
               </button>
               <button
                 onClick={() => setActiveTab('visited')}
-                className={`pb-4 text-sm font-bold uppercase tracking-wide transition-colors ${
+                className={`pb-4 text-xs font-bold uppercase transition-opacity ${
                   activeTab === 'visited' 
-                    ? 'border-b-2 border-black text-black' 
-                    : 'text-gray-400 hover:text-gray-600'
+                    ? 'border-b-2 border-black dark:border-white text-black dark:text-white' 
+                    : 'text-black/30 dark:text-white/30 hover:opacity-60'
                 }`}
               >
                 Visited ({visitedPlaces.length})
@@ -270,7 +270,7 @@ export default function Account() {
                   <p className="text-gray-400">No saved places yet</p>
                   <button 
                     onClick={() => setLocation('/')}
-                    className="mt-4 text-sm font-bold uppercase hover:opacity-60 transition-opacity"
+                    className="mt-4 text-xs font-bold uppercase hover:opacity-60 transition-opacity"
                   >
                     Explore Destinations
                   </button>
@@ -309,7 +309,7 @@ export default function Account() {
                   <p className="text-gray-400">No visited places yet</p>
                   <button 
                     onClick={() => setLocation('/')}
-                    className="mt-4 text-sm font-bold uppercase hover:opacity-60 transition-opacity"
+                    className="mt-4 text-xs font-bold uppercase hover:opacity-60 transition-opacity"
                   >
                     Explore Destinations
                   </button>
