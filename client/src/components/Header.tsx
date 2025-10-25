@@ -74,14 +74,22 @@ export function Header() {
             <span className="hidden sm:inline text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
             <DarkModeToggle />
             {user && <NotificationDropdown />}
-            <div className="hidden md:block">
+            <div className="hidden md:flex items-center gap-4">
               {user ? (
-                <button 
-                  onClick={handleSignOut}
-                  className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-                >
-                  Sign Out
-                </button>
+                <>
+                  <button 
+                    onClick={() => setLocation('/account')}
+                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                  >
+                    Account
+                  </button>
+                  <button 
+                    onClick={handleSignOut}
+                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                  >
+                    Sign Out
+                  </button>
+                </>
               ) : (
                 <button 
                   onClick={() => setLocation('/account')}
@@ -143,12 +151,20 @@ export function Header() {
             
             <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
               {user ? (
-                <button 
-                  onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
-                  className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-                >
-                  Sign Out
-                </button>
+                <>
+                  <button 
+                    onClick={() => { setLocation('/account'); setIsMenuOpen(false); }}
+                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                  >
+                    Account
+                  </button>
+                  <button 
+                    onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
+                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                  >
+                    Sign Out
+                  </button>
+                </>
               ) : (
                 <button 
                   onClick={() => { setLocation('/account'); setIsMenuOpen(false); }}
