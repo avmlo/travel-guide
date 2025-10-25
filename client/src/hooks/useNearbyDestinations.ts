@@ -6,7 +6,6 @@ interface NearbyDestination {
   name: string;
   city: string;
   category: string;
-  brand: string;
   main_image: string;
   michelin_stars: number;
   crown: boolean;

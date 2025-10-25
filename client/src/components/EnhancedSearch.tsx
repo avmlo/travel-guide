@@ -156,12 +156,6 @@ export function EnhancedSearch({ onClose }: EnhancedSearchProps) {
                         <span>{result.city}</span>
                         <span>•</span>
                         <span>{result.category}</span>
-                        {result.brand && (
-                          <>
-                            <span>•</span>
-                            <span>{result.brand}</span>
-                          </>
-                        )}
                       </div>
                     </div>
 
