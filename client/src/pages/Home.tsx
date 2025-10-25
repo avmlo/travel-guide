@@ -218,40 +218,43 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#04060d] text-white">
+    <div className="min-h-screen bg-[#f5f5f7] text-[#0a0a0a]">
       <Header />
 
       <main className="px-6 py-12 md:px-10">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-16">
-          <section className="relative overflow-hidden rounded-[40px] border border-white/10 bg-[#070a16] px-7 py-12 shadow-[0_40px_140px_-60px_rgba(15,23,42,0.8)] sm:px-10 sm:py-16">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(87,108,214,0.28),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(22,27,59,0.8),transparent_65%)]" />
-            <div className="relative grid gap-12 lg:grid-cols-[1.5fr,1fr]">
-              <div className="space-y-8">
-                <div className="space-y-3">
-                  <p className="text-xs uppercase tracking-[0.35em] text-white/40">Curated personal atlas</p>
+          <section className="relative overflow-hidden rounded-[40px] border border-black/5 bg-white px-8 py-14 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.35)] sm:px-12 sm:py-16">
+            <div
+              aria-hidden
+              className="absolute inset-x-16 top-[-120px] h-[240px] rounded-full bg-gradient-to-r from-black/5 via-transparent to-black/5 blur-3xl"
+            />
+            <div className="relative grid gap-14 lg:grid-cols-[1.7fr,1fr]">
+              <div className="space-y-10">
+                <div className="space-y-4">
+                  <p className="text-xs uppercase tracking-[0.38em] text-neutral-500">The Urban Manual</p>
                   <h1 className="text-4xl font-semibold leading-tight sm:text-5xl md:text-6xl">
-                    {greeting}, Urban Manual traveller.
+                    {greeting}, evening explorer.
                   </h1>
-                  <p className="max-w-xl text-base text-white/65 sm:text-lg">
-                    Navigate every evening with the same language—glass, gradients, and a steady rhythm of intel guiding you to the right address.
+                  <p className="max-w-xl text-lg text-neutral-600">
+                    Consider this your nightly brief. Contemporary hospitality, collected cities, and the reservations worth
+                    staying out for—all in one understated grid.
                   </p>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr),auto]">
                   <div className="relative">
-                    <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/45" />
+                    <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
                     <Input
                       value={searchQuery}
                       onChange={(event) => setSearchQuery(event.target.value)}
                       placeholder={`Search ${destinations.length} places...`}
-                      className="h-14 rounded-2xl border border-white/15 bg-white/10 pl-12 text-base text-white placeholder:text-white/55 backdrop-blur-md focus-visible:border-white/35 focus-visible:ring-white/35"
+                      className="h-14 rounded-[26px] border border-black/10 bg-neutral-100 pl-14 text-base text-[#0a0a0a] placeholder:text-neutral-500 focus-visible:border-black/30 focus-visible:ring-black/10"
                     />
                   </div>
                   <Button
                     onClick={() => setIsSearchOpen(true)}
                     variant="outline"
-                    className="h-14 rounded-2xl border border-white/25 bg-transparent text-white transition hover:border-white/45 hover:bg-white/10"
+                    className="h-14 rounded-[26px] border border-black/10 bg-white text-[#0a0a0a] transition hover:border-black/20 hover:bg-neutral-50"
                   >
                     <Sparkles className="h-5 w-5" />
                     Advanced search
@@ -260,18 +263,15 @@ export default function Home() {
 
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                   {heroStats.map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-sm"
-                    >
-                      <p className="text-[11px] uppercase tracking-[0.3em] text-white/40">{stat.label}</p>
-                      <p className="mt-2 text-2xl font-semibold tracking-tight">{stat.value}</p>
+                    <div key={stat.label} className="rounded-2xl border border-black/5 bg-neutral-50 px-6 py-5">
+                      <p className="text-[11px] uppercase tracking-[0.32em] text-neutral-500">{stat.label}</p>
+                      <p className="mt-3 text-2xl font-semibold tracking-tight text-[#0a0a0a]">{stat.value}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <aside className="flex flex-col justify-between rounded-[32px] border border-white/12 bg-white/5 p-6 backdrop-blur-lg">
+              <aside className="flex flex-col justify-between rounded-[32px] border border-black/5 bg-[#0a0a0a] p-6 text-white">
                 <div className="flex items-center justify-between text-sm text-white/70">
                   <span className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
@@ -281,12 +281,12 @@ export default function Home() {
                 </div>
 
                 <div className="mt-8 space-y-3">
-                  <p className="text-[11px] uppercase tracking-[0.38em] text-white/45">Tonight's spotlight</p>
+                  <p className="text-[11px] uppercase tracking-[0.38em] text-white/50">Tonight's spotlight</p>
                   <h2 className="text-2xl font-semibold leading-snug">
                     {displayedDestinations[0]?.name ?? "Choose a city to begin"}
                   </h2>
-                  <p className="text-sm text-white/60 line-clamp-4">
-                    {displayedDestinations[0]?.content || "Dial in the filters to surface the addresses that align with tonight's rhythm."}
+                  <p className="text-sm text-white/70 line-clamp-4">
+                    {displayedDestinations[0]?.content || "Adjust the filters to surface a fresh set of rooms, tables, and soundscapes."}
                   </p>
                 </div>
 
@@ -297,7 +297,7 @@ export default function Home() {
                         handleCardClick(displayedDestinations[0]);
                       }
                     }}
-                    className="rounded-2xl bg-white text-slate-900 transition hover:bg-slate-100"
+                    className="rounded-[26px] bg-white text-[#0a0a0a] transition hover:bg-neutral-100"
                   >
                     View details
                     <ArrowRight className="h-4 w-4" />
@@ -305,7 +305,7 @@ export default function Home() {
                   <Button
                     onClick={() => setLocation("/cities")}
                     variant="outline"
-                    className="rounded-2xl border border-white/25 bg-transparent text-white hover:border-white/45 hover:bg-white/10"
+                    className="rounded-[26px] border border-white/40 bg-transparent text-white hover:border-white/60 hover:bg-white/10"
                   >
                     Browse cities
                   </Button>
@@ -318,17 +318,17 @@ export default function Home() {
             <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
               <div className="space-y-8">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-white/40">
-                    <SlidersHorizontal className="h-4 w-4 text-white/35" />
+                  <div className="flex items-center gap-3 text-xs uppercase tracking-[0.32em] text-neutral-500">
+                    <SlidersHorizontal className="h-4 w-4 text-neutral-400" />
                     Places
                   </div>
-                  <div className="flex flex-wrap gap-x-6 gap-y-3 text-[11px] font-semibold uppercase tracking-[0.28em]">
+                  <div className="flex flex-wrap gap-x-6 gap-y-3 text-[12px] font-semibold uppercase tracking-[0.28em] text-neutral-500">
                     <button
                       onClick={() => setSelectedCity("")}
                       className={`border-b pb-1 transition-colors ${
                         !selectedCity
-                          ? "border-white/80 text-white"
-                          : "border-transparent text-white/45 hover:border-white/30 hover:text-white/75"
+                          ? "border-[#0a0a0a] text-[#0a0a0a]"
+                          : "border-transparent text-neutral-400 hover:border-black/15 hover:text-[#0a0a0a]"
                       }`}
                     >
                       Everywhere
@@ -341,8 +341,8 @@ export default function Home() {
                           onClick={() => setSelectedCity(isActive ? "" : city)}
                           className={`border-b pb-1 transition-colors ${
                             isActive
-                              ? "border-white/80 text-white"
-                              : "border-transparent text-white/45 hover:border-white/30 hover:text-white/75"
+                              ? "border-[#0a0a0a] text-[#0a0a0a]"
+                              : "border-transparent text-neutral-400 hover:border-black/15 hover:text-[#0a0a0a]"
                           }`}
                         >
                           {capitalizeCity(city)}
@@ -352,8 +352,8 @@ export default function Home() {
                     {cities.length > 18 && (
                       <button
                         onClick={() => setShowAllCities((previous) => !previous)}
-                        className={`border-b pb-1 text-white/45 transition-colors hover:border-white/30 hover:text-white/75 ${
-                          showAllCities ? "border-white/40 text-white/70" : "border-transparent"
+                        className={`border-b pb-1 text-neutral-400 transition-colors hover:border-black/15 hover:text-[#0a0a0a] ${
+                          showAllCities ? "border-[#0a0a0a]/40 text-[#0a0a0a]" : "border-transparent"
                         }`}
                       >
                         {showAllCities ? "Show less" : "Show more"}
@@ -363,18 +363,18 @@ export default function Home() {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/40">Categories</p>
+                  <p className="text-xs uppercase tracking-[0.32em] text-neutral-500">Categories</p>
                   <div className="flex flex-wrap gap-3">
                     {CATEGORY_FILTERS.map((category) => {
                       const isActive = selectedCategory === category.value;
                       return (
                         <button
                           key={category.value || "all"}
-                          onClick={() => setSelectedCategory(category.value)}
-                          className={`flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-medium transition ${
+                          onClick={() => setSelectedCategory(isActive ? "" : category.value)}
+                          className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
                             isActive
-                              ? "border-white/60 bg-white/15 text-white"
-                              : "border-white/15 bg-white/5 text-white/70 hover:text-white"
+                              ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
+                              : "border-black/10 bg-white text-neutral-600 hover:border-black/20 hover:text-[#0a0a0a]"
                           }`}
                         >
                           <span>{category.emoji}</span>
@@ -386,20 +386,20 @@ export default function Home() {
                 </div>
               </div>
 
-              <aside className="h-max rounded-[32px] border border-white/12 bg-white/5 p-6 text-sm text-white/70 backdrop-blur-md">
-                <p className="text-[11px] uppercase tracking-[0.32em] text-white/45">Active filters</p>
-                <ul className="mt-4 space-y-2 text-white/70">
+              <aside className="h-max rounded-[32px] border border-black/5 bg-white p-6 text-sm text-neutral-600 shadow-sm">
+                <p className="text-[11px] uppercase tracking-[0.32em] text-neutral-500">Active filters</p>
+                <ul className="mt-4 space-y-2">
                   <li>
-                    <span className="text-white/45">Keyword:</span> {searchQuery || "—"}
+                    <span className="text-neutral-400">Keyword:</span> {searchQuery || "—"}
                   </li>
                   <li>
-                    <span className="text-white/45">City:</span> {selectedCity ? capitalizeCity(selectedCity) : "All"}
+                    <span className="text-neutral-400">City:</span> {selectedCity ? capitalizeCity(selectedCity) : "All"}
                   </li>
                   <li>
-                    <span className="text-white/45">Category:</span> {selectedCategory || "All"}
+                    <span className="text-neutral-400">Category:</span> {selectedCategory || "All"}
                   </li>
                   <li>
-                    <span className="text-white/45">Results:</span> {filteredDestinations.length}
+                    <span className="text-neutral-400">Results:</span> {filteredDestinations.length}
                   </li>
                 </ul>
                 {(searchQuery || selectedCity || selectedCategory) && (
@@ -410,7 +410,7 @@ export default function Home() {
                       setSelectedCategory("");
                     }}
                     variant="outline"
-                    className="mt-6 w-full rounded-2xl border border-white/25 bg-transparent text-white hover:border-white/45 hover:bg-white/10"
+                    className="mt-6 w-full rounded-[26px] border border-black/10 bg-white text-[#0a0a0a] transition hover:border-black/20 hover:bg-neutral-50"
                   >
                     Clear filters
                   </Button>
@@ -419,17 +419,17 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs uppercase tracking-[0.3em] text-white/45">
+              <p className="text-xs uppercase tracking-[0.32em] text-neutral-500">
                 Showing {filteredDestinations.length} {filteredDestinations.length === 1 ? "destination" : "destinations"}
               </p>
             </div>
           </section>
 
           {filteredDestinations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-[40px] border border-white/10 bg-white/5 px-10 py-24 text-center backdrop-blur-md">
-              <p className="text-xl font-medium text-white/75">No destinations match those filters yet.</p>
-              <p className="mt-4 max-w-lg text-sm text-white/60">
-                Tweak the categories or pivot to another city to surface more late-night gems aligned with the current design rhythm.
+            <div className="flex flex-col items-center justify-center rounded-[40px] border border-black/5 bg-white px-10 py-24 text-center shadow-sm">
+              <p className="text-xl font-medium text-[#0a0a0a]">No destinations match those filters yet.</p>
+              <p className="mt-4 max-w-lg text-sm text-neutral-600">
+                Tweak the categories or explore another city to surface more spaces aligned with tonight's tempo.
               </p>
               <Button
                 onClick={() => {
@@ -438,7 +438,7 @@ export default function Home() {
                   setSelectedCategory("");
                 }}
                 variant="outline"
-                className="mt-8 rounded-2xl border border-white/25 bg-transparent text-white hover:border-white/45 hover:bg-white/10"
+                className="mt-8 rounded-[26px] border border-black/10 bg-white text-[#0a0a0a] hover:border-black/20 hover:bg-neutral-50"
               >
                 Reset filters
               </Button>
@@ -462,7 +462,7 @@ export default function Home() {
                   <Button
                     onClick={() => setDisplayCount((previous) => previous + 40)}
                     variant="outline"
-                    className="mt-12 rounded-2xl border border-white/25 bg-transparent px-8 py-5 text-white hover:border-white/45 hover:bg-white/10"
+                    className="mt-12 rounded-[26px] border border-black/10 bg-white px-8 py-5 text-[#0a0a0a] hover:border-black/20 hover:bg-neutral-50"
                   >
                     Load more places
                   </Button>

@@ -88,7 +88,7 @@ export function LocalMode({ destinations, onSelectDestination }: LocalModeProps)
       <button
         onClick={activateLocalMode}
         disabled={isLoading}
-        className="fixed bottom-6 right-6 z-30 flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+        className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full bg-[#0a0a0a] px-6 py-3 text-white shadow-lg transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLoading ? (
           <>
@@ -106,24 +106,24 @@ export function LocalMode({ destinations, onSelectDestination }: LocalModeProps)
   }
 
   return (
-    <div className="fixed inset-0 bg-background z-40 overflow-y-auto">
+    <div className="fixed inset-0 z-40 overflow-y-auto bg-white text-[#0a0a0a]">
       {/* Header */}
-      <div className="sticky top-0 bg-background/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-6 py-4 z-10">
-        <div className="flex items-center justify-between max-w-[1600px] mx-auto">
+      <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 px-6 py-4 backdrop-blur">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-black dark:bg-white rounded-full">
-              <MapPin className="h-5 w-5 text-white dark:text-black" />
+            <div className="rounded-full bg-[#0a0a0a] p-2 text-white">
+              <MapPin className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Local Mode</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <h2 className="text-lg font-semibold">Local Mode</h2>
+              <p className="text-sm text-neutral-500">
                 {locationName} • {nearbyDestinations.length} places nearby
               </p>
             </div>
           </div>
           <button
             onClick={deactivateLocalMode}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+            className="rounded-full p-2 transition-colors hover:bg-neutral-100"
           >
             <X className="h-6 w-6" />
           </button>
@@ -131,8 +131,8 @@ export function LocalMode({ destinations, onSelectDestination }: LocalModeProps)
       </div>
 
       {/* Content */}
-      <div className="max-w-[1600px] mx-auto px-6 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+      <div className="mx-auto max-w-[1600px] px-6 py-8">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {nearbyDestinations.map((destination) => (
             <div key={destination.slug} className="relative">
               <DestinationCard
@@ -140,7 +140,7 @@ export function LocalMode({ destinations, onSelectDestination }: LocalModeProps)
                 onClick={() => onSelectDestination(destination)}
               />
               {/* Distance Badge */}
-              <div className="absolute top-2 right-2 px-2 py-1 bg-black/80 dark:bg-white/80 text-white dark:text-black text-xs font-medium rounded-full backdrop-blur-sm">
+              <div className="absolute right-2 top-2 rounded-full bg-[#0a0a0a] px-2 py-1 text-xs font-medium text-white shadow">
                 {formatDistance(destination.distance)}
               </div>
             </div>
@@ -148,11 +148,9 @@ export function LocalMode({ destinations, onSelectDestination }: LocalModeProps)
         </div>
 
         {nearbyDestinations.length === 0 && (
-          <div className="text-center py-20">
-            <MapPin className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-700" />
-            <p className="text-xl text-gray-400 dark:text-gray-500">
-              No destinations found nearby
-            </p>
+          <div className="py-20 text-center">
+            <MapPin className="mx-auto mb-4 h-16 w-16 text-neutral-300" />
+            <p className="text-xl text-neutral-500">No destinations found nearby</p>
           </div>
         )}
       </div>
