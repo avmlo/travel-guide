@@ -81,7 +81,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
 
       // Check if saved
       const { data: savedData } = await supabase
-        .from('saved_destinations')
+        .from('saved_places')
         .select('*')
         .eq('user_id', user.id)
         .eq('destination_slug', destination.slug)
@@ -91,7 +91,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
 
       // Check if visited
       const { data: visitedData } = await supabase
-        .from('visited_destinations')
+        .from('visited_places')
         .select('*')
         .eq('user_id', user.id)
         .eq('destination_slug', destination.slug)
@@ -137,7 +137,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
       if (previousState) {
         // Remove from saved
         const { error } = await supabase
-          .from('saved_destinations')
+          .from('saved_places')
           .delete()
           .eq('user_id', user.id)
           .eq('destination_slug', destination.slug);
@@ -149,10 +149,11 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
       } else {
         // Add to saved
         const { error } = await supabase
-          .from('saved_destinations')
+          .from('saved_places')
           .insert({
             user_id: user.id,
-            destination_slug: destination.slug
+            destination_slug: destination.slug,
+            saved_at: new Date().toISOString()
           });
 
         if (error) throw error;
@@ -186,7 +187,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
       if (previousState) {
         // Remove from visited
         const { error } = await supabase
-          .from('visited_destinations')
+          .from('visited_places')
           .delete()
           .eq('user_id', user.id)
           .eq('destination_slug', destination.slug);
@@ -198,7 +199,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
       } else {
         // Add to visited
         const { error } = await supabase
-          .from('visited_destinations')
+          .from('visited_places')
           .insert({
             user_id: user.id,
             destination_slug: destination.slug,

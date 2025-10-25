@@ -20,6 +20,15 @@ export const savedPlaces = mysqlTable("saved_places", {
   notes: text("notes"),
 });
 
+export const visitedPlaces = mysqlTable("visited_places", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  destinationSlug: varchar("destination_slug", { length: 255 }).notNull(),
+  visitedAt: timestamp("visited_at").notNull(),
+  rating: int("rating"), // Optional rating 1-5
+  notes: text("notes"),
+});
+
 export const userPreferences = mysqlTable("user_preferences", {
   id: int("id").primaryKey().autoincrement(),
   userId: varchar("user_id", { length: 255 }).notNull().unique(),

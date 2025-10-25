@@ -99,14 +99,14 @@ export default function AccountNew() {
         // Load both saved and visited places in parallel
         const [savedResult, visitedResult] = await Promise.all([
           supabase
-            .from('saved_destinations')
+            .from('saved_places')
             .select('destination_slug')
             .eq('user_id', session.user.id),
           supabase
-            .from('visited_destinations')
-            .select('destination_slug, visited_date, rating, notes')
+            .from('visited_places')
+            .select('destination_slug, visited_at, rating, notes')
             .eq('user_id', session.user.id)
-            .order('visited_date', { ascending: false })
+            .order('visited_at', { ascending: false })
         ]);
 
         // Collect all unique slugs
@@ -148,7 +148,7 @@ export default function AccountNew() {
                 const dest = destData.find((d: any) => d.slug === item.destination_slug);
                 return dest ? {
                   destination_slug: item.destination_slug,
-                  visited_date: item.visited_date,
+                  visited_at: item.visited_at,
                   rating: item.rating,
                   notes: item.notes,
                   destination: {
