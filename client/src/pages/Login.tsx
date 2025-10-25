@@ -73,17 +73,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="px-4 py-6 border-b border-gray-200">
-        <div className="max-w-[1920px] mx-auto">
-          <button 
-            onClick={() => setLocation("/")}
-            className="text-[clamp(32px,6vw,72px)] font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
-          >
-            The Urban Manual
-          </button>
-        </div>
-      </header>
+      <Header />
 
       {/* Login Form */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
