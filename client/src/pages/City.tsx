@@ -102,8 +102,26 @@ export default function City() {
     setIsDrawerOpen(true);
   };
 
-  // Get unique categories
-  const categories = Array.from(new Set(destinations.map(d => d.category))).sort();
+  // Category mapping with emojis (matching Home page)
+  const categoryMap: Record<string, { emoji: string; label: string }> = {
+    'Eat & Drink': { emoji: '🍽️', label: 'Eat & Drink' },
+    'Stay': { emoji: '🏨', label: 'Stay' },
+    'Space': { emoji: '🏛️', label: 'Space' },
+    'Other': { emoji: '✨', label: 'Other' },
+  };
+
+  // Get unique categories from destinations
+  const uniqueCategories = Array.from(new Set(destinations.map(d => d.category))).sort();
+  
+  // Build category buttons with emojis
+  const categoryButtons = [
+    { emoji: '🌍', label: 'All', value: '' },
+    ...uniqueCategories.map(cat => ({
+      emoji: categoryMap[cat]?.emoji || '✨',
+      label: categoryMap[cat]?.label || cat,
+      value: cat
+    }))
+  ];
 
   // Filter destinations by category
   const filteredDestinations = selectedCategory
@@ -145,30 +163,25 @@ export default function City() {
             </p>
           </div>
 
-          {/* Category Filter */}
-          {categories.length > 1 && (
+          {/* Category Filter - Matching Home page emoji pill design */}
+          {uniqueCategories.length > 0 && (
             <div className="mb-8">
               <div className="mb-3">
                 <h2 className="text-xs font-bold uppercase text-black dark:text-white">Categories</h2>
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-2">
-                <button
-                  onClick={() => setSelectedCategory("")}
-                  className={`text-xs font-bold uppercase transition-opacity ${
-                    !selectedCategory ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
-                  }`}
-                >
-                  ALL
-                </button>
-                {categories.map((category) => (
+              <div className="flex flex-wrap gap-2">
+                {categoryButtons.map((cat) => (
                   <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category === selectedCategory ? "" : category)}
-                    className={`text-xs font-bold uppercase transition-opacity ${
-                      selectedCategory === category ? "text-black dark:text-white" : "text-black/30 dark:text-white/30 hover:opacity-60"
+                    key={cat.value}
+                    onClick={() => setSelectedCategory(cat.value)}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-opacity ${
+                      selectedCategory === cat.value
+                        ? 'bg-black text-white dark:bg-white dark:text-black'
+                        : 'border border-gray-200 dark:border-gray-800 text-black dark:text-white hover:opacity-60'
                     }`}
                   >
-                    {category}
+                    <span className="mr-1.5">{cat.emoji}</span>
+                    {cat.label}
                   </button>
                 ))}
               </div>
