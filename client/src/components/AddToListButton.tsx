@@ -207,8 +207,8 @@ function AddToListModal({
         className="bg-white max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-normal">Add to List</h2>
+        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+          <h2 className="text-sm font-bold uppercase">Add to List</h2>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">

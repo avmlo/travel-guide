@@ -135,8 +135,8 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
     return (
       <div className="mt-8 pt-8 border-t border-gray-300">
         <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="h-5 w-5 text-purple-600" />
-          <h3 className="font-semibold text-lg">AI Suggestions</h3>
+          <Sparkles className="h-5 w-5 text-black dark:text-white" />
+          <h3 className="text-sm font-bold uppercase">AI Suggestions</h3>
         </div>
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -151,8 +151,8 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
     return (
       <div className="mt-8 pt-8 border-t border-gray-300">
         <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="h-5 w-5 text-purple-600" />
-          <h3 className="font-semibold text-lg">AI Suggestions</h3>
+          <Sparkles className="h-5 w-5 text-black dark:text-white" />
+          <h3 className="text-sm font-bold uppercase">AI Suggestions</h3>
         </div>
         <p className="text-sm text-gray-500">Unable to load suggestions at this time.</p>
       </div>
@@ -166,8 +166,8 @@ export function AISuggestions({ destination, onSelectDestination }: AISuggestion
   return (
     <div className="mt-8 pt-8 border-t border-gray-300">
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="h-5 w-5 text-purple-600" />
-        <h3 className="font-semibold text-lg">You Might Also Like</h3>
+        <Sparkles className="h-5 w-5 text-black dark:text-white" />
+        <h3 className="text-sm font-bold uppercase">You Might Also Like</h3>
       </div>
       <p className="text-sm text-gray-600 mb-4">
         {user && savedPlaces.length > 0 
