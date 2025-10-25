@@ -224,38 +224,43 @@ export default function AccountNew() {
     };
   }, [savedPlaces, visitedPlaces, allDestinations]);
 
-  if (authLoading || isLoadingData) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-        <Header />
-        <main className="px-6 md:px-10 py-12">
-          <div className="max-w-7xl mx-auto">
-            {/* Header skeleton */}
-            <div className="mb-8">
-              <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-2" />
-              <div className="h-4 w-96 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
-            </div>
-
-            {/* Tabs skeleton */}
-            <div className="h-10 w-[600px] bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-6" />
-
-            {/* Stats grid skeleton */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-lg animate-shimmer" />
-              ))}
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
+  const isLoading = authLoading || isLoadingData;
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
       <Header />
 
-      <main className="px-6 md:px-10 py-12 dark:text-white">
+      {/* Loading skeleton - fades out */}
+      <main
+        className={`px-6 md:px-10 py-12 transition-opacity duration-500 ${
+          isLoading ? 'opacity-100' : 'opacity-0 pointer-events-none absolute'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto">
+          {/* Header skeleton */}
+          <div className="mb-8">
+            <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-2" />
+            <div className="h-4 w-96 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
+          </div>
+
+          {/* Tabs skeleton */}
+          <div className="h-10 w-[600px] bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-6" />
+
+          {/* Stats grid skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-lg animate-shimmer" />
+            ))}
+          </div>
+        </div>
+      </main>
+
+      {/* Main content - fades in */}
+      <main
+        className={`px-6 md:px-10 py-12 dark:text-white transition-opacity duration-500 ${
+          isLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-8">
