@@ -79,7 +79,7 @@ export default function Cities() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-lg text-gray-400">Loading...</div>
+        <div className="text-xs font-bold uppercase text-black/60 dark:text-white/60">Loading...</div>
       </div>
     );
   }
@@ -128,8 +128,8 @@ export default function Cities() {
         <div className="max-w-[1920px] mx-auto">
           {/* Page Title */}
           <div className="mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4 text-black dark:text-white">Cities</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight mb-2 text-black dark:text-white">Cities</h1>
+            <p className="text-xs font-bold uppercase text-black/60 dark:text-white/60">
               {totalCities} cities · {totalPlaces} places
             </p>
           </div>
@@ -142,10 +142,10 @@ export default function Cities() {
                 onClick={() => setLocation(`/city/${cityData.city}`)}
                 className="border border-gray-200 dark:border-gray-700 p-6 hover:border-black dark:hover:border-white transition-colors text-left group bg-white dark:bg-gray-900"
               >
-                <h3 className="text-base font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity text-black dark:text-white">
+                <h3 className="text-sm font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity text-black dark:text-white">
                   {capitalizeCity(cityData.city)}
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-black/60 dark:text-white/60">
                   {cityData.count} {cityData.count === 1 ? 'place' : 'places'}
                 </p>
               </button>
@@ -155,7 +155,7 @@ export default function Cities() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 mt-20">
+      <footer className="border-t border-gray-200 dark:border-gray-800 py-8 mt-20 dark:text-white">
         <div className="max-w-[1920px] mx-auto px-6 md:px-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6 text-xs">
@@ -163,7 +163,7 @@ export default function Cities() {
               <a href="#" className="hover:underline">TWITTER</a>
               <a href="#" className="hover:underline">SAVEE</a>
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-black/60 dark:text-white/60">
               © {new Date().getFullYear()} ALL RIGHTS RESERVED
             </div>
           </div>

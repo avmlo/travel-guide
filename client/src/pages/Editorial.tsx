@@ -109,8 +109,8 @@ export default function Editorial() {
         <div className="max-w-[1920px] mx-auto">
           {/* Page Title */}
           <div className="mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4 text-black dark:text-white">Editorial</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <h1 className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight mb-2 text-black dark:text-white">Editorial</h1>
+            <p className="text-xs font-bold uppercase text-black/60 dark:text-white/60">
               Stories, guides, and insights from around the world
             </p>
           </div>
@@ -122,10 +122,10 @@ export default function Editorial() {
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 text-xs font-bold uppercase transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-opacity ${
                     selectedCategory === category
                       ? "bg-black dark:bg-white text-white dark:text-black"
-                      : "border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-black dark:hover:border-white"
+                      : "border border-gray-200 dark:border-gray-800 text-black dark:text-white hover:opacity-60"
                   }`}
                 >
                   {category}
