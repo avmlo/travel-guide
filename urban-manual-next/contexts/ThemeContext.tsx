@@ -41,11 +41,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [theme, mounted]);
 
-  // Prevent flash of wrong theme
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // Always provide the theme context so consumers can access it during the
+  // initial render before the theme has been resolved on the client.
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
