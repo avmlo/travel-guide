@@ -184,7 +184,7 @@ export default function Account() {
     );
   }
 
-  // Show sign in screen if not authenticated
+  // Show coming soon screen if not authenticated
   if (!user) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-950">
@@ -193,22 +193,20 @@ export default function Account() {
           <div className="max-w-md mx-auto">
             <Card className="p-8">
               <CardHeader>
-                <CardTitle className="text-2xl text-center mb-4">Sign In to Your Account</CardTitle>
+                <CardTitle className="text-2xl text-center mb-4">Account</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
-                  Sign in to save your favorite places, track visits, and plan trips.
+                  User accounts are coming soon. You'll be able to save your favorite places, track visits, and plan trips.
                 </p>
                 <Button
-                  onClick={handleSignInWithGoogle}
+                  onClick={() => router.push('/')}
                   className="w-full"
+                  variant="outline"
                   size="lg"
                 >
-                  Sign in with Google
+                  Browse Destinations
                 </Button>
-                <p className="text-xs text-center text-gray-500 dark:text-gray-600 mt-4">
-                  By signing in, you agree to our Terms of Service and Privacy Policy.
-                </p>
               </CardContent>
             </Card>
           </div>

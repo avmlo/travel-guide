@@ -59,8 +59,6 @@ export function Header() {
             <button onClick={() => navigate("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
             <button onClick={() => navigate("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
             <button onClick={() => navigate("/explore")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Explore</button>
-            {user && <button onClick={() => navigate("/feed")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Feed</button>}
-            {user && <button onClick={() => navigate("/trips")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Trips</button>}
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
             <button onClick={() => navigate("/editorial")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</button>
           </div>
@@ -79,31 +77,6 @@ export function Header() {
             <span className="hidden sm:inline text-xs font-bold uppercase">New York</span>
             <span className="hidden sm:inline text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
             <DarkModeToggle />
-            <div className="hidden md:flex items-center gap-4">
-              {user ? (
-                <>
-                  <button
-                    onClick={() => navigate('/account')}
-                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-                  >
-                    Account
-                  </button>
-                  <button
-                    onClick={handleSignOut}
-                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => navigate('/account')}
-                  className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-                >
-                  Sign In
-                </button>
-              )}
-            </div>
           </div>
         </div>
       </div>
@@ -130,22 +103,6 @@ export function Header() {
             >
               Explore
             </button>
-            {user && (
-              <button
-                onClick={() => navigate("/feed")}
-                className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-              >
-                Feed
-              </button>
-            )}
-            {user && (
-              <button
-                onClick={() => navigate("/trips")}
-                className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-              >
-                Trips
-              </button>
-            )}
             <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Archive</a>
             <button
               onClick={() => navigate("/editorial")}
@@ -153,32 +110,6 @@ export function Header() {
             >
               Editorial
             </button>
-
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
-              {user ? (
-                <>
-                  <button
-                    onClick={() => navigate('/account')}
-                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-                  >
-                    Account
-                  </button>
-                  <button
-                    onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
-                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => navigate('/account')}
-                  className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-                >
-                  Sign In
-                </button>
-              )}
-            </div>
           </div>
         </div>
       )}
