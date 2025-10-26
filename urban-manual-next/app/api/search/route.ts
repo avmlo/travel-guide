@@ -17,6 +17,36 @@ interface SearchResult {
   crown: boolean;
   content?: string;
   relevanceScore?: number;
+  rating?: number | null;
+  price_level?: number | null;
+  opening_hours?: any | null;
+  isOpenNow?: boolean;
+}
+
+/**
+ * Helper function to determine if a place is currently open
+ */
+function isPlaceOpenNow(opening_hours: any): boolean {
+  if (!opening_hours || !opening_hours.periods) return false;
+
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const currentTime = now.getHours() * 100 + now.getMinutes(); // e.g., 1430 for 2:30 PM
+
+  // Find today's period
+  const todayPeriod = opening_hours.periods.find((period: any) => period.open?.day === dayOfWeek);
+
+  if (!todayPeriod) return false;
+
+  const openTime = parseInt(todayPeriod.open?.time || '0000');
+  const closeTime = parseInt(todayPeriod.close?.time || '2359');
+
+  // Handle overnight periods (e.g., 10:00 PM to 2:00 AM)
+  if (closeTime < openTime) {
+    return currentTime >= openTime || currentTime <= closeTime;
+  }
+
+  return currentTime >= openTime && currentTime <= closeTime;
 }
 
 /**
@@ -27,7 +57,7 @@ interface SearchResult {
  * 2. Gemini semantic (fallback) - Vector similarity search
  * 3. Basic search (always works) - Keyword matching
  *
- * Body: { query: string, pageSize?: number, filters?: { city?: string, category?: string } }
+ * Body: { query: string, pageSize?: number, filters?: { city?: string, category?: string, openNow?: boolean } }
  */
 export async function POST(request: NextRequest) {
   try {
@@ -207,6 +237,8 @@ async function searchWithDiscoveryEngine(
   const results = searchResults.map((result: any) => {
     try {
       const data = JSON.parse(result.document?.jsonData || '{}');
+      const isOpenNow = isPlaceOpenNow(data.opening_hours);
+
       return {
         slug: data.slug,
         name: data.name,
@@ -217,11 +249,20 @@ async function searchWithDiscoveryEngine(
         crown: data.crown,
         content: data.content,
         relevanceScore: result.modelScores?.generic?.score || 0,
+        rating: data.rating,
+        price_level: data.price_level,
+        opening_hours: data.opening_hours,
+        isOpenNow,
       };
     } catch {
       return null;
     }
-  }).filter(Boolean);
+  }).filter((result: any) => {
+    if (!result) return false;
+    // Filter by "open now" if requested
+    if (filters?.openNow && !result.isOpenNow) return false;
+    return true;
+  });
 
   return {
     query,
@@ -283,6 +324,8 @@ async function searchWithGemini(
       else if (rating >= 3.0) score += 0.04;
       if (dest.crown) score += 0.03;
 
+      const isOpenNow = isPlaceOpenNow(dest.opening_hours);
+
       return {
         slug: dest.slug,
         name: dest.name,
@@ -293,9 +336,18 @@ async function searchWithGemini(
         crown: dest.crown,
         content: dest.content,
         relevanceScore: score,
+        rating: dest.rating,
+        price_level: dest.price_level,
+        opening_hours: dest.opening_hours,
+        isOpenNow,
       };
     })
-    .filter(Boolean)
+    .filter(result => {
+      if (!result) return false;
+      // Filter by "open now" if requested
+      if (filters?.openNow && !result.isOpenNow) return false;
+      return true;
+    })
     .sort((a, b) => (b?.relevanceScore || 0) - (a?.relevanceScore || 0))
     .slice(0, pageSize) as SearchResult[];
 
@@ -378,6 +430,8 @@ async function searchBasic(
       else if (rating >= 3.0) score += 2;
       if (dest.crown) score += 1;
 
+      const isOpenNow = isPlaceOpenNow(dest.opening_hours);
+
       return {
         slug: dest.slug,
         name: dest.name,
@@ -388,9 +442,18 @@ async function searchBasic(
         crown: dest.crown,
         content: dest.content,
         relevanceScore: score,
+        rating: dest.rating,
+        price_level: dest.price_level,
+        opening_hours: dest.opening_hours,
+        isOpenNow,
       };
     })
-    .filter(dest => dest.relevanceScore > 0)
+    .filter(dest => {
+      if (dest.relevanceScore <= 0) return false;
+      // Filter by "open now" if requested
+      if (filters?.openNow && !dest.isOpenNow) return false;
+      return true;
+    })
     .sort((a, b) => b.relevanceScore - a.relevanceScore)
     .slice(0, pageSize);
 
