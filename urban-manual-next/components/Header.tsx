@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X, Sun, Moon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
   const router = useRouter();
+  const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
@@ -84,13 +86,33 @@ export function Header() {
             <button onClick={toggleDark} className="p-2 hover:opacity-60 transition-opacity">
               {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
-            <div className="hidden md:block">
-              <button
-                onClick={() => navigate('/auth/login')}
-                className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-              >
-                Sign In
-              </button>
+            <div className="hidden md:flex items-center gap-4">
+              {user ? (
+                <>
+                  <button
+                    onClick={() => navigate('/account')}
+                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                  >
+                    Account
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await signOut();
+                      navigate('/');
+                    }}
+                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigate('/auth/login')}
+                  className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                >
+                  Sign In
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -109,12 +131,32 @@ export function Header() {
             <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Editorial</a>
 
             <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
-              <button
-                onClick={() => navigate('/auth/login')}
-                className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-              >
-                Sign In
-              </button>
+              {user ? (
+                <>
+                  <button
+                    onClick={() => navigate('/account')}
+                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                  >
+                    Account
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await signOut();
+                      navigate('/');
+                    }}
+                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigate('/auth/login')}
+                  className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                >
+                  Sign In
+                </button>
+              )}
             </div>
           </div>
         </div>
