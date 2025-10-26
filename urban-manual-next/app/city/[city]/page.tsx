@@ -7,6 +7,13 @@ import { Destination } from '@/types/destination';
 import { MapPin, Star, ArrowLeft } from 'lucide-react';
 import { cityCountryMap } from '@/data/cityCountryMap';
 
+function capitalizeCity(city: string): string {
+  return city
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export default function CityPage() {
   const router = useRouter();
   const params = useParams();
@@ -60,7 +67,7 @@ export default function CityPage() {
         {/* Hero Section */}
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-3">
-            {city}
+            {capitalizeCity(city)}
           </h1>
           <div className="flex items-center gap-2 text-base text-gray-600 dark:text-gray-400 mb-2">
             <MapPin className="h-5 w-5" />

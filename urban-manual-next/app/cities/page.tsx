@@ -13,6 +13,13 @@ interface CityStats {
   count: number;
 }
 
+function capitalizeCity(city: string): string {
+  return city
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export default function CitiesPage() {
   const router = useRouter();
   const [cityStats, setCityStats] = useState<CityStats[]>([]);
@@ -118,7 +125,7 @@ export default function CitiesPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <h2 className="text-lg md:text-xl font-bold mb-1 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors truncate">
-                      {city}
+                      {capitalizeCity(city)}
                     </h2>
                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <MapPin className="h-4 w-4 flex-shrink-0" />

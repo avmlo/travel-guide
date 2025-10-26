@@ -108,9 +108,11 @@ export function Header() {
             {currentTime && (
               <span className="hidden sm:inline text-xs font-bold">{currentTime}</span>
             )}
-            <button onClick={toggleDark} className="p-2 hover:opacity-60 transition-opacity">
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
+            {mounted && (
+              <button onClick={toggleDark} className="p-2 hover:opacity-60 transition-opacity">
+                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+            )}
             <div className="hidden md:flex items-center gap-4">
               {user ? (
                 <>

@@ -69,14 +69,17 @@ export default function Home() {
     }
 
     if (selectedCategory) {
-      filtered = filtered.filter(d => d.category === selectedCategory);
+      // Use trim() and exact match to handle any whitespace issues
+      filtered = filtered.filter(d =>
+        d.category && d.category.trim() === selectedCategory.trim()
+      );
     }
 
     if (searchTerm) {
       filtered = filtered.filter(d =>
         d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         d.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (d.category && d.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (d.content && d.content.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
