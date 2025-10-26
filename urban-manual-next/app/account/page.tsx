@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Heart, Check, MapPin, Loader2, User, TrendingUp, Star, Map, Globe, Award, Calendar, LogOut, Sparkles, Navigation } from 'lucide-react';
+import { Heart, Check, MapPin, Loader2, User, TrendingUp, Star, Map, Globe, Award, Calendar, LogOut, Sparkles, Navigation, Plus, X, Trash2 } from 'lucide-react';
 import { cityCountryMap } from '@/data/cityCountryMap';
 
 interface SavedPlace {
@@ -26,14 +26,34 @@ interface Destination {
   michelin_stars?: number;
 }
 
+interface Trip {
+  id: string;
+  title: string;
+  description: string | null;
+  destination: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string;
+  created_at: string;
+}
+
 export default function AccountPage() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<VisitedPlace[]>([]);
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'settings'>('overview');
+  const [showCreateTripDialog, setShowCreateTripDialog] = useState(false);
+  const [newTrip, setNewTrip] = useState({
+    title: '',
+    description: '',
+    destination: '',
+    start_date: '',
+    end_date: '',
+  });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -62,7 +82,7 @@ export default function AccountPage() {
       try {
         setLoading(true);
 
-        const [savedResult, visitedResult] = await Promise.all([
+        const [savedResult, visitedResult, tripsResult] = await Promise.all([
           supabase
             .from('saved_places')
             .select('destination_slug')
@@ -71,7 +91,12 @@ export default function AccountPage() {
             .from('visited_places')
             .select('destination_slug, visited_at')
             .eq('user_id', user!.id)
-            .order('visited_at', { ascending: false })
+            .order('visited_at', { ascending: false }),
+          supabase
+            .from('trips')
+            .select('*')
+            .eq('user_id', user!.id)
+            .order('created_at', { ascending: false })
         ]);
 
         // Check for errors
@@ -86,6 +111,17 @@ export default function AccountPage() {
           if (visitedResult.error.code === '42P01') {
             console.error('⚠️ Table "visited_places" does not exist. Please run migrations/saved_visited_places.sql in Supabase.');
           }
+        }
+        if (tripsResult.error) {
+          console.error('Error fetching trips:', tripsResult.error);
+          if (tripsResult.error.code === '42P01') {
+            console.error('⚠️ Table "trips" does not exist. Please run migrations/trips.sql in Supabase.');
+          }
+        }
+
+        // Set trips data
+        if (tripsResult.data) {
+          setTrips(tripsResult.data);
         }
 
         const allSlugs = new Set<string>();
@@ -167,6 +203,79 @@ export default function AccountPage() {
       michelinCount
     };
   }, [savedPlaces, visitedPlaces, allDestinations]);
+
+  // Get sorted cities for dropdown
+  const cities = Object.keys(cityCountryMap).sort();
+
+  // Helper function to format city names
+  const formatCityName = (city: string) => {
+    return city.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
+  // Trip functions
+  const createTrip = async () => {
+    if (!newTrip.title.trim()) {
+      alert('Please enter a trip title');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('trips')
+        .insert([{
+          title: newTrip.title,
+          description: newTrip.description || null,
+          destination: newTrip.destination || null,
+          start_date: newTrip.start_date || null,
+          end_date: newTrip.end_date || null,
+          status: 'planning',
+          user_id: user?.id,
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      setTrips([data, ...trips]);
+      setShowCreateTripDialog(false);
+      setNewTrip({ title: '', description: '', destination: '', start_date: '', end_date: '' });
+    } catch (error: any) {
+      console.error('Error creating trip:', error);
+      let errorMessage = 'Failed to create trip';
+      if (error?.message) {
+        errorMessage += `: ${error.message}`;
+      }
+      if (error?.code === '42P01') {
+        errorMessage = 'Database table "trips" does not exist. Please run migrations/trips.sql in Supabase. See migrations/README.md for instructions.';
+      }
+      alert(errorMessage);
+    }
+  };
+
+  const deleteTrip = async (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
+
+    try {
+      const { error } = await supabase.from('trips').delete().eq('id', id);
+      if (error) throw error;
+      setTrips(trips.filter((trip) => trip.id !== id));
+    } catch (error) {
+      console.error('Error deleting trip:', error);
+      alert('Failed to delete trip');
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   const handleSignOut = async () => {
     await signOut();
