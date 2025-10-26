@@ -6,15 +6,16 @@ import { Destination } from '@/types/destination';
 import { Search, MapPin } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
 
+// Categories based on actual Supabase data
 const CATEGORIES = [
   { id: "", label: "All", icon: "🌍" },
-  { id: "Restaurants", label: "Restaurants", icon: "🍽️" },
-  { id: "Cafes", label: "Cafes", icon: "☕" },
-  { id: "Hotels", label: "Hotels", icon: "🏨" },
-  { id: "Bars", label: "Bars", icon: "🍸" },
-  { id: "Bakeries", label: "Bakeries", icon: "🥐" },
   { id: "Dining", label: "Dining", icon: "🍴" },
+  { id: "Hotels", label: "Hotels", icon: "🏨" },
   { id: "Culture", label: "Culture", icon: "🎭" },
+  { id: "Bars", label: "Bars", icon: "🍸" },
+  { id: "Cafes", label: "Cafes", icon: "☕" },
+  { id: "Restaurants", label: "Restaurants", icon: "🍽️" },
+  { id: "Bakeries", label: "Bakeries", icon: "🥐" },
   { id: "Other", label: "Other", icon: "✨" },
 ];
 

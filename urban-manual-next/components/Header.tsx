@@ -9,11 +9,13 @@ export function Header() {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
 
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
+    setMounted(true);
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
