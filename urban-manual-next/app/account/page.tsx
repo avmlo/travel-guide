@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Heart, Check, MapPin, Loader2, User, TrendingUp, Star, Map, Globe, Award, Calendar, LogOut } from 'lucide-react';
+import { Heart, Check, MapPin, Loader2, User, TrendingUp, Star, Map, Globe, Award, Calendar, LogOut, Sparkles, Navigation } from 'lucide-react';
 import { cityCountryMap } from '@/data/cityCountryMap';
 
 interface SavedPlace {
@@ -279,6 +279,27 @@ export default function AccountPage() {
                     <p className="text-xs text-gray-500">Visited</p>
                   </div>
                 </div>
+
+                {/* Route Optimizer Quick Access */}
+                {savedPlaces.length >= 3 && (
+                  <button
+                    onClick={() => router.push('/optimize')}
+                    className="w-full p-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl hover:opacity-90 transition-opacity"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 bg-white/20 rounded-full flex items-center justify-center">
+                          <Sparkles className="h-6 w-6" />
+                        </div>
+                        <div className="text-left">
+                          <div className="text-lg font-bold mb-1">Create Your Perfect Day</div>
+                          <div className="text-sm text-white/80">AI-powered route optimizer • {savedPlaces.length} saved places ready</div>
+                        </div>
+                      </div>
+                      <Navigation className="h-6 w-6" />
+                    </div>
+                  </button>
+                )}
 
                 {/* Achievements */}
                 {(stats.michelinCount > 0 || stats.uniqueCountries.size >= 3 || visitedPlaces.length >= 10) && (

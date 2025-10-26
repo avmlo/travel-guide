@@ -216,7 +216,7 @@ export default function ListsPage() {
                   </div>
                 </div>
 
-                {list.like_count > 0 && (
+                {(list.like_count || 0) > 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
                     <Heart className="h-4 w-4 fill-red-500 text-red-500" />
                     <span>{list.like_count} {list.like_count === 1 ? 'like' : 'likes'}</span>
