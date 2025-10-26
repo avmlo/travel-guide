@@ -117,7 +117,7 @@ export default function Home() {
 
     if (selectedCategory) {
       filtered = filtered.filter(d =>
-        d.category && d.category.trim() === selectedCategory.trim()
+        d.category && d.category.toLowerCase().trim() === selectedCategory.toLowerCase().trim()
       );
     }
 

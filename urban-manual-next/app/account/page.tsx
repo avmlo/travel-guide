@@ -424,6 +424,89 @@ export default function AccountPage() {
                   </button>
                 )}
 
+                {/* My Trips */}
+                <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      <h2 className="text-xl font-bold">My Trips</h2>
+                    </div>
+                    <button
+                      onClick={() => setShowCreateTripDialog(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity text-sm font-medium"
+                    >
+                      <Plus className="h-4 w-4" />
+                      New Trip
+                    </button>
+                  </div>
+
+                  {trips.length === 0 ? (
+                    <div className="text-center py-12 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl">
+                      <MapPin className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-700 mb-3" />
+                      <p className="text-gray-500 dark:text-gray-400 mb-4">No trips planned yet</p>
+                      <button
+                        onClick={() => setShowCreateTripDialog(true)}
+                        className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity text-sm font-medium"
+                      >
+                        Plan Your First Trip
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {trips.slice(0, 3).map((trip) => (
+                        <div
+                          key={trip.id}
+                          className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 hover:shadow-lg transition-shadow group"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <h3 className="font-semibold line-clamp-2 flex-1">{trip.title}</h3>
+                            <button
+                              onClick={() => deleteTrip(trip.id, trip.title)}
+                              className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+
+                          {trip.destination && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                              <MapPin className="h-3.5 w-3.5" />
+                              <span className="line-clamp-1">{formatCityName(trip.destination)}</span>
+                            </div>
+                          )}
+
+                          {(trip.start_date || trip.end_date) && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                              <Calendar className="h-3.5 w-3.5" />
+                              <span>
+                                {formatDate(trip.start_date)}
+                                {trip.end_date && ` - ${formatDate(trip.end_date)}`}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
+                            <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full capitalize">
+                              {trip.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {trips.length > 3 && (
+                    <div className="mt-4 text-center">
+                      <button
+                        onClick={() => router.push('/trips')}
+                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                      >
+                        View all {trips.length} trips →
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {/* Achievements */}
                 {(stats.michelinCount > 0 || stats.uniqueCountries.size >= 3 || visitedPlaces.length >= 10) && (
                   <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
@@ -690,6 +773,103 @@ export default function AccountPage() {
           </>
         )}
       </div>
+
+      {/* Create Trip Dialog */}
+      {showCreateTripDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold">Create New Trip</h2>
+              <button
+                onClick={() => setShowCreateTripDialog(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Trip Title *
+                </label>
+                <input
+                  type="text"
+                  value={newTrip.title}
+                  onChange={(e) => setNewTrip({ ...newTrip, title: e.target.value })}
+                  placeholder="e.g., Summer in Paris"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <textarea
+                  value={newTrip.description}
+                  onChange={(e) => setNewTrip({ ...newTrip, description: e.target.value })}
+                  placeholder="What's this trip about?"
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Destination</label>
+                <select
+                  value={newTrip.destination}
+                  onChange={(e) => setNewTrip({ ...newTrip, destination: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                >
+                  <option value="">Select a city...</option>
+                  {cities.map((city) => (
+                    <option key={city} value={city}>
+                      {formatCityName(city)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Start Date</label>
+                  <input
+                    type="date"
+                    value={newTrip.start_date}
+                    onChange={(e) => setNewTrip({ ...newTrip, start_date: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">End Date</label>
+                  <input
+                    type="date"
+                    value={newTrip.end_date}
+                    onChange={(e) => setNewTrip({ ...newTrip, end_date: e.target.value })}
+                    min={newTrip.start_date}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowCreateTripDialog(false)}
+                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createTrip}
+                  className="flex-1 px-4 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
+                >
+                  Create Trip
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

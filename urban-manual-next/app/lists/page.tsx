@@ -186,7 +186,8 @@ export default function ListsPage() {
             {lists.map((list) => (
               <div
                 key={list.id}
-                className="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:shadow-lg transition-shadow"
+                onClick={() => router.push(`/lists/${list.id}`)}
+                className="group bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 hover:shadow-lg transition-shadow cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -198,7 +199,10 @@ export default function ListsPage() {
                     )}
                   </div>
                   <button
-                    onClick={() => deleteList(list.id, list.name)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteList(list.id, list.name);
+                    }}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
                   >
                     <Trash2 className="h-4 w-4 text-red-500" />

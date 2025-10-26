@@ -1,10 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, MapPin, Tag, Heart, Check, Share2, Navigation, Sparkles } from 'lucide-react';
+import { X, MapPin, Tag, Heart, Check, Share2, Navigation, Sparkles, ChevronDown, Plus, Loader2 } from 'lucide-react';
 import { Destination } from '@/types/destination';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+
+interface List {
+  id: string;
+  name: string;
+  is_public: boolean;
+}
 
 interface Recommendation {
   slug: string;
@@ -41,6 +47,17 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [heartAnimating, setHeartAnimating] = useState(false);
   const [checkAnimating, setCheckAnimating] = useState(false);
+
+  // List management state
+  const [showListsModal, setShowListsModal] = useState(false);
+  const [userLists, setUserLists] = useState<List[]>([]);
+  const [listsWithDestination, setListsWithDestination] = useState<Set<string>>(new Set());
+  const [loadingLists, setLoadingLists] = useState(false);
+  const [showCreateListModal, setShowCreateListModal] = useState(false);
+  const [newListName, setNewListName] = useState('');
+  const [newListDescription, setNewListDescription] = useState('');
+  const [newListPublic, setNewListPublic] = useState(true);
+  const [creatingList, setCreatingList] = useState(false);
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -192,6 +209,132 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
     }
   };
 
+  // Fetch user lists and check which ones contain this destination
+  const fetchUserLists = async () => {
+    if (!user || !destination) return;
+
+    setLoadingLists(true);
+    try {
+      // Fetch user's lists
+      const { data: lists, error: listsError } = await supabase
+        .from('lists')
+        .select('id, name, is_public')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (listsError) throw listsError;
+      setUserLists(lists || []);
+
+      // Fetch which lists contain this destination
+      const { data: listItems, error: itemsError } = await supabase
+        .from('list_items')
+        .select('list_id')
+        .eq('destination_slug', destination.slug);
+
+      if (itemsError) throw itemsError;
+      const listIds = new Set((listItems || []).map(item => item.list_id));
+      setListsWithDestination(listIds);
+    } catch (error) {
+      console.error('Error fetching lists:', error);
+    } finally {
+      setLoadingLists(false);
+    }
+  };
+
+  // Toggle destination in a list
+  const toggleDestinationInList = async (listId: string) => {
+    if (!user || !destination) return;
+
+    const isInList = listsWithDestination.has(listId);
+    const newListsWithDestination = new Set(listsWithDestination);
+
+    if (isInList) {
+      // Remove from list
+      newListsWithDestination.delete(listId);
+      setListsWithDestination(newListsWithDestination);
+
+      const { error } = await supabase
+        .from('list_items')
+        .delete()
+        .eq('list_id', listId)
+        .eq('destination_slug', destination.slug);
+
+      if (error) {
+        // Revert on error
+        setListsWithDestination(new Set([...newListsWithDestination, listId]));
+        console.error('Error removing from list:', error);
+      }
+    } else {
+      // Add to list
+      newListsWithDestination.add(listId);
+      setListsWithDestination(newListsWithDestination);
+
+      const { error } = await supabase
+        .from('list_items')
+        .insert({
+          list_id: listId,
+          destination_slug: destination.slug,
+        });
+
+      if (error) {
+        // Revert on error
+        newListsWithDestination.delete(listId);
+        setListsWithDestination(newListsWithDestination);
+        console.error('Error adding to list:', error);
+      }
+    }
+  };
+
+  // Create a new list and optionally add current destination
+  const createNewList = async () => {
+    if (!user || !newListName.trim()) return;
+
+    setCreatingList(true);
+    try {
+      const { data, error } = await supabase
+        .from('lists')
+        .insert([{
+          user_id: user.id,
+          name: newListName.trim(),
+          description: newListDescription.trim() || null,
+          is_public: newListPublic,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add the new list to the state
+      setUserLists([data, ...userLists]);
+
+      // Add current destination to the new list
+      if (destination) {
+        await supabase.from('list_items').insert({
+          list_id: data.id,
+          destination_slug: destination.slug,
+        });
+        setListsWithDestination(new Set([...listsWithDestination, data.id]));
+      }
+
+      // Reset form and close create modal
+      setNewListName('');
+      setNewListDescription('');
+      setNewListPublic(true);
+      setShowCreateListModal(false);
+    } catch (error) {
+      console.error('Error creating list:', error);
+      alert('Failed to create list');
+    } finally {
+      setCreatingList(false);
+    }
+  };
+
+  // Open lists modal and fetch lists
+  const openListsModal = () => {
+    setShowListsModal(true);
+    fetchUserLists();
+  };
+
   // Load AI recommendations
   useEffect(() => {
     async function loadRecommendations() {
@@ -302,35 +445,45 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
           {/* Action Buttons */}
           {user && (
             <div className="flex gap-3 mb-6">
-              <button
-                onClick={handleSave}
-                disabled={loading}
-                className={`relative flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                  isSaved
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                } ${heartAnimating ? 'scale-95' : 'scale-100'}`}
-              >
-                <Heart className={`h-5 w-5 transition-all duration-300 ${isSaved ? 'fill-current scale-110' : 'scale-100'} ${heartAnimating ? 'animate-[heartBeat_0.6s_ease-in-out]' : ''}`} />
-                <span className={`${heartAnimating && isSaved ? 'animate-[fadeIn_0.3s_ease-in]' : ''}`}>
-                  {isSaved ? 'Saved' : 'Save'}
-                </span>
-                {heartAnimating && isSaved && (
-                  <style jsx>{`
-                    @keyframes heartBeat {
-                      0%, 100% { transform: scale(1); }
-                      15% { transform: scale(1.3); }
-                      30% { transform: scale(1.1); }
-                      45% { transform: scale(1.25); }
-                      60% { transform: scale(1.05); }
-                    }
-                    @keyframes fadeIn {
-                      from { opacity: 0; }
-                      to { opacity: 1; }
-                    }
-                  `}</style>
-                )}
-              </button>
+              <div className="flex-1 flex gap-2">
+                <button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className={`relative flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    isSaved
+                      ? 'bg-red-500 text-white hover:bg-red-600'
+                      : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  } ${heartAnimating ? 'scale-95' : 'scale-100'}`}
+                >
+                  <Heart className={`h-5 w-5 transition-all duration-300 ${isSaved ? 'fill-current scale-110' : 'scale-100'} ${heartAnimating ? 'animate-[heartBeat_0.6s_ease-in-out]' : ''}`} />
+                  <span className={`${heartAnimating && isSaved ? 'animate-[fadeIn_0.3s_ease-in]' : ''}`}>
+                    {isSaved ? 'Saved' : 'Save'}
+                  </span>
+                  {heartAnimating && isSaved && (
+                    <style jsx>{`
+                      @keyframes heartBeat {
+                        0%, 100% { transform: scale(1); }
+                        15% { transform: scale(1.3); }
+                        30% { transform: scale(1.1); }
+                        45% { transform: scale(1.25); }
+                        60% { transform: scale(1.05); }
+                      }
+                      @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                      }
+                    `}</style>
+                  )}
+                </button>
+                <button
+                  onClick={openListsModal}
+                  disabled={loading}
+                  className="px-3 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  title="Add to list"
+                >
+                  <ChevronDown className="h-5 w-5" />
+                </button>
+              </div>
 
               <button
                 onClick={handleVisit}
@@ -520,6 +673,154 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
           </div>
         </div>
       </div>
+
+      {/* Lists Modal */}
+      {showListsModal && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowListsModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Add to List</h2>
+              <button
+                onClick={() => setShowListsModal(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {loadingLists ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            ) : userLists.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">You don't have any lists yet</p>
+                <button
+                  onClick={() => {
+                    setShowListsModal(false);
+                    setShowCreateListModal(true);
+                  }}
+                  className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
+                >
+                  Create Your First List
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+                  {userLists.map((list) => (
+                    <button
+                      key={list.id}
+                      onClick={() => toggleDestinationInList(list.id)}
+                      className="w-full flex items-center justify-between p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                      <span className="font-medium">{list.name}</span>
+                      {listsWithDestination.has(list.id) && (
+                        <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowListsModal(false);
+                    setShowCreateListModal(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors font-medium"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Create New List</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Create List Modal */}
+      {showCreateListModal && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowCreateListModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Create New List</h2>
+              <button
+                onClick={() => setShowCreateListModal(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">List Name *</label>
+                <input
+                  type="text"
+                  value={newListName}
+                  onChange={(e) => setNewListName(e.target.value)}
+                  placeholder="e.g., Tokyo Favorites"
+                  className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <textarea
+                  value={newListDescription}
+                  onChange={(e) => setNewListDescription(e.target.value)}
+                  placeholder="Optional description..."
+                  rows={3}
+                  className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white resize-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="new-list-public"
+                  checked={newListPublic}
+                  onChange={(e) => setNewListPublic(e.target.checked)}
+                  className="rounded"
+                />
+                <label htmlFor="new-list-public" className="text-sm">
+                  Make this list public
+                </label>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowCreateListModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  disabled={creatingList}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createNewList}
+                  disabled={!newListName.trim() || creatingList}
+                  className="flex-1 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  {creatingList ? 'Creating...' : 'Create List'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
