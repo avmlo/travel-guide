@@ -5,6 +5,7 @@ import React from 'react'
 import config from '@payload-config'
 import { RootLayout } from '@payloadcms/next/layouts'
 import { importMap } from './admin/importMap'
+import { restRequest } from './actions'
 
 import './custom.scss'
 
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 }
 
 const Layout = ({ children }: Args) => (
-  <RootLayout config={config} importMap={importMap}>
+  <RootLayout config={config} importMap={importMap} serverFunction={restRequest}>
     {children}
   </RootLayout>
 )
