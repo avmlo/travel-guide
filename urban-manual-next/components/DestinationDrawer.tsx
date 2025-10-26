@@ -1,10 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, MapPin, Tag, Heart, Check, Share2, Navigation } from 'lucide-react';
+import { X, MapPin, Tag, Heart, Check, Share2, Navigation, Sparkles } from 'lucide-react';
 import { Destination } from '@/types/destination';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+
+interface Recommendation {
+  slug: string;
+  name: string;
+  city: string;
+  category: string;
+  image: string | null;
+  michelin_stars: number | null;
+  crown: boolean;
+}
 
 interface DestinationDrawerProps {
   destination: Destination | null;
@@ -27,6 +37,8 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
   const [isVisited, setIsVisited] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -169,6 +181,33 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
       console.error('Failed to copy link', err);
     }
   };
+
+  // Load AI recommendations
+  useEffect(() => {
+    async function loadRecommendations() {
+      if (!destination || !isOpen) {
+        setRecommendations([]);
+        return;
+      }
+
+      setLoadingRecommendations(true);
+
+      try {
+        const response = await fetch(`/api/recommendations?slug=${destination.slug}&limit=6`);
+        const data = await response.json();
+
+        if (data.recommendations) {
+          setRecommendations(data.recommendations);
+        }
+      } catch (error) {
+        console.error('Error loading recommendations:', error);
+      } finally {
+        setLoadingRecommendations(false);
+      }
+    }
+
+    loadRecommendations();
+  }, [destination, isOpen]);
 
   if (!destination) return null;
 
@@ -345,6 +384,75 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
               <span>Get Directions</span>
             </a>
           </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 dark:border-gray-800 my-8" />
+
+          {/* AI Recommendations */}
+          {(loadingRecommendations || recommendations.length > 0) && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <h3 className="text-sm font-bold uppercase text-gray-500 dark:text-gray-400">
+                  You might also like
+                </h3>
+              </div>
+
+              {loadingRecommendations ? (
+                <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex-shrink-0 w-40">
+                      <div className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-lg mb-2 animate-pulse" />
+                      <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded mb-1 animate-pulse" />
+                      <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-2/3 animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide">
+                  {recommendations.map(rec => (
+                    <button
+                      key={rec.slug}
+                      onClick={() => {
+                        // Navigate to recommended destination
+                        window.location.href = `/destination/${rec.slug}`;
+                      }}
+                      className="flex-shrink-0 w-40 group text-left"
+                    >
+                      <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-2">
+                        {rec.image ? (
+                          <img
+                            src={rec.image}
+                            alt={rec.name}
+                            className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <MapPin className="h-8 w-8 opacity-20" />
+                          </div>
+                        )}
+                        {rec.crown && (
+                          <div className="absolute top-2 left-2 text-lg">👑</div>
+                        )}
+                        {rec.michelin_stars && rec.michelin_stars > 0 && (
+                          <div className="absolute bottom-2 left-2 bg-white dark:bg-gray-900 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-0.5">
+                            <span>⭐</span>
+                            <span>{rec.michelin_stars}</span>
+                          </div>
+                        )}
+                      </div>
+                      <h4 className="font-medium text-xs leading-tight line-clamp-2 mb-1">
+                        {rec.name}
+                      </h4>
+                      <p className="text-xs text-gray-500">
+                        {capitalizeCity(rec.city)}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Divider */}
           <div className="border-t border-gray-200 dark:border-gray-800 my-8" />
