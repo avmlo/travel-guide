@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "enrich": "tsx scripts/enrich-destinations.ts"
   },
   "dependencies": {
     "@google-cloud/discoveryengine": "^2.5.2",
@@ -30,6 +31,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
     "tailwindcss": "^4",
+    "tsx": "^4.7.0",
     "typescript": "^5"
   }
 }

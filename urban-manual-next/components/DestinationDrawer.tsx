@@ -440,6 +440,41 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                 </div>
               )}
             </div>
+
+            {/* AI-Generated Tags */}
+            {destination.tags && destination.tags.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {destination.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-full border border-purple-200 dark:border-purple-800"
+                  >
+                    ✨ {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Rating & Price Level */}
+            {(destination.rating || destination.price_level) && (
+              <div className="mt-4 flex items-center gap-4 text-sm">
+                {destination.rating && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-yellow-500">⭐</span>
+                    <span className="font-semibold">{destination.rating.toFixed(1)}</span>
+                    <span className="text-gray-500 dark:text-gray-400">Google Rating</span>
+                  </div>
+                )}
+                {destination.price_level && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-green-600 dark:text-green-400 font-semibold">
+                      {'$'.repeat(destination.price_level)}
+                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">Price Level</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

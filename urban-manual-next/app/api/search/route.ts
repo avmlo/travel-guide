@@ -358,9 +358,17 @@ async function searchBasic(
         score += 5;
       }
 
-      // Word matches in name
+      // Word matches in name, tags, category, city, content
       queryWords.forEach(word => {
         if (nameLower.includes(word)) score += 3;
+
+        // Check tags (high priority for AI-generated descriptors)
+        if (dest.tags && dest.tags.length > 0) {
+          dest.tags.forEach(tag => {
+            if (tag.toLowerCase().includes(word)) score += 2.5;
+          });
+        }
+
         if (categoryLower.includes(word)) score += 2;
         if (cityLower.includes(word)) score += 1.5;
         if (contentLower.includes(word)) score += 0.5;
