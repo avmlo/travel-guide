@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Heart, Check, MapPin, Loader2 } from 'lucide-react';
+import { Heart, Check, MapPin, Loader2, User, TrendingUp, Star, Map, Globe, Award, Calendar, LogOut } from 'lucide-react';
+import { cityCountryMap } from '@/data/cityCountryMap';
 
 interface SavedPlace {
   destination_slug: string;
@@ -20,19 +21,39 @@ interface VisitedPlace extends SavedPlace {
   visited_at: string;
 }
 
+interface Destination {
+  slug: string;
+  michelin_stars?: number;
+}
+
 export default function AccountPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<VisitedPlace[]>([]);
+  const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'saved' | 'visited'>('saved');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'settings'>('overview');
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login');
     }
   }, [user, authLoading, router]);
+
+  // Load all destinations for stats
+  useEffect(() => {
+    async function loadDestinations() {
+      const { data } = await supabase
+        .from('destinations')
+        .select('slug, michelin_stars');
+
+      if (data) {
+        setAllDestinations(data);
+      }
+    }
+    loadDestinations();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -110,22 +131,45 @@ export default function AccountPage() {
     loadUserData();
   }, [user]);
 
+  // Calculate stats
+  const stats = useMemo(() => {
+    const uniqueCities = new Set([
+      ...savedPlaces.map(p => p.destination.city),
+      ...visitedPlaces.map(p => p.destination.city)
+    ]);
+
+    const uniqueCountries = new Set(
+      Array.from(uniqueCities).map(city => cityCountryMap[city] || 'Other')
+    );
+
+    const michelinCount = visitedPlaces.filter(p => {
+      const dest = allDestinations.find(d => d.slug === p.destination_slug);
+      return dest && dest.michelin_stars && dest.michelin_stars > 0;
+    }).length;
+
+    return {
+      uniqueCities,
+      uniqueCountries,
+      michelinCount
+    };
+  }, [savedPlaces, visitedPlaces, allDestinations]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
+
   if (authLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-gray-500">Loading...</div>
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     );
   }
 
-  const cities = new Set([
-    ...savedPlaces.map(p => p.destination.city),
-    ...visitedPlaces.map(p => p.destination.city)
-  ]);
-
   return (
     <main className="px-6 md:px-10 py-12 dark:text-white">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1920px] mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Account</h1>
@@ -134,151 +178,369 @@ export default function AccountPage() {
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-          <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Heart className="h-5 w-5 text-red-500" />
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Saved</span>
-            </div>
-            <div className="text-3xl font-bold">{savedPlaces.length}</div>
-          </div>
-
-          <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Check className="h-5 w-5 text-green-500" />
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Visited</span>
-            </div>
-            <div className="text-3xl font-bold">{visitedPlaces.length}</div>
-          </div>
-
-          <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <MapPin className="h-5 w-5 text-blue-500" />
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Cities</span>
-            </div>
-            <div className="text-3xl font-bold">{cities.size}</div>
-          </div>
-        </div>
-
         {/* Tabs */}
-        <div className="mb-6">
-          <div className="flex gap-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="mb-8">
+          <div className="flex gap-1 border-b border-gray-200 dark:border-gray-800">
             <button
-              onClick={() => setActiveTab('saved')}
-              className={`px-4 py-3 text-sm font-bold uppercase transition-colors ${
-                activeTab === 'saved'
-                  ? 'border-b-2 border-black dark:border-white'
+              onClick={() => setActiveTab('overview')}
+              className={`px-6 py-3 text-sm font-medium transition-colors relative ${
+                activeTab === 'overview'
+                  ? 'text-black dark:text-white'
                   : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
               }`}
             >
-              Saved ({savedPlaces.length})
+              Overview
+              {activeTab === 'overview' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white" />
+              )}
             </button>
             <button
-              onClick={() => setActiveTab('visited')}
-              className={`px-4 py-3 text-sm font-bold uppercase transition-colors ${
-                activeTab === 'visited'
-                  ? 'border-b-2 border-black dark:border-white'
+              onClick={() => setActiveTab('collection')}
+              className={`px-6 py-3 text-sm font-medium transition-colors relative ${
+                activeTab === 'collection'
+                  ? 'text-black dark:text-white'
                   : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
               }`}
             >
-              Visited ({visitedPlaces.length})
+              Collection
+              {activeTab === 'collection' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`px-6 py-3 text-sm font-medium transition-colors relative ${
+                activeTab === 'settings'
+                  ? 'text-black dark:text-white'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+              }`}
+            >
+              Settings
+              {activeTab === 'settings' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white" />
+              )}
             </button>
           </div>
         </div>
 
-        {/* Content */}
+        {/* Tab Content */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
           </div>
         ) : (
           <>
-            {/* Saved Tab */}
-            {activeTab === 'saved' && (
-              <div>
-                {savedPlaces.length === 0 ? (
-                  <div className="text-center py-20">
-                    <Heart className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-                    <p className="text-xl text-gray-400 mb-6">No saved places yet</p>
-                    <button
-                      onClick={() => router.push('/')}
-                      className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium"
-                    >
-                      Explore Destinations
-                    </button>
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+              <div className="space-y-8">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <Check className="h-5 w-5 text-green-600 dark:text-green-500" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Visited</span>
+                    </div>
+                    <div className="text-3xl font-bold mb-1">{visitedPlaces.length}</div>
+                    <p className="text-xs text-gray-500">Places explored</p>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {savedPlaces.map(place => (
-                      <button
-                        key={place.destination_slug}
-                        onClick={() => router.push(`/destination/${place.destination_slug}`)}
-                        className="group text-left"
-                      >
-                        <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-2">
-                          {place.destination.image ? (
-                            <img
-                              src={place.destination.image}
-                              alt={place.destination.name}
-                              className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <MapPin className="h-12 w-12 opacity-20" />
-                            </div>
-                          )}
+
+                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                        <Heart className="h-5 w-5 text-red-600 dark:text-red-500" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Saved</span>
+                    </div>
+                    <div className="text-3xl font-bold mb-1">{savedPlaces.length}</div>
+                    <p className="text-xs text-gray-500">Wishlist items</p>
+                  </div>
+
+                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-500" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Cities</span>
+                    </div>
+                    <div className="text-3xl font-bold mb-1">{stats.uniqueCities.size}</div>
+                    <p className="text-xs text-gray-500">Explored</p>
+                  </div>
+
+                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                        <Globe className="h-5 w-5 text-purple-600 dark:text-purple-500" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Countries</span>
+                    </div>
+                    <div className="text-3xl font-bold mb-1">{stats.uniqueCountries.size}</div>
+                    <p className="text-xs text-gray-500">Visited</p>
+                  </div>
+                </div>
+
+                {/* Achievements */}
+                {(stats.michelinCount > 0 || stats.uniqueCountries.size >= 3 || visitedPlaces.length >= 10) && (
+                  <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                    <div className="flex items-center gap-2 mb-6">
+                      <Award className="h-5 w-5" />
+                      <h2 className="text-xl font-bold">Achievements</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {stats.michelinCount > 0 && (
+                        <div className="flex items-center gap-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-lg">
+                          <div className="h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center flex-shrink-0">
+                            <Star className="h-6 w-6 text-yellow-600 dark:text-yellow-500" />
+                          </div>
+                          <div>
+                            <p className="font-semibold">Michelin Explorer</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Visited {stats.michelinCount} Michelin-starred {stats.michelinCount === 1 ? 'restaurant' : 'restaurants'}
+                            </p>
+                          </div>
                         </div>
-                        <h3 className="font-medium text-sm line-clamp-2 mb-1">{place.destination.name}</h3>
-                        <p className="text-xs text-gray-500">{place.destination.city}</p>
-                      </button>
-                    ))}
+                      )}
+                      {stats.uniqueCountries.size >= 3 && (
+                        <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-lg">
+                          <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
+                            <Map className="h-6 w-6 text-blue-600 dark:text-blue-500" />
+                          </div>
+                          <div>
+                            <p className="font-semibold">Globe Trotter</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Explored {stats.uniqueCountries.size} countries
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {visitedPlaces.length >= 10 && (
+                        <div className="flex items-center gap-4 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
+                          <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                            <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-500" />
+                          </div>
+                          <div>
+                            <p className="font-semibold">Rising Explorer</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Visited {visitedPlaces.length} destinations
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
+
+                {/* Trips Section */}
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      <h2 className="text-xl font-bold">My Trips</h2>
+                    </div>
+                    <button
+                      onClick={() => router.push('/trips')}
+                      className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                    >
+                      View All →
+                    </button>
+                  </div>
+                  <div className="text-center py-12">
+                    <Calendar className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">No trips planned yet</p>
+                    <button
+                      onClick={() => router.push('/trips')}
+                      className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium"
+                    >
+                      Plan Your First Trip
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Visited Tab */}
-            {activeTab === 'visited' && (
-              <div>
-                {visitedPlaces.length === 0 ? (
-                  <div className="text-center py-20">
-                    <Check className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-                    <p className="text-xl text-gray-400 mb-6">No visited places yet</p>
-                    <button
-                      onClick={() => router.push('/')}
-                      className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium"
-                    >
-                      Explore Destinations
-                    </button>
+            {/* Collection Tab */}
+            {activeTab === 'collection' && (
+              <div className="space-y-8">
+                {/* Saved Places */}
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-xl font-bold">Saved Places</h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {savedPlaces.length} {savedPlaces.length === 1 ? 'place' : 'places'} you want to visit
+                      </p>
+                    </div>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {visitedPlaces.map(place => (
+                  {savedPlaces.length === 0 ? (
+                    <div className="text-center py-20 border border-gray-200 dark:border-gray-800 rounded-lg">
+                      <Heart className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+                      <p className="text-xl text-gray-400 mb-6">No saved places yet</p>
                       <button
-                        key={place.destination_slug}
-                        onClick={() => router.push(`/destination/${place.destination_slug}`)}
-                        className="group text-left"
+                        onClick={() => router.push('/')}
+                        className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium"
                       >
-                        <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-2">
-                          {place.destination.image ? (
-                            <img
-                              src={place.destination.image}
-                              alt={place.destination.name}
-                              className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <MapPin className="h-12 w-12 opacity-20" />
-                            </div>
-                          )}
-                        </div>
-                        <h3 className="font-medium text-sm line-clamp-2 mb-1">{place.destination.name}</h3>
-                        <p className="text-xs text-gray-500">{place.destination.city}</p>
+                        Explore Destinations
                       </button>
-                    ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
+                      {savedPlaces.map(place => (
+                        <button
+                          key={place.destination_slug}
+                          onClick={() => router.push(`/destination/${place.destination_slug}`)}
+                          className="group text-left"
+                        >
+                          <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-2">
+                            {place.destination.image ? (
+                              <img
+                                src={place.destination.image}
+                                alt={place.destination.name}
+                                className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <MapPin className="h-12 w-12 opacity-20" />
+                              </div>
+                            )}
+                          </div>
+                          <h3 className="font-medium text-sm line-clamp-2 mb-1">{place.destination.name}</h3>
+                          <p className="text-xs text-gray-500">{place.destination.city}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Visited Places */}
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-xl font-bold">Visited Places</h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {visitedPlaces.length} {visitedPlaces.length === 1 ? 'place' : 'places'} you've been to
+                      </p>
+                    </div>
                   </div>
-                )}
+                  {visitedPlaces.length === 0 ? (
+                    <div className="text-center py-20 border border-gray-200 dark:border-gray-800 rounded-lg">
+                      <Check className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+                      <p className="text-xl text-gray-400 mb-6">No visited places yet</p>
+                      <button
+                        onClick={() => router.push('/')}
+                        className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium"
+                      >
+                        Explore Destinations
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
+                      {visitedPlaces.map(place => (
+                        <button
+                          key={place.destination_slug}
+                          onClick={() => router.push(`/destination/${place.destination_slug}`)}
+                          className="group text-left"
+                        >
+                          <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-2">
+                            {place.destination.image ? (
+                              <img
+                                src={place.destination.image}
+                                alt={place.destination.name}
+                                className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <MapPin className="h-12 w-12 opacity-20" />
+                              </div>
+                            )}
+                            <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
+                              <Check className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                          <h3 className="font-medium text-sm line-clamp-2 mb-1">{place.destination.name}</h3>
+                          <p className="text-xs text-gray-500">{place.destination.city}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Settings Tab */}
+            {activeTab === 'settings' && (
+              <div className="space-y-6">
+                {/* Profile Information */}
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                  <div className="flex items-center gap-2 mb-6">
+                    <User className="h-5 w-5" />
+                    <h2 className="text-xl font-bold">Profile Information</h2>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-2">
+                        Email
+                      </label>
+                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+                        {user.email}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-2">
+                        User ID
+                      </label>
+                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg font-mono text-sm">
+                        {user.id.substring(0, 24)}...
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                  <div className="flex items-center gap-2 mb-6">
+                    <TrendingUp className="h-5 w-5" />
+                    <h2 className="text-xl font-bold">Quick Stats</h2>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-600 dark:text-gray-400">Total Destinations</span>
+                      <span className="font-semibold">{savedPlaces.length + visitedPlaces.length}</span>
+                    </div>
+                    <div className="h-px bg-gray-200 dark:border-gray-800" />
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-600 dark:text-gray-400">Cities Explored</span>
+                      <span className="font-semibold">{stats.uniqueCities.size}</span>
+                    </div>
+                    <div className="h-px bg-gray-200 dark:bg-gray-800" />
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-600 dark:text-gray-400">Countries Visited</span>
+                      <span className="font-semibold">{stats.uniqueCountries.size}</span>
+                    </div>
+                    <div className="h-px bg-gray-200 dark:bg-gray-800" />
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-600 dark:text-gray-400">Michelin Restaurants</span>
+                      <span className="font-semibold">{stats.michelinCount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Actions */}
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                  <h2 className="text-xl font-bold mb-6">Account Actions</h2>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <div className="flex-1 text-left">
+                      <p className="font-semibold">Sign Out</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Sign out of your account on this device
+                      </p>
+                    </div>
+                  </button>
+                </div>
               </div>
             )}
           </>
