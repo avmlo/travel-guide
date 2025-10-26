@@ -364,7 +364,7 @@ async function searchBasic(
 
         // Check tags (high priority for AI-generated descriptors)
         if (dest.tags && dest.tags.length > 0) {
-          dest.tags.forEach(tag => {
+          dest.tags.forEach((tag: string) => {
             if (tag.toLowerCase().includes(word)) score += 2.5;
           });
         }
