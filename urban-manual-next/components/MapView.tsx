@@ -20,11 +20,13 @@ export default function MapView({
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Load Google Maps script
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
     if (!apiKey) {
+      setError('Google Maps API key is not configured. Please add NEXT_PUBLIC_GOOGLE_API_KEY to your environment variables.');
       console.error('Google Maps API key is not configured');
       return;
     }
@@ -40,6 +42,9 @@ export default function MapView({
     script.async = true;
     script.defer = true;
     script.addEventListener('load', () => setLoaded(true));
+    script.addEventListener('error', () => {
+      setError('Failed to load Google Maps. Please check your API key and network connection.');
+    });
     document.head.appendChild(script);
 
     return () => {
@@ -123,6 +128,17 @@ export default function MapView({
       );
     });
   }, [destinations, onMarkerClick]);
+
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-2xl p-8">
+        <div className="text-center max-w-md">
+          <p className="text-red-600 dark:text-red-400 mb-2 font-medium">Map Loading Failed</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!loaded) {
     return (

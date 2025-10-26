@@ -560,23 +560,6 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             </div>
           )}
 
-          {/* Michelin Stars */}
-          {destination.michelin_stars && destination.michelin_stars > 0 && (
-            <div className="mb-8">
-              <div className="flex items-center gap-2">
-                {Array.from({ length: destination.michelin_stars }).map((_, i) => (
-                  <img
-                    key={i}
-                    src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
-                    alt={`Michelin Star ${i + 1}`}
-                    className="h-6 w-6"
-                    loading="lazy"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Description */}
           {destination.content && (
             <div className="mb-8">
