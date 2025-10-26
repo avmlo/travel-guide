@@ -69,9 +69,9 @@ export default function RouteOptimizerPage() {
 
       if (error) throw error;
 
-      const places = data
+      const places = (data
         ?.map(item => item.destinations)
-        .filter(Boolean) as Destination[];
+        .filter((dest): dest is Destination => dest !== null && dest !== undefined) || []) as Destination[];
 
       setSavedPlaces(places || []);
 
