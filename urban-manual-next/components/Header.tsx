@@ -86,9 +86,7 @@ export function Header() {
           <div className="hidden md:flex items-center gap-6">
             <button onClick={() => navigate("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
             <button onClick={() => navigate("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
-            <button onClick={() => navigate("/explore")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Explore</button>
             <button onClick={() => navigate("/feed")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Feed</button>
-            <button onClick={() => navigate("/trips")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Trips</button>
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
           </div>
@@ -151,9 +149,7 @@ export function Header() {
           <div className="px-6 py-4 space-y-3">
             <button onClick={() => navigate("/")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Catalogue</button>
             <button onClick={() => navigate("/cities")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Cities</button>
-            <button onClick={() => navigate("/explore")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Explore</button>
             <button onClick={() => navigate("/feed")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Feed</button>
-            <button onClick={() => navigate("/trips")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Trips</button>
             <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Archive</a>
             <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Editorial</a>
 
