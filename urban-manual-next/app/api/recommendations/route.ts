@@ -52,8 +52,9 @@ export async function GET(request: NextRequest) {
     try {
       const client = new SearchServiceClient();
 
-      // Construct serving config path manually
-      const servingConfigPath = `projects/${projectId}/locations/${location}/collections/default_collection/dataStores/${dataStoreId}/servingConfigs/default_config`;
+      // Use engine's serving config for Enterprise + Generative AI features
+      const engineId = `${dataStoreId}-engine`;
+      const servingConfigPath = `projects/${projectId}/locations/${location}/collections/default_collection/engines/${engineId}/servingConfigs/default_config`;
 
       // Build smart query based on current destination
       const query = buildRecommendationQuery(currentDest);

@@ -42,19 +42,30 @@ export async function POST(request: NextRequest) {
     // Initialize Vertex AI Search client
     const client = new SearchServiceClient();
 
-    // Construct serving config path manually
-    const servingConfigPath = `projects/${projectId}/locations/${location}/collections/default_collection/dataStores/${dataStoreId}/servingConfigs/default_config`;
+    // Use engine's serving config for Enterprise + Generative AI features
+    const engineId = `${dataStoreId}-engine`;
+    const servingConfigPath = `projects/${projectId}/locations/${location}/collections/default_collection/engines/${engineId}/servingConfigs/default_config`;
 
-    // Perform search
+    // Perform search with Enterprise features
     const response: any = await client.search({
       servingConfig: servingConfigPath,
       query,
       pageSize,
-      // Optional: Add query expansion for better results
+      // Query expansion for natural language understanding
       queryExpansionSpec: {
         condition: 'AUTO',
       },
-      // Optional: Boost recent or popular items
+      // Enable generative AI features (search summarization, extractive answers)
+      contentSearchSpec: {
+        summarySpec: {
+          summaryResultCount: 3, // Number of results to summarize
+          includeCitations: true,
+        },
+        extractiveContentSpec: {
+          maxExtractiveAnswerCount: 3, // Enterprise feature: extractive answers
+        },
+      },
+      // Boost featured and Michelin-starred destinations
       boostSpec: {
         conditionBoostSpecs: [
           {
@@ -93,11 +104,18 @@ export async function POST(request: NextRequest) {
       }
     }).filter(Boolean);
 
+    // Extract AI-generated summary (Enterprise feature)
+    const summary = response.summary?.summaryText || null;
+    const extractiveAnswers = response.summary?.extractiveAnswers || [];
+
     return NextResponse.json({
       query,
       results,
       totalResults: response.totalSize || 0,
       nextPageToken: response.nextPageToken,
+      // Enterprise + Generative AI features
+      summary, // AI-generated search summary
+      extractiveAnswers, // Extractive answers from content
     });
 
   } catch (error: any) {

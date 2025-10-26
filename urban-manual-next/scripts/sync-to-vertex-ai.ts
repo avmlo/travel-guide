@@ -10,7 +10,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { DocumentServiceClient, DataStoreServiceClient } from '@google-cloud/discoveryengine';
+import { DocumentServiceClient, DataStoreServiceClient, EngineServiceClient } from '@google-cloud/discoveryengine';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -78,6 +78,70 @@ async function ensureDataStoreExists() {
       }
     } else {
       console.error('❌ Error checking data store:', error);
+      return false;
+    }
+  }
+}
+
+async function ensureSearchEngineExists() {
+  console.log('🔍 Checking if search engine exists...\n');
+
+  const engineClient = new EngineServiceClient();
+  const engineId = `${dataStoreId}-engine`;
+  const enginePath = `projects/${projectId}/locations/${location}/collections/default_collection/engines/${engineId}`;
+
+  try {
+    // Try to get the engine
+    await engineClient.getEngine({ name: enginePath });
+    console.log('✅ Search engine already exists\n');
+    return true;
+  } catch (error: any) {
+    if (error.code === 5) { // NOT_FOUND
+      console.log('📝 Search engine not found, creating it with Enterprise features...\n');
+
+      try {
+        // Create the search engine with Enterprise + Generative AI
+        const parent = `projects/${projectId}/locations/${location}/collections/default_collection`;
+        const dataStorePath = `projects/${projectId}/locations/${location}/collections/default_collection/dataStores/${dataStoreId}`;
+
+        const operation: any = await engineClient.createEngine({
+          parent,
+          engineId,
+          engine: {
+            displayName: 'Destinations Search Engine',
+            solutionType: 'SOLUTION_TYPE_SEARCH' as any,
+            // Link to the data store
+            dataStoreIds: [dataStoreId],
+            // Enable Enterprise features
+            searchEngineConfig: {
+              searchTier: 'SEARCH_TIER_ENTERPRISE' as any,
+              searchAddOns: ['SEARCH_ADD_ON_LLM'] as any, // Generative AI features
+            },
+            // Industry vertical
+            industryVertical: 'GENERIC' as any,
+          },
+        });
+
+        console.log('⏳ Creating search engine with Enterprise + Generative AI (this may take a few minutes)...');
+
+        // Handle both array and direct operation response
+        const op = Array.isArray(operation) ? operation[0] : operation;
+        if (op && op.promise) {
+          await op.promise();
+        }
+
+        console.log('✅ Search engine created successfully!');
+        console.log('   ✨ Enterprise features enabled: Extractive answers, Image search');
+        console.log('   ✨ Generative AI enabled: Search summarization, Follow-ups\n');
+        return true;
+      } catch (createError) {
+        console.error('❌ Error creating search engine:', createError);
+        console.log('\n💡 You may need to create the engine manually in Google Cloud Console:');
+        console.log(`   https://console.cloud.google.com/gen-app-builder/engines\n`);
+        return false;
+      }
+    } else {
+      console.error('❌ Error checking search engine:', error);
       return false;
     }
   }
@@ -183,15 +247,23 @@ async function syncToVertexAI() {
 
 // Run the setup and sync
 async function main() {
+  console.log('🚀 Starting Vertex AI Search setup with Enterprise features...\n');
+
   // Step 1: Ensure data store exists
   const dataStoreReady = await ensureDataStoreExists();
-
   if (!dataStoreReady) {
     console.error('❌ Cannot proceed without a data store');
     process.exit(1);
   }
 
-  // Step 2: Sync destinations
+  // Step 2: Ensure search engine exists (with Enterprise + Generative AI)
+  const engineReady = await ensureSearchEngineExists();
+  if (!engineReady) {
+    console.error('❌ Cannot proceed without a search engine');
+    process.exit(1);
+  }
+
+  // Step 3: Sync destinations
   await syncToVertexAI();
 }
 
