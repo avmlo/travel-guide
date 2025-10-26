@@ -1,13 +1,17 @@
 'use client';
 
-import { useEffect } from 'react';
-import { X, MapPin, Tag } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, MapPin, Tag, Heart, Check } from 'lucide-react';
 import { Destination } from '@/types/destination';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 interface DestinationDrawerProps {
   destination: Destination | null;
   isOpen: boolean;
   onClose: () => void;
+  onSaveToggle?: (slug: string, saved: boolean) => void;
+  onVisitToggle?: (slug: string, visited: boolean) => void;
 }
 
 function capitalizeCity(city: string): string {
@@ -17,16 +21,21 @@ function capitalizeCity(city: string): string {
     .join(' ');
 }
 
-export function DestinationDrawer({ destination, isOpen, onClose }: DestinationDrawerProps) {
+export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, onVisitToggle }: DestinationDrawerProps) {
+  const { user } = useAuth();
+  const [isSaved, setIsSaved] = useState(false);
+  const [isVisited, setIsVisited] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   // Prevent body scroll when drawer is open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [isOpen]);
 
@@ -41,6 +50,110 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
+
+  // Load saved and visited status
+  useEffect(() => {
+    async function checkSavedAndVisited() {
+      if (!user || !destination) {
+        setIsSaved(false);
+        setIsVisited(false);
+        return;
+      }
+
+      const { data: savedData } = await supabase
+        .from('saved_places')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('destination_slug', destination.slug)
+        .single();
+
+      setIsSaved(!!savedData);
+
+      const { data: visitedData } = await supabase
+        .from('visited_places')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('destination_slug', destination.slug)
+        .single();
+
+      setIsVisited(!!visitedData);
+    }
+
+    checkSavedAndVisited();
+  }, [user, destination]);
+
+  const handleSave = async () => {
+    if (!user || !destination) return;
+
+    setLoading(true);
+    const previousState = isSaved;
+    const newState = !isSaved;
+
+    // Optimistic update
+    setIsSaved(newState);
+    onSaveToggle?.(destination.slug, newState);
+
+    try {
+      if (previousState) {
+        await supabase
+          .from('saved_places')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('destination_slug', destination.slug);
+      } else {
+        await supabase
+          .from('saved_places')
+          .insert({
+            user_id: user.id,
+            destination_slug: destination.slug,
+          });
+      }
+    } catch (error) {
+      // Revert on error
+      setIsSaved(previousState);
+      onSaveToggle?.(destination.slug, previousState);
+      console.error('Error toggling save:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVisit = async () => {
+    if (!user || !destination) return;
+
+    setLoading(true);
+    const previousState = isVisited;
+    const newState = !isVisited;
+
+    // Optimistic update
+    setIsVisited(newState);
+    onVisitToggle?.(destination.slug, newState);
+
+    try {
+      if (previousState) {
+        await supabase
+          .from('visited_places')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('destination_slug', destination.slug);
+      } else {
+        await supabase
+          .from('visited_places')
+          .insert({
+            user_id: user.id,
+            destination_slug: destination.slug,
+            visited_at: new Date().toISOString(),
+          });
+      }
+    } catch (error) {
+      // Revert on error
+      setIsVisited(previousState);
+      onVisitToggle?.(destination.slug, previousState);
+      console.error('Error toggling visit:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!destination) return null;
 
@@ -118,6 +231,46 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
             </div>
           </div>
 
+          {/* Action Buttons */}
+          {user && (
+            <div className="flex gap-3 mb-6">
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
+                  isSaved
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                <Heart className={`h-5 w-5 ${isSaved ? 'fill-current' : ''}`} />
+                {isSaved ? 'Saved' : 'Save'}
+              </button>
+
+              <button
+                onClick={handleVisit}
+                disabled={loading}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
+                  isVisited
+                    ? 'bg-green-500 text-white hover:bg-green-600'
+                    : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                <Check className="h-5 w-5" />
+                {isVisited ? 'Visited' : 'Mark as Visited'}
+              </button>
+            </div>
+          )}
+
+          {/* Sign in prompt */}
+          {!user && (
+            <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <a href="/auth/login" className="font-medium hover:opacity-60">Sign in</a> to save destinations and track your visits
+              </p>
+            </div>
+          )}
+
           {/* Description */}
           {destination.content && (
             <div className="mb-6">
@@ -127,13 +280,6 @@ export function DestinationDrawer({ destination, isOpen, onClose }: DestinationD
               </div>
             </div>
           )}
-
-          {/* Coming Soon Features */}
-          <div className="border-t border-gray-200 dark:border-gray-800 pt-6">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Save, visit tracking, and trip planning features coming soon with authentication.
-            </p>
-          </div>
         </div>
       </div>
     </>
