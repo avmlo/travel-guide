@@ -39,6 +39,8 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
   const [copied, setCopied] = useState(false);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [heartAnimating, setHeartAnimating] = useState(false);
+  const [checkAnimating, setCheckAnimating] = useState(false);
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -102,6 +104,10 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
     const previousState = isSaved;
     const newState = !isSaved;
 
+    // Trigger animation
+    setHeartAnimating(true);
+    setTimeout(() => setHeartAnimating(false), 600);
+
     // Optimistic update
     setIsSaved(newState);
     onSaveToggle?.(destination.slug, newState);
@@ -137,6 +143,10 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
     setLoading(true);
     const previousState = isVisited;
     const newState = !isVisited;
+
+    // Trigger animation
+    setCheckAnimating(true);
+    setTimeout(() => setCheckAnimating(false), 600);
 
     // Optimistic update
     setIsVisited(newState);

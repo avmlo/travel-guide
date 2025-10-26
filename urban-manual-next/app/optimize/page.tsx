@@ -62,7 +62,9 @@ export default function RouteOptimizerPage() {
             name,
             city,
             category,
-            image
+            image,
+            latitude,
+            longitude
           )
         `)
         .eq('user_id', user.id);
@@ -101,9 +103,34 @@ export default function RouteOptimizerPage() {
     return durations[category] || 60;
   };
 
-  const estimateTravelTime = (from: Destination, to: Destination): number => {
-    // Simple estimation: 15-30 minutes between locations
-    // In production, use Google Distance Matrix API
+  const estimateTravelTime = async (from: Destination, to: Destination, mode: string = 'walking'): Promise<number> => {
+    // If either location lacks coordinates, use fallback estimate
+    if (!from.latitude || !from.longitude || !to.latitude || !to.longitude) {
+      return Math.floor(Math.random() * 15) + 15;
+    }
+
+    try {
+      const response = await fetch('/api/distance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          origins: [{ lat: from.latitude, lng: from.longitude, name: from.name }],
+          destinations: [{ lat: to.latitude, lng: to.longitude, name: to.name }],
+          mode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.results && data.results.length > 0) {
+        const durationInMinutes = Math.ceil(data.results[0].duration / 60);
+        return durationInMinutes;
+      }
+    } catch (error) {
+      console.error('Error fetching travel time:', error);
+    }
+
+    // Fallback to estimate
     return Math.floor(Math.random() * 15) + 15;
   };
 
@@ -116,12 +143,12 @@ export default function RouteOptimizerPage() {
     return false;
   };
 
-  const optimizeRoute = () => {
+  const optimizeRoute = async () => {
     if (selectedPlaces.length === 0) return;
 
     setOptimizing(true);
 
-    setTimeout(() => {
+    try {
       // Parse start time
       const [hours, minutes] = startTime.split(':').map(Number);
       let currentTime = new Date();
@@ -144,7 +171,9 @@ export default function RouteOptimizerPage() {
         return (priority[a.category] || 3) - (priority[b.category] || 3);
       });
 
-      sortedPlaces.forEach((place, index) => {
+      for (let index = 0; index < sortedPlaces.length; index++) {
+        const place = sortedPlaces[index];
+
         // Check if we should insert lunch
         if (shouldInsertMeal(currentTime, lastMealTime, 'lunch') &&
             !place.category.includes('Dining') &&
@@ -176,7 +205,7 @@ export default function RouteOptimizerPage() {
         const endTime = new Date(currentTime.getTime() + duration * 60000);
 
         const travelTime = index < sortedPlaces.length - 1
-          ? estimateTravelTime(place, sortedPlaces[index + 1])
+          ? await estimateTravelTime(place, sortedPlaces[index + 1], 'walking')
           : undefined;
 
         route.push({
@@ -191,11 +220,14 @@ export default function RouteOptimizerPage() {
 
         // Update current time (including travel)
         currentTime = new Date(endTime.getTime() + (travelTime || 0) * 60000);
-      });
+      }
 
       setOptimizedRoute(route);
+    } catch (error) {
+      console.error('Error optimizing route:', error);
+    } finally {
       setOptimizing(false);
-    }, 1500); // Simulate AI thinking
+    }
   };
 
   const exportToGoogleMaps = () => {
