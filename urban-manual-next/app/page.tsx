@@ -8,18 +8,33 @@ import { DestinationDrawer } from '@/components/DestinationDrawer';
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Categories based on actual Supabase data
-const CATEGORIES = [
-  { id: "", label: "All", icon: "🌍" },
-  { id: "Dining", label: "Dining", icon: "🍴" },
-  { id: "Hotels", label: "Hotels", icon: "🏨" },
-  { id: "Culture", label: "Culture", icon: "🎭" },
-  { id: "Bars", label: "Bars", icon: "🍸" },
-  { id: "Cafes", label: "Cafes", icon: "☕" },
-  { id: "Restaurants", label: "Restaurants", icon: "🍽️" },
-  { id: "Bakeries", label: "Bakeries", icon: "🥐" },
-  { id: "Other", label: "Other", icon: "✨" },
-];
+// Category icons mapping - add more as needed
+const CATEGORY_ICONS: Record<string, string> = {
+  'dining': '🍴',
+  'hotels': '🏨',
+  'culture': '🎭',
+  'bars': '🍸',
+  'cafes': '☕',
+  'restaurants': '🍽️',
+  'bakeries': '🥐',
+  'other': '✨',
+  'nightlife': '🌙',
+  'shopping': '🛍️',
+  'activities': '🎯',
+  'food': '🍜',
+};
+
+function getCategoryIcon(category: string): string {
+  const key = category.toLowerCase().trim();
+  return CATEGORY_ICONS[key] || '📍';
+}
+
+function capitalizeCategory(category: string): string {
+  return category
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
 
 function capitalizeCity(city: string): string {
   return city
@@ -32,6 +47,7 @@ export default function Home() {
   const { user } = useAuth();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [filteredDestinations, setFilteredDestinations] = useState<Destination[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [visitedSlugs, setVisitedSlugs] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
@@ -74,6 +90,17 @@ export default function Home() {
 
       if (error) throw error;
       setDestinations(data || []);
+
+      // Extract unique categories from actual data
+      const uniqueCategories = Array.from(
+        new Set(
+          (data || [])
+            .map(d => d.category?.trim())
+            .filter(Boolean)
+        )
+      ).sort();
+
+      setCategories(uniqueCategories as string[]);
     } catch (error) {
       console.error('Error fetching destinations:', error);
     } finally {
@@ -250,21 +277,35 @@ export default function Home() {
         </div>
 
         {/* Category Filter - Hidden during search */}
-        {!searchTerm && (
+        {!searchTerm && categories.length > 0 && (
           <div className="mb-8">
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((category) => (
+              {/* All button */}
+              <button
+                onClick={() => setSelectedCategory('')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
+                  selectedCategory === ''
+                    ? "bg-black dark:bg-white text-white dark:text-black"
+                    : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md hover:-translate-y-0.5"
+                }`}
+              >
+                <span>🌍</span>
+                <span>All</span>
+              </button>
+
+              {/* Dynamic categories from database */}
+              {categories.map((category) => (
                 <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    selectedCategory === category.id
+                    selectedCategory === category
                       ? "bg-black dark:bg-white text-white dark:text-black"
                       : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md hover:-translate-y-0.5"
                   }`}
                 >
-                  <span>{category.icon}</span>
-                  <span>{category.label}</span>
+                  <span>{getCategoryIcon(category)}</span>
+                  <span>{capitalizeCategory(category)}</span>
                 </button>
               ))}
             </div>
