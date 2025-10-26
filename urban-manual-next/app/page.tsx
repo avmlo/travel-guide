@@ -8,12 +8,14 @@ import { DestinationDrawer } from '@/components/DestinationDrawer';
 
 const CATEGORIES = [
   { id: "", label: "All", icon: "🌍" },
-  { id: "restaurant", label: "Restaurant", icon: "🍽️" },
-  { id: "cafe", label: "Cafe", icon: "☕" },
-  { id: "hotel", label: "Hotel", icon: "🏨" },
-  { id: "bar", label: "Bar", icon: "🍸" },
-  { id: "shop", label: "Shop", icon: "🛍️" },
-  { id: "bakery", label: "Bakery", icon: "🥐" },
+  { id: "Restaurants", label: "Restaurants", icon: "🍽️" },
+  { id: "Cafes", label: "Cafes", icon: "☕" },
+  { id: "Hotels", label: "Hotels", icon: "🏨" },
+  { id: "Bars", label: "Bars", icon: "🍸" },
+  { id: "Bakeries", label: "Bakeries", icon: "🥐" },
+  { id: "Dining", label: "Dining", icon: "🍴" },
+  { id: "Culture", label: "Culture", icon: "🎭" },
+  { id: "Other", label: "Other", icon: "✨" },
 ];
 
 function capitalizeCity(city: string): string {
@@ -66,9 +68,7 @@ export default function Home() {
     }
 
     if (selectedCategory) {
-      filtered = filtered.filter(d =>
-        d.category.toLowerCase().includes(selectedCategory.toLowerCase())
-      );
+      filtered = filtered.filter(d => d.category === selectedCategory);
     }
 
     if (searchTerm) {
