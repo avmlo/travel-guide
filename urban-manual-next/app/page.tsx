@@ -38,6 +38,8 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showAllCities, setShowAllCities] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [searchTier, setSearchTier] = useState<string | null>(null);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -51,8 +53,16 @@ export default function Home() {
     }
   }, [user]);
 
+  // Debounced AI search
   useEffect(() => {
-    filterDestinations();
+    if (searchTerm.trim().length > 2) {
+      const timer = setTimeout(() => {
+        performAISearch(searchTerm);
+      }, 500); // 500ms debounce
+      return () => clearTimeout(timer);
+    } else {
+      filterDestinations();
+    }
   }, [searchTerm, selectedCity, selectedCategory, destinations, visitedSlugs]);
 
   const fetchDestinations = async () => {
@@ -86,6 +96,44 @@ export default function Home() {
       setVisitedSlugs(slugs);
     } catch (error) {
       console.error('Error fetching visited places:', error);
+    }
+  };
+
+  // AI-powered search using the new /api/search endpoint
+  const performAISearch = async (query: string) => {
+    setSearching(true);
+    setSearchTier(null);
+
+    try {
+      const filters: any = {};
+      if (selectedCity) filters.city = selectedCity;
+      if (selectedCategory) filters.category = selectedCategory;
+
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          pageSize: 50,
+          filters,
+          userId: user?.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.results) {
+        setFilteredDestinations(data.results);
+        setSearchTier(data.searchTier);
+      } else {
+        // Fallback to basic search
+        filterDestinations();
+      }
+    } catch (error) {
+      console.error('AI search error, falling back to basic:', error);
+      filterDestinations();
+    } finally {
+      setSearching(false);
     }
   };
 
@@ -186,7 +234,19 @@ export default function Home() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
             />
+            {searching && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="animate-spin h-4 w-4 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full"></div>
+              </div>
+            )}
           </div>
+          {searchTier && searchTerm.trim().length > 2 && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              {searchTier === 'discovery-engine' && '🔍 Discovery Engine search'}
+              {searchTier === 'gemini-semantic' && '🧠 AI semantic search'}
+              {searchTier === 'basic' && '⚡ Keyword search'}
+            </p>
+          )}
         </div>
 
         {/* Category Filter - Hidden during search */}

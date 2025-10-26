@@ -29,15 +29,20 @@ ON follow_cities(city_slug);
 ALTER TABLE follow_cities ENABLE ROW LEVEL SECURITY;
 
 -- 6. RLS Policies for follow_cities
-CREATE POLICY IF NOT EXISTS "Users can view their own followed cities"
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view their own followed cities" ON follow_cities;
+DROP POLICY IF EXISTS "Users can follow cities" ON follow_cities;
+DROP POLICY IF EXISTS "Users can unfollow cities" ON follow_cities;
+
+CREATE POLICY "Users can view their own followed cities"
   ON follow_cities FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can follow cities"
+CREATE POLICY "Users can follow cities"
   ON follow_cities FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can unfollow cities"
+CREATE POLICY "Users can unfollow cities"
   ON follow_cities FOR DELETE
   USING (auth.uid() = user_id);
 

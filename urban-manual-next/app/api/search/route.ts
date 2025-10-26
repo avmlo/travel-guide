@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
 const location = process.env.GOOGLE_CLOUD_LOCATION || 'global';
 const dataStoreId = process.env.VERTEX_AI_DATA_STORE_ID;
-const geminiApiKey = process.env.GEMINI_API_KEY;
+const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
 
 interface SearchResult {
   slug: string;
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     // TIER 2: Try Gemini Semantic Search (good semantic understanding)
-    if (geminiApiKey) {
+    if (googleApiKey) {
       try {
         console.log('🧠 Using Gemini semantic search');
         const results = await searchWithGemini(query, pageSize, filters);
@@ -398,7 +398,7 @@ async function searchBasic(
  */
 async function generateGeminiEmbedding(text: string): Promise<number[]> {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=${geminiApiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=${googleApiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
