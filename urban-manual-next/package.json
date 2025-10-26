@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google-cloud/discoveryengine": "^2.5.2",
+    "@google/generative-ai": "^0.21.0",
     "@payloadcms/db-postgres": "^3.61.1",
     "@payloadcms/next": "^3.61.1",
     "@payloadcms/richtext-lexical": "^3.61.1",
