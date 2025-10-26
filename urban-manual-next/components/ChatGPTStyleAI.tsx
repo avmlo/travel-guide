@@ -5,9 +5,20 @@ import { Send, Sparkles, X, Minimize2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface Destination {
+  slug: string;
+  name: string;
+  city: string;
+  category: string;
+  image: string | null;
+  michelin_stars: number | null;
+  crown: boolean;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
+  destinations?: Destination[];
 }
 
 export function ChatGPTStyleAI() {
@@ -42,7 +53,11 @@ export function ChatGPTStyleAI() {
 
     try {
       const response = await getAIResponse(userMessage);
-      setMessages(prev => [...prev, { role: "assistant", content: response }]);
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: response.content,
+        destinations: response.destinations
+      }]);
     } catch (error) {
       console.error("AI error:", error);
       setMessages(prev => [...prev, {
@@ -54,7 +69,7 @@ export function ChatGPTStyleAI() {
     }
   };
 
-  const getAIResponse = async (query: string): Promise<string> => {
+  const getAIResponse = async (query: string): Promise<{content: string; destinations?: Destination[]}> => {
     const lowerQuery = query.toLowerCase();
 
     // 🎯 PROACTIVE: Check for upcoming trips

@@ -288,7 +288,11 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
 
               {destination.michelin_stars && destination.michelin_stars > 0 && (
                 <div className="flex items-center gap-2">
-                  <span>⭐</span>
+                  <img
+                    src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                    alt="Michelin star"
+                    className="h-4 w-4"
+                  />
                   <span>{destination.michelin_stars} Michelin Star{destination.michelin_stars !== 1 ? 's' : ''}</span>
                 </div>
               )}
@@ -479,7 +483,11 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                         )}
                         {rec.michelin_stars && rec.michelin_stars > 0 && (
                           <div className="absolute bottom-2 left-2 bg-white dark:bg-gray-900 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-0.5">
-                            <span>⭐</span>
+                            <img
+                              src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                              alt="Michelin star"
+                              className="h-3 w-3"
+                            />
                             <span>{rec.michelin_stars}</span>
                           </div>
                         )}

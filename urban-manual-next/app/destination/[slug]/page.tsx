@@ -107,7 +107,11 @@ export default function DestinationPage() {
 
           {destination.michelin_stars && destination.michelin_stars > 0 && (
             <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full text-sm">
-              <span>⭐</span>
+              <img
+                src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                alt="Michelin star"
+                className="h-4 w-4"
+              />
               <span className="font-medium">
                 {destination.michelin_stars} Michelin Star{destination.michelin_stars !== 1 ? 's' : ''}
               </span>

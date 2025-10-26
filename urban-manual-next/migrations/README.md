@@ -137,6 +137,17 @@ Then re-run the migration.
 - Verify RLS policies are enabled (should be automatic)
 - Test authentication is working
 
+### "Failed to create trip" error
+**Cause:** The `trips` table doesn't exist in your database yet.
+
+**Solution:**
+1. Go to Supabase SQL Editor
+2. Run the `trips.sql` migration (see "How to Run Migrations" above)
+3. Verify the `trips` table appears in Table Editor
+4. Try creating a trip again
+
+**Note:** The error message will now show detailed information to help you debug
+
 ## Support
 
 If you encounter issues:

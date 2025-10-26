@@ -7,16 +7,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theurbanmanual.com';
   const currentDate = new Date().toISOString();
 
-  // Fetch all destinations and cities
-  const { data: destinations } = await supabase
-    .from('destinations')
-    .select('slug, city')
-    .order('slug');
+  let destinationData: Destination[] = [];
+  let cities: string[] = [];
 
-  const destinationData = (destinations || []) as Destination[];
+  try {
+    // Fetch all destinations and cities
+    const { data: destinations, error } = await supabase
+      .from('destinations')
+      .select('slug, city')
+      .order('slug');
 
-  // Get unique cities
-  const cities = Array.from(new Set(destinationData.map(d => d.city)));
+    if (error) {
+      console.warn('Sitemap: Could not fetch destinations from Supabase:', error.message);
+    } else {
+      destinationData = (destinations || []) as Destination[];
+      // Get unique cities
+      cities = Array.from(new Set(destinationData.map(d => d.city)));
+    }
+  } catch (error) {
+    console.warn('Sitemap: Supabase not available during build, generating basic sitemap');
+    // This is fine during build without env vars
+  }
 
   // Static pages (public only - no auth-required pages)
   const staticPages: MetadataRoute.Sitemap = [

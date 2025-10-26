@@ -315,7 +315,11 @@ export default function Home() {
                   {/* Michelin Stars */}
                   {destination.michelin_stars && destination.michelin_stars > 0 && (
                     <div className="absolute bottom-2 left-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1 shadow-lg">
-                      <span>⭐</span>
+                      <img
+                        src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                        alt="Michelin star"
+                        className="h-3 w-3"
+                      />
                       <span>{destination.michelin_stars}</span>
                     </div>
                   )}

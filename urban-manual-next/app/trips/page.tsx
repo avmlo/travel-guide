@@ -84,14 +84,27 @@ export default function TripsPage() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       setTrips([data, ...trips]);
       setShowCreateDialog(false);
       setNewTrip({ title: '', description: '', destination: '', start_date: '', end_date: '' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating trip:', error);
-      alert('Failed to create trip');
+
+      // Show detailed error message
+      let errorMessage = 'Failed to create trip';
+      if (error?.message) {
+        errorMessage += `: ${error.message}`;
+      }
+      if (error?.code === '42P01') {
+        errorMessage = 'Database table "trips" does not exist. Please run the migrations in Supabase. See migrations/README.md for instructions.';
+      }
+
+      alert(errorMessage);
     }
   };
 
