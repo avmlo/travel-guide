@@ -1,60 +1,65 @@
 import { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabase';
+import { Destination } from '@/types/destination';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://theurbanmanual.com'; // Update with your actual domain
+  // Use environment variable or default to production URL
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theurbanmanual.com';
+  const currentDate = new Date().toISOString();
 
-  // Static pages
+  // Fetch all destinations and cities
+  const { data: destinations } = await supabase
+    .from('destinations')
+    .select('slug, city')
+    .order('slug');
+
+  const destinationData = (destinations || []) as Destination[];
+
+  // Get unique cities
+  const cities = Array.from(new Set(destinationData.map(d => d.city)));
+
+  // Static pages (public only - no auth-required pages)
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
-      lastModified: new Date(),
+      lastModified: currentDate,
       changeFrequency: 'daily',
-      priority: 1,
+      priority: 1.0,
     },
     {
       url: `${baseUrl}/cities`,
-      lastModified: new Date(),
+      lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/explore`,
-      lastModified: new Date(),
+      lastModified: currentDate,
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.9,
     },
     {
-      url: `${baseUrl}/account`,
-      lastModified: new Date(),
+      url: `${baseUrl}/privacy`,
+      lastModified: currentDate,
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.3,
     },
   ];
 
-  // Fetch all destinations
-  const { data: destinations } = await supabase
-    .from('destinations')
-    .select('slug, updated_at');
-
-  const destinationPages: MetadataRoute.Sitemap = destinations?.map((dest) => ({
-    url: `${baseUrl}/destination/${dest.slug}`,
-    lastModified: dest.updated_at ? new Date(dest.updated_at) : new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  })) || [];
-
-  // Fetch all cities
-  const { data: citiesData } = await supabase
-    .from('destinations')
-    .select('city');
-
-  const uniqueCities = [...new Set(citiesData?.map(d => d.city))];
-  const cityPages: MetadataRoute.Sitemap = uniqueCities.map((city) => ({
-    url: `${baseUrl}/city/${city}`,
-    lastModified: new Date(),
+  // City pages
+  const cityPages: MetadataRoute.Sitemap = cities.map(city => ({
+    url: `${baseUrl}/city/${encodeURIComponent(city)}`,
+    lastModified: currentDate,
     changeFrequency: 'weekly',
     priority: 0.8,
+  }));
+
+  // Destination pages - highest priority as they are the core content
+  const destinationPages: MetadataRoute.Sitemap = destinationData.map(dest => ({
+    url: `${baseUrl}/destination/${dest.slug}`,
+    lastModified: currentDate,
+    changeFrequency: 'monthly',
+    priority: 0.7,
   }));
 
   return [...staticPages, ...cityPages, ...destinationPages];
