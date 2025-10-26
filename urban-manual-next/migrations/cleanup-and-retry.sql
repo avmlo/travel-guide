@@ -2,16 +2,7 @@
 -- Run this if you encounter errors about missing columns or tables
 -- This will safely drop and recreate the saved_visited_places tables
 
--- Drop existing policies first (if they exist)
-DROP POLICY IF EXISTS "Users can view their own saved places" ON saved_places;
-DROP POLICY IF EXISTS "Users can save places" ON saved_places;
-DROP POLICY IF EXISTS "Users can delete their saved places" ON saved_places;
-DROP POLICY IF EXISTS "Users can view their own visited places" ON visited_places;
-DROP POLICY IF EXISTS "Users can mark places as visited" ON visited_places;
-DROP POLICY IF EXISTS "Users can update their visited places" ON visited_places;
-DROP POLICY IF EXISTS "Users can delete their visited places" ON visited_places;
-
--- Drop existing tables (if they exist)
+-- Drop existing tables (CASCADE will also drop policies)
 DROP TABLE IF EXISTS saved_places CASCADE;
 DROP TABLE IF EXISTS visited_places CASCADE;
 
