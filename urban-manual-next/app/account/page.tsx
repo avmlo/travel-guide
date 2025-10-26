@@ -74,6 +74,20 @@ export default function AccountPage() {
             .order('visited_at', { ascending: false })
         ]);
 
+        // Check for errors
+        if (savedResult.error) {
+          console.error('Error fetching saved places:', savedResult.error);
+          if (savedResult.error.code === '42P01') {
+            console.error('⚠️ Table "saved_places" does not exist. Please run migrations/saved_visited_places.sql in Supabase.');
+          }
+        }
+        if (visitedResult.error) {
+          console.error('Error fetching visited places:', visitedResult.error);
+          if (visitedResult.error.code === '42P01') {
+            console.error('⚠️ Table "visited_places" does not exist. Please run migrations/saved_visited_places.sql in Supabase.');
+          }
+        }
+
         const allSlugs = new Set<string>();
         if (savedResult.data) {
           savedResult.data.forEach(item => allSlugs.add(item.destination_slug));
