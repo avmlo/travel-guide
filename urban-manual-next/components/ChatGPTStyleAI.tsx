@@ -98,7 +98,7 @@ export function ChatGPTStyleAI() {
               const stars = d.michelin_stars ? ' ' + '⭐'.repeat(d.michelin_stars) : '';
               return `• **${d.name}**${stars} - ${d.category}`;
             }).join('\n');
-            return `I see you're visiting **${city}** soon! 🎉 Here are 5 must-visit places:\n\n${list}\n\nWould you like me to create an itinerary?`;
+            return { content: `I see you're visiting **${city}** soon! 🎉 Here are 5 must-visit places:\n\n${list}\n\nWould you like me to create an itinerary?` };
           }
         }
       }
@@ -163,7 +163,7 @@ export function ChatGPTStyleAI() {
           route += `\n💡 You'll have about ${Math.round(timeLeft * 60)} minutes of buffer time for photos and exploring!`;
         }
 
-        return route;
+        return { content: route };
       }
     }
 
@@ -191,10 +191,10 @@ export function ChatGPTStyleAI() {
           itinerary += `**Evening:**\n• Dinner at **${restaurants[1]?.name || restaurants[0]?.name}**${restaurants[1]?.michelin_stars ? ' ⭐'.repeat(restaurants[1].michelin_stars) : ''}\n\n`;
           itinerary += `Would you like me to save this to your trips?`;
 
-          return itinerary;
+          return { content: itinerary };
         }
       }
-      return `I can create a custom itinerary! Try:\n• "I'm in Shibuya for 3 hours"\n• "Plan a day in Paris"\n• "Create an itinerary for Tokyo"`;
+      return { content: `I can create a custom itinerary! Try:\n• "I'm in Shibuya for 3 hours"\n• "Plan a day in Paris"\n• "Create an itinerary for Tokyo"` };
     }
 
     // 🎯 CONTEXTUAL: Based on saved places
@@ -223,7 +223,7 @@ export function ChatGPTStyleAI() {
 
           if (similar && similar.length > 0) {
             const list = similar.map(d => `• **${d.name}** - ${d.city.replace(/-/g, ' ')}`).join('\n');
-            return `Based on your interest in **${savedDest.name}**, you might like:\n\n${list}`;
+            return { content: `Based on your interest in **${savedDest.name}**, you might like:\n\n${list}` };
           }
         }
       }
@@ -241,7 +241,7 @@ export function ChatGPTStyleAI() {
 
       if (data && data.length > 0) {
         const list = data.map(d => `• **${d.name}** - ${d.category}`).join('\n');
-        return `I found these places in ${city}:\n\n${list}\n\nWould you like to know more about any of these?`;
+        return { content: `I found these places in ${city}:\n\n${list}\n\nWould you like to know more about any of these?` };
       }
     }
 
@@ -266,7 +266,7 @@ export function ChatGPTStyleAI() {
       if (data && data.length > 0) {
         const list = data.map(d => `• **${d.name}** in ${d.city.replace(/-/g, ' ')}`).join('\n');
         const location = cityInQuery ? ` in ${cityInQuery[1]}` : '';
-        return `Here are some great ${foundCategory}s${location}:\n\n${list}`;
+        return { content: `Here are some great ${foundCategory}s${location}:\n\n${list}` };
       }
     }
 
@@ -284,7 +284,7 @@ export function ChatGPTStyleAI() {
           const stars = '⭐'.repeat(d.michelin_stars);
           return `• **${d.name}** ${stars} - ${d.city.replace(/-/g, ' ')}`;
         }).join('\n');
-        return `Here are our top Michelin-starred restaurants:\n\n${list}`;
+        return { content: `Here are our top Michelin-starred restaurants:\n\n${list}` };
       }
     }
 
@@ -292,18 +292,21 @@ export function ChatGPTStyleAI() {
     const greetings = ['hi', 'hello', 'hey'];
     if (greetings.some(g => lowerQuery.includes(g))) {
       const userName = user ? 'there' : 'there';
-      return `Hello ${userName}! 👋 I can help you:\n\n• Find places in specific cities\n• Discover restaurants, cafes, or hotels\n• Create custom itineraries\n• Get personalized recommendations\n\nWhat would you like to explore?`;
+      return { content: `Hello ${userName}! 👋 I can help you:\n\n• Find places in specific cities\n• Discover restaurants, cafes, or hotels\n• Create custom itineraries\n• Get personalized recommendations\n\nWhat would you like to explore?` };
     }
 
     // Fallback
-    return `I can help you:\n\n• Find destinations in any city\n• Search by type (restaurant, cafe, hotel)\n• Create custom itineraries\n• Get recommendations based on your preferences\n\nTry asking: "Find me a cozy cafe in Paris" or "Plan an itinerary for Tokyo"`;
+    return { content: `I can help you:\n\n• Find destinations in any city\n• Search by type (restaurant, cafe, hotel)\n• Create custom itineraries\n• Get recommendations based on your preferences\n\nTry asking: "Find me a cozy cafe in Paris" or "Plan an itinerary for Tokyo"` };
   };
 
   if (!isOpen) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-full shadow-lg hover:scale-105 transition-transform duration-200"
+        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 flex items-center gap-2 px-6 py-3 bg-black/90 dark:bg-white/90 backdrop-blur-xl text-white dark:text-black rounded-full shadow-lg border border-white/10 dark:border-black/10 hover:scale-105 transition-transform duration-200"
+        style={{
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
+        }}
       >
         <Sparkles className="h-5 w-5" />
         <span className="font-medium">Ask AI Travel Assistant</span>
@@ -316,7 +319,11 @@ export function ChatGPTStyleAI() {
       {/* Chat History - Floating Above */}
       {messages.length > 0 && (
         <div className="w-full max-w-3xl mb-4 px-4 pointer-events-auto">
-          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[60vh] overflow-y-auto">
+          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 max-h-[60vh] overflow-y-auto"
+            style={{
+              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
+            }}
+          >
             <div className="p-4 space-y-4">
               {messages.map((message, index) => (
                 <div
@@ -326,8 +333,8 @@ export function ChatGPTStyleAI() {
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                       message.role === 'user'
-                        ? 'bg-black dark:bg-white text-white dark:text-black'
-                        : 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
+                        ? 'bg-black/90 dark:bg-white/90 text-white dark:text-black backdrop-blur-sm'
+                        : 'bg-white/60 dark:bg-gray-800/60 text-black dark:text-white backdrop-blur-sm border border-white/20 dark:border-gray-700/50'
                     }`}
                   >
                     {message.role === 'assistant' && (
@@ -357,7 +364,7 @@ export function ChatGPTStyleAI() {
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3">
+                  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 rounded-2xl px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="flex gap-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
@@ -376,7 +383,11 @@ export function ChatGPTStyleAI() {
 
       {/* Input Bar - Bottom Center */}
       <div className="w-full max-w-3xl px-4 pb-6 pointer-events-auto">
-        <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 p-4"
+          style={{
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
+          }}
+        >
           <form onSubmit={handleSubmit} className="flex items-end gap-3">
             <div className="flex-1">
               <textarea
@@ -417,7 +428,7 @@ export function ChatGPTStyleAI() {
           </form>
 
           {messages.length === 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800">
+            <div className="mt-3 pt-3 border-t border-white/20 dark:border-gray-700/50">
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Try asking:</div>
               <div className="flex flex-wrap gap-2">
                 {[
@@ -428,7 +439,7 @@ export function ChatGPTStyleAI() {
                   <button
                     key={index}
                     onClick={() => setInput(suggestion)}
-                    className="px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 text-black dark:text-white rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    className="px-3 py-1.5 text-xs bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 text-black dark:text-white rounded-full hover:bg-white/60 dark:hover:bg-gray-700/60 transition-all"
                   >
                     {suggestion}
                   </button>
