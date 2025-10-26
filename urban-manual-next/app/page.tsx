@@ -96,18 +96,28 @@ export default function Home() {
   }
 
   return (
-    <main className="px-6 md:px-10 py-12 dark:text-white">
+    <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
       <div className="max-w-[1920px] mx-auto">
+        {/* Hero Section */}
+        <div className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3">
+            Discover
+          </h1>
+          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400">
+            Explore {destinations.length} curated destinations
+          </p>
+        </div>
+
         {/* Search Bar */}
         <div className="mb-8">
-          <div className="relative max-w-[500px] w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <div className="relative max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder={`Search ${destinations.length} items...`}
+              placeholder={`Search destinations...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-[#efefef] dark:bg-gray-800 rounded-lg text-sm focus:outline-none focus:bg-gray-200 dark:focus:bg-gray-700 transition-colors"
+              className="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
             />
           </div>
         </div>
@@ -120,10 +130,10 @@ export default function Home() {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
                     selectedCategory === category.id
                       ? "bg-black dark:bg-white text-white dark:text-black"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md hover:-translate-y-0.5"
                   }`}
                 >
                   <span>{category.icon}</span>
@@ -195,39 +205,40 @@ export default function Home() {
                 setSelectedCity("");
                 setSelectedCategory("");
               }}
-              className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium"
+              className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl hover:opacity-80 transition-opacity font-medium"
             >
               Clear filters
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
-            {filteredDestinations.map((destination) => (
+            {filteredDestinations.map((destination, index) => (
               <button
                 key={destination.slug}
                 onClick={() => {
                   setSelectedDestination(destination);
                   setIsDrawerOpen(true);
                 }}
-                className="group cursor-pointer text-left"
+                className="group cursor-pointer text-left animate-in fade-in slide-in-from-bottom-4"
+                style={{ animationDelay: `${index * 10}ms`, animationDuration: '300ms' }}
               >
                 {/* Image Container */}
-                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg mb-3">
+                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-2xl mb-3">
                   {destination.image ? (
                     <img
                       src={destination.image}
                       alt={destination.name}
-                      className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
-                      <MapPin className="h-16 w-16 opacity-20" />
+                      <MapPin className="h-12 w-12 opacity-20" />
                     </div>
                   )}
 
                   {/* Crown Badge */}
                   {destination.crown && (
-                    <div className="absolute top-2 left-2 text-2xl">
+                    <div className="absolute top-2 left-2 text-xl">
                       👑
                     </div>
                   )}
@@ -243,18 +254,18 @@ export default function Home() {
 
                 {/* Info */}
                 <div className="space-y-1">
-                  <h3 className="font-medium text-sm leading-tight line-clamp-2 text-black dark:text-white">
+                  <h3 className="font-medium text-sm leading-tight line-clamp-2 min-h-[2.5rem] text-black dark:text-white">
                     {destination.name}
                   </h3>
 
                   <div className="flex items-center gap-1.5">
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
                       {capitalizeCity(destination.city)}
                     </p>
                     {destination.category && (
                       <>
                         <span className="text-gray-300 dark:text-gray-700">•</span>
-                        <p className="text-xs text-gray-500 dark:text-gray-500 capitalize">
+                        <p className="text-xs text-gray-500 dark:text-gray-500 capitalize line-clamp-1">
                           {destination.category}
                         </p>
                       </>

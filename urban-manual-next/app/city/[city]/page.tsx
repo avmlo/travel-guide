@@ -46,27 +46,27 @@ export default function CityPage() {
   }
 
   return (
-    <main className="px-6 md:px-10 py-12 dark:text-white">
+    <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
       <div className="max-w-[1920px] mx-auto">
         {/* Back Button */}
         <button
           onClick={() => router.push('/cities')}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:opacity-60 mb-8 transition-opacity"
+          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="text-sm font-medium">Back to Cities</span>
         </button>
 
         {/* Hero Section */}
-        <div className="mb-12">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+        <div className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3">
             {city}
           </h1>
-          <div className="flex items-center gap-2 text-lg text-gray-600 dark:text-gray-400 mb-2">
+          <div className="flex items-center gap-2 text-base text-gray-600 dark:text-gray-400 mb-2">
             <MapPin className="h-5 w-5" />
             <span>{country}</span>
           </div>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-base text-gray-600 dark:text-gray-400">
             {destinations.length} destination{destinations.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -78,47 +78,47 @@ export default function CityPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
-            {destinations.map(destination => (
+            {destinations.map((destination, index) => (
               <button
                 key={destination.slug}
                 onClick={() => router.push(`/destination/${destination.slug}`)}
-                className="group cursor-pointer text-left"
+                className="group cursor-pointer text-left animate-in fade-in slide-in-from-bottom-4"
+                style={{ animationDelay: `${index * 10}ms`, animationDuration: '300ms' }}
               >
                 {/* Image Container */}
-                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg mb-3">
+                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-2xl mb-3">
                   {destination.image ? (
                     <img
                       src={destination.image}
                       alt={destination.name}
-                      className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
-                      <MapPin className="h-16 w-16 opacity-20" />
+                      <MapPin className="h-12 w-12 opacity-20" />
                     </div>
                   )}
+                  {/* Crown Badge */}
                   {destination.crown && (
-                    <div className="absolute top-2 right-2 text-2xl">👑</div>
+                    <div className="absolute top-2 left-2 text-xl">👑</div>
+                  )}
+                  {/* Michelin Stars */}
+                  {destination.michelin_stars && destination.michelin_stars > 0 && (
+                    <div className="absolute bottom-2 left-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1 shadow-lg">
+                      <span>⭐</span>
+                      <span>{destination.michelin_stars}</span>
+                    </div>
                   )}
                 </div>
 
                 {/* Text Content */}
-                <div>
-                  <h3 className="font-medium text-sm mb-1 line-clamp-2 group-hover:opacity-60 transition-opacity">
+                <div className="space-y-1">
+                  <h3 className="font-medium text-sm leading-tight line-clamp-2 min-h-[2.5rem] text-black dark:text-white">
                     {destination.name}
                   </h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs uppercase font-medium text-gray-500 dark:text-gray-500">
-                      {destination.category}
-                    </span>
-                    {destination.michelin_stars && destination.michelin_stars > 0 && (
-                      <div className="flex items-center gap-0.5">
-                        {Array.from({ length: destination.michelin_stars }).map((_, i) => (
-                          <Star key={i} className="h-3 w-3 fill-red-500 text-red-500" />
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 capitalize line-clamp-1">
+                    {destination.category}
+                  </p>
                 </div>
               </button>
             ))}

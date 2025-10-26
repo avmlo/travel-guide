@@ -168,12 +168,12 @@ export default function AccountPage() {
   }
 
   return (
-    <main className="px-6 md:px-10 py-12 dark:text-white">
+    <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
       <div className="max-w-[1920px] mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Account</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-base text-gray-600 dark:text-gray-400">
             {user.email}
           </p>
         </div>
@@ -235,7 +235,7 @@ export default function AccountPage() {
               <div className="space-y-8">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-2xl">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                         <Check className="h-5 w-5 text-green-600 dark:text-green-500" />
@@ -246,7 +246,7 @@ export default function AccountPage() {
                     <p className="text-xs text-gray-500">Places explored</p>
                   </div>
 
-                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-2xl">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                         <Heart className="h-5 w-5 text-red-600 dark:text-red-500" />
@@ -257,7 +257,7 @@ export default function AccountPage() {
                     <p className="text-xs text-gray-500">Wishlist items</p>
                   </div>
 
-                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-2xl">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                         <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-500" />
@@ -268,7 +268,7 @@ export default function AccountPage() {
                     <p className="text-xs text-gray-500">Explored</p>
                   </div>
 
-                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <div className="p-6 border border-gray-200 dark:border-gray-800 rounded-2xl">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                         <Globe className="h-5 w-5 text-purple-600 dark:text-purple-500" />
@@ -282,14 +282,14 @@ export default function AccountPage() {
 
                 {/* Achievements */}
                 {(stats.michelinCount > 0 || stats.uniqueCountries.size >= 3 || visitedPlaces.length >= 10) && (
-                  <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                  <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                     <div className="flex items-center gap-2 mb-6">
                       <Award className="h-5 w-5" />
                       <h2 className="text-xl font-bold">Achievements</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {stats.michelinCount > 0 && (
-                        <div className="flex items-center gap-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-lg">
+                        <div className="flex items-center gap-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-2xl">
                           <div className="h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center flex-shrink-0">
                             <Star className="h-6 w-6 text-yellow-600 dark:text-yellow-500" />
                           </div>
@@ -302,7 +302,7 @@ export default function AccountPage() {
                         </div>
                       )}
                       {stats.uniqueCountries.size >= 3 && (
-                        <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-lg">
+                        <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-2xl">
                           <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
                             <Map className="h-6 w-6 text-blue-600 dark:text-blue-500" />
                           </div>
@@ -315,7 +315,7 @@ export default function AccountPage() {
                         </div>
                       )}
                       {visitedPlaces.length >= 10 && (
-                        <div className="flex items-center gap-4 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
+                        <div className="flex items-center gap-4 p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-2xl">
                           <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
                             <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-500" />
                           </div>
@@ -332,7 +332,7 @@ export default function AccountPage() {
                 )}
 
                 {/* Trips Section */}
-                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-5 w-5" />
@@ -350,7 +350,7 @@ export default function AccountPage() {
                     <p className="text-gray-500 dark:text-gray-400 mb-4">No trips planned yet</p>
                     <button
                       onClick={() => router.push('/trips')}
-                      className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium"
+                      className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl hover:opacity-80 transition-opacity font-medium"
                     >
                       Plan Your First Trip
                     </button>
@@ -373,12 +373,12 @@ export default function AccountPage() {
                     </div>
                   </div>
                   {savedPlaces.length === 0 ? (
-                    <div className="text-center py-20 border border-gray-200 dark:border-gray-800 rounded-lg">
+                    <div className="text-center py-20 border border-gray-200 dark:border-gray-800 rounded-2xl">
                       <Heart className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
                       <p className="text-xl text-gray-400 mb-6">No saved places yet</p>
                       <button
                         onClick={() => router.push('/')}
-                        className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium"
+                        className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl hover:opacity-80 transition-opacity font-medium"
                       >
                         Explore Destinations
                       </button>
@@ -391,12 +391,12 @@ export default function AccountPage() {
                           onClick={() => router.push(`/destination/${place.destination_slug}`)}
                           className="group text-left"
                         >
-                          <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-2">
+                          <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-3">
                             {place.destination.image ? (
                               <img
                                 src={place.destination.image}
                                 alt={place.destination.name}
-                                className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
@@ -404,8 +404,8 @@ export default function AccountPage() {
                               </div>
                             )}
                           </div>
-                          <h3 className="font-medium text-sm line-clamp-2 mb-1">{place.destination.name}</h3>
-                          <p className="text-xs text-gray-500">{place.destination.city}</p>
+                          <h3 className="font-medium text-sm leading-tight line-clamp-2 min-h-[2.5rem] text-black dark:text-white">{place.destination.name}</h3>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">{place.destination.city}</p>
                         </button>
                       ))}
                     </div>
@@ -423,12 +423,12 @@ export default function AccountPage() {
                     </div>
                   </div>
                   {visitedPlaces.length === 0 ? (
-                    <div className="text-center py-20 border border-gray-200 dark:border-gray-800 rounded-lg">
+                    <div className="text-center py-20 border border-gray-200 dark:border-gray-800 rounded-2xl">
                       <Check className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
                       <p className="text-xl text-gray-400 mb-6">No visited places yet</p>
                       <button
                         onClick={() => router.push('/')}
-                        className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium"
+                        className="px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl hover:opacity-80 transition-opacity font-medium"
                       >
                         Explore Destinations
                       </button>
@@ -441,12 +441,12 @@ export default function AccountPage() {
                           onClick={() => router.push(`/destination/${place.destination_slug}`)}
                           className="group text-left"
                         >
-                          <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-2">
+                          <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-3">
                             {place.destination.image ? (
                               <img
                                 src={place.destination.image}
                                 alt={place.destination.name}
-                                className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
@@ -457,8 +457,8 @@ export default function AccountPage() {
                               <Check className="h-4 w-4 text-white" />
                             </div>
                           </div>
-                          <h3 className="font-medium text-sm line-clamp-2 mb-1">{place.destination.name}</h3>
-                          <p className="text-xs text-gray-500">{place.destination.city}</p>
+                          <h3 className="font-medium text-sm leading-tight line-clamp-2 min-h-[2.5rem] text-black dark:text-white">{place.destination.name}</h3>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">{place.destination.city}</p>
                         </button>
                       ))}
                     </div>
@@ -471,7 +471,7 @@ export default function AccountPage() {
             {activeTab === 'settings' && (
               <div className="space-y-6">
                 {/* Profile Information */}
-                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                   <div className="flex items-center gap-2 mb-6">
                     <User className="h-5 w-5" />
                     <h2 className="text-xl font-bold">Profile Information</h2>
@@ -481,7 +481,7 @@ export default function AccountPage() {
                       <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-2">
                         Email
                       </label>
-                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl">
                         {user.email}
                       </div>
                     </div>
@@ -489,7 +489,7 @@ export default function AccountPage() {
                       <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-2">
                         User ID
                       </label>
-                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg font-mono text-sm">
+                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl font-mono text-sm">
                         {user.id.substring(0, 24)}...
                       </div>
                     </div>
@@ -497,7 +497,7 @@ export default function AccountPage() {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                   <div className="flex items-center gap-2 mb-6">
                     <TrendingUp className="h-5 w-5" />
                     <h2 className="text-xl font-bold">Quick Stats</h2>
@@ -526,11 +526,11 @@ export default function AccountPage() {
                 </div>
 
                 {/* Account Actions */}
-                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                   <h2 className="text-xl font-bold mb-6">Account Actions</h2>
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                    className="flex items-center gap-3 w-full px-4 py-3 border border-gray-200 dark:border-gray-800 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
                   >
                     <LogOut className="h-5 w-5" />
                     <div className="flex-1 text-left">
