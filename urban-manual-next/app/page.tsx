@@ -111,65 +111,69 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Category Filter */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === category.id
-                    ? "bg-black dark:bg-white text-white dark:text-black"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                <span>{category.icon}</span>
-                <span>{category.label}</span>
-              </button>
-            ))}
+        {/* Category Filter - Hidden during search */}
+        {!searchTerm && (
+          <div className="mb-8">
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedCategory === category.id
+                      ? "bg-black dark:bg-white text-white dark:text-black"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <span>{category.icon}</span>
+                  <span>{category.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* City Filter */}
-        <div className="mb-8">
-          <div className="mb-3">
-            <h2 className="text-xs font-bold uppercase">Places</h2>
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
-            <button
-              onClick={() => setSelectedCity("")}
-              className={`transition-all ${
-                !selectedCity
-                  ? "font-medium text-black dark:text-white"
-                  : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
-              }`}
-            >
-              All
-            </button>
-            {displayedCities.map((city) => (
+        {/* City Filter - Hidden during search */}
+        {!searchTerm && (
+          <div className="mb-8">
+            <div className="mb-3">
+              <h2 className="text-xs font-bold uppercase">Places</h2>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
               <button
-                key={city}
-                onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
+                onClick={() => setSelectedCity("")}
                 className={`transition-all ${
-                  selectedCity === city
+                  !selectedCity
                     ? "font-medium text-black dark:text-white"
                     : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
                 }`}
               >
-                {capitalizeCity(city)}
+                All
               </button>
-            ))}
-            {cities.length > 20 && (
-              <button
-                onClick={() => setShowAllCities(!showAllCities)}
-                className="font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300 transition-colors"
-              >
-                {showAllCities ? '- Show Less' : '+ Show More'}
-              </button>
-            )}
+              {displayedCities.map((city) => (
+                <button
+                  key={city}
+                  onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
+                  className={`transition-all ${
+                    selectedCity === city
+                      ? "font-medium text-black dark:text-white"
+                      : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
+                  }`}
+                >
+                  {capitalizeCity(city)}
+                </button>
+              ))}
+              {cities.length > 20 && (
+                <button
+                  onClick={() => setShowAllCities(!showAllCities)}
+                  className="font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300 transition-colors"
+                >
+                  {showAllCities ? '- Show Less' : '+ Show More'}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Results Count */}
         <div className="mb-6">
