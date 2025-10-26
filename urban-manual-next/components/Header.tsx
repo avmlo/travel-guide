@@ -2,13 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import dynamic from 'next/dynamic';
+
+const MorphicSearch = dynamic(() => import('./MorphicSearch'), { ssr: false });
 
 export function Header() {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
@@ -103,6 +107,16 @@ export function Header() {
 
           {/* Right Side */}
           <div className="flex items-center gap-4">
+            {/* AI Search Button */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors text-xs font-bold uppercase"
+              title="AI Search"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">AI Search</span>
+            </button>
+
             <span className="hidden sm:inline text-xs font-bold uppercase">New York</span>
             {currentTime && (
               <span className="hidden sm:inline text-xs font-bold">{currentTime}</span>
@@ -185,6 +199,11 @@ export function Header() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Morphic Search Modal */}
+      {isSearchOpen && (
+        <MorphicSearch onClose={() => setIsSearchOpen(false)} />
       )}
     </header>
   );
