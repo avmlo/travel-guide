@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, MapPin, Tag, Heart, Check } from 'lucide-react';
+import { X, MapPin, Tag, Heart, Check, Share2, Navigation } from 'lucide-react';
 import { Destination } from '@/types/destination';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -26,6 +26,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
   const [isSaved, setIsSaved] = useState(false);
   const [isVisited, setIsVisited] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -155,6 +156,20 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
     }
   };
 
+  const handleShare = async () => {
+    if (!destination) return;
+
+    const url = `${window.location.origin}/destination/${destination.slug}`;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link', err);
+    }
+  };
+
   if (!destination) return null;
 
   return (
@@ -271,15 +286,79 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             </div>
           )}
 
+          {/* Michelin Stars */}
+          {destination.michelin_stars && destination.michelin_stars > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2">
+                {Array.from({ length: destination.michelin_stars }).map((_, i) => (
+                  <img
+                    key={i}
+                    src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                    alt={`Michelin Star ${i + 1}`}
+                    className="h-6 w-6"
+                    loading="lazy"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Description */}
           {destination.content && (
-            <div className="mb-6">
+            <div className="mb-8">
               <h3 className="text-sm font-bold uppercase mb-3 text-gray-500 dark:text-gray-400">About</h3>
               <div className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                 {destination.content}
               </div>
             </div>
           )}
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 dark:border-gray-800 my-8" />
+
+          {/* Map Section */}
+          <div className="mb-8">
+            <h3 className="text-sm font-bold uppercase mb-4 text-gray-500 dark:text-gray-400">Location</h3>
+            <div className="w-full h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}&q=${encodeURIComponent(destination.name + ', ' + destination.city)}&zoom=15`}
+                title={`Map showing location of ${destination.name}`}
+              />
+            </div>
+          </div>
+
+          {/* Directions Button */}
+          <div className="mb-6">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors rounded-lg"
+            >
+              <Navigation className="h-4 w-4" />
+              <span>Get Directions</span>
+            </a>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 dark:border-gray-800 my-8" />
+
+          {/* Share Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black hover:opacity-80 transition-opacity rounded-lg font-medium"
+            >
+              <Share2 className="h-4 w-4" />
+              <span>{copied ? 'Link Copied!' : 'Share'}</span>
+            </button>
+          </div>
         </div>
       </div>
     </>
