@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Clock } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,6 +58,7 @@ export default function Home() {
   const [searchTier, setSearchTier] = useState<string | null>(null);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [openNowOnly, setOpenNowOnly] = useState(false);
 
   useEffect(() => {
     fetchDestinations();
@@ -79,7 +80,7 @@ export default function Home() {
     } else {
       filterDestinations();
     }
-  }, [searchTerm, selectedCity, selectedCategory, destinations, visitedSlugs]);
+  }, [searchTerm, selectedCity, selectedCategory, destinations, visitedSlugs, openNowOnly]);
 
   const fetchDestinations = async () => {
     try {
@@ -135,6 +136,7 @@ export default function Home() {
       const filters: any = {};
       if (selectedCity) filters.city = selectedCity;
       if (selectedCategory) filters.category = selectedCategory;
+      if (openNowOnly) filters.openNow = true;
 
       const response = await fetch('/api/search', {
         method: 'POST',
@@ -274,6 +276,21 @@ export default function Home() {
               {searchTier === 'basic' && '⚡ Keyword search'}
             </p>
           )}
+        </div>
+
+        {/* Open Now Filter */}
+        <div className="mb-6">
+          <button
+            onClick={() => setOpenNowOnly(!openNowOnly)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              openNowOnly
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Clock className="h-4 w-4" />
+            <span>Open Now</span>
+          </button>
         </div>
 
         {/* Category Filter - Hidden during search */}
