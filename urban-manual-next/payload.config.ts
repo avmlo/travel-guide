@@ -8,13 +8,14 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export default buildConfig({
+  // Secret for encryption - MUST be set in environment variables
+  secret: process.env.PAYLOAD_SECRET || 'your-secret-key-here',
+
   // Your Supabase admin email
   admin: {
     user: 'users',
     meta: {
       titleSuffix: '- Urban Manual Admin',
-      favicon: '/favicon.ico',
-      ogImage: '/og-image.jpg',
     },
   },
 

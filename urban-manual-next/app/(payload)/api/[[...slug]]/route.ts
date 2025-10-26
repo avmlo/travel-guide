@@ -1,11 +1,9 @@
-/* Payload CMS API Routes - Next.js 16 Compatible */
+/* Payload CMS API Routes */
 import config from '@payload-config'
-import { createPayloadRoutes } from '@/lib/payloadRouteCompat'
+import { REST_DELETE, REST_GET, REST_OPTIONS, REST_PATCH, REST_POST } from '@payloadcms/next/routes'
 
-const routes = createPayloadRoutes({ config })
-
-export const GET = routes.GET
-export const POST = routes.POST
-export const DELETE = routes.DELETE
-export const PATCH = routes.PATCH
-export const OPTIONS = routes.OPTIONS
+export const GET = REST_GET(config)
+export const POST = REST_POST(config)
+export const DELETE = REST_DELETE(config)
+export const PATCH = REST_PATCH(config)
+export const OPTIONS = REST_OPTIONS(config)
