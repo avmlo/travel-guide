@@ -56,7 +56,6 @@ SELECT
   content,
   crown,
   michelin_stars,
-  save_count,
   place_id,
   rating,
   price_level,
