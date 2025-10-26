@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "@/components/Providers";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "The Urban Manual",
-  description: "Your guide to the best places around the world",
+  description: "Your guide to the world's best destinations",
 };
 
 export default function RootLayout({
@@ -15,9 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <Providers>
+        <Header />
+        <main className="min-h-screen">
           {children}
-        </Providers>
+        </main>
+        <Footer />
       </body>
     </html>
   );

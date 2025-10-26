@@ -1,145 +1,100 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { Header } from "@/components/Header";
-import { SimpleFooter } from "@/components/SimpleFooter";
-import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
-import { SkeletonGrid } from "@/components/SkeletonCard";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { Destination } from '@/types/destination';
+import { MapPin } from 'lucide-react';
+import { cityCountryMap } from '@/data/cityCountryMap';
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-
-// Helper function to capitalize city names
-function capitalizeCity(city: string): string {
-  return city
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
-interface CityData {
+interface CityStats {
   city: string;
-  count: number;
   country: string;
+  count: number;
 }
 
-export default function Cities() {
+export default function CitiesPage() {
   const router = useRouter();
-  const [cities, setCities] = useState<CityData[]>([]);
+  const [cityStats, setCityStats] = useState<CityStats[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadCities() {
+    fetchCityStats();
+  }, []);
+
+  const fetchCityStats = async () => {
+    try {
       const { data, error } = await supabase
         .from('destinations')
         .select('city');
 
-      if (!error && data) {
-        // Count destinations per city
-        const cityCount = data.reduce((acc: Record<string, number>, item) => {
-          acc[item.city] = (acc[item.city] || 0) + 1;
-          return acc;
-        }, {});
+      if (error) throw error;
 
-        // Convert to array with country info
-        const citiesArray: CityData[] = Object.entries(cityCount)
-          .map(([city, count]) => ({
-            city,
-            count,
-            country: cityCountryMap[city] || 'Other'
-          }));
+      const destinations = data as Destination[];
+      const cityCounts = destinations.reduce((acc, dest) => {
+        acc[dest.city] = (acc[dest.city] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
-        // Sort by country priority, then by count within country
-        const sortedCities = citiesArray.sort((a, b) => {
-          const countryA = a.country;
-          const countryB = b.country;
+      const stats = Object.entries(cityCounts).map(([city, count]) => ({
+        city,
+        country: cityCountryMap[city] || 'Unknown',
+        count
+      })).sort((a, b) => a.city.localeCompare(b.city));
 
-          const indexA = countryOrder.indexOf(countryA);
-          const indexB = countryOrder.indexOf(countryB);
-
-          // If same country, sort by count (descending)
-          if (countryA === countryB) {
-            return b.count - a.count;
-          }
-
-          // Sort by country priority
-          if (indexA === -1 && indexB === -1) return countryA.localeCompare(countryB);
-          if (indexA === -1) return 1;
-          if (indexB === -1) return -1;
-          return indexA - indexB;
-        });
-
-        setCities(sortedCities);
-      }
-
+      setCityStats(stats);
+    } catch (error) {
+      console.error('Error fetching city stats:', error);
+    } finally {
       setLoading(false);
     }
-
-    loadCities();
-  }, []);
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-        <Header />
-        <main className="px-6 md:px-10 py-12 dark:text-white">
-          <div className="max-w-[1920px] mx-auto">
-            {/* Title skeleton */}
-            <div className="mb-12">
-              <div className="h-12 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-4" />
-              <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
-            </div>
-
-            {/* Grid skeleton */}
-            <SkeletonGrid count={24} />
-          </div>
-        </main>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-gray-500">Loading...</div>
       </div>
     );
   }
 
-  const totalCities = cities.length;
-  const totalPlaces = cities.reduce((sum, city) => sum + city.count, 0);
-
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-      <Header />
+    <div className="px-6 md:px-10 py-8 max-w-7xl mx-auto">
+      {/* Hero Section */}
+      <div className="mb-12">
+        <h1 className="text-4xl md:text-6xl font-bold mb-4">
+          Cities
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-400">
+          Explore destinations across {cityStats.length} cities worldwide
+        </p>
+      </div>
 
-      {/* Main Content */}
-      <main className="px-6 md:px-10 py-12 dark:text-white">
-        <div className="max-w-[1920px] mx-auto">
-          {/* Page Title */}
-          <div className="mb-12 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4 text-black dark:text-white">Cities</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {totalCities} cities · {totalPlaces} places
-            </p>
-          </div>
-
-          {/* Cities Grid with staggered animations */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
-            {cities.map((cityData, index) => (
-              <button
-                key={cityData.city}
-                onClick={() => router.push(`/city/${cityData.city}`)}
-                className="border border-gray-200 dark:border-gray-700 p-6 hover:border-black dark:hover:border-white hover:shadow-lg transition-all duration-200 text-left group bg-white dark:bg-gray-900 animate-scale-in"
-                style={{ animationDelay: `${Math.min(index * 20, 400)}ms` }}
-              >
-                <h3 className="text-base font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity text-black dark:text-white">
-                  {capitalizeCity(cityData.city)}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {cityData.count} {cityData.count === 1 ? 'place' : 'places'}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
-      </main>
-
-      <SimpleFooter />
+      {/* Cities Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {cityStats.map(({ city, country, count }) => (
+          <button
+            key={city}
+            onClick={() => router.push(`/city/${encodeURIComponent(city)}`)}
+            className="group text-left p-6 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-gray-900 dark:hover:border-gray-100 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold mb-2 group-hover:opacity-60 transition-opacity">
+                  {city}
+                </h2>
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  <MapPin className="h-4 w-4" />
+                  <span>{country}</span>
+                </div>
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {count} destination{count !== 1 ? 's' : ''}
+                </div>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
