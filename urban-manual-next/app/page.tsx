@@ -6,6 +6,7 @@ import { Destination } from '@/types/destination';
 import { Search, MapPin } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Categories based on actual Supabase data
 const CATEGORIES = [
@@ -28,8 +29,10 @@ function capitalizeCity(city: string): string {
 }
 
 export default function Home() {
+  const { user } = useAuth();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [filteredDestinations, setFilteredDestinations] = useState<Destination[]>([]);
+  const [visitedSlugs, setVisitedSlugs] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -43,8 +46,14 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (user) {
+      fetchVisitedPlaces();
+    }
+  }, [user]);
+
+  useEffect(() => {
     filterDestinations();
-  }, [searchTerm, selectedCity, selectedCategory, destinations]);
+  }, [searchTerm, selectedCity, selectedCategory, destinations, visitedSlugs]);
 
   const fetchDestinations = async () => {
     try {
@@ -59,6 +68,24 @@ export default function Home() {
       console.error('Error fetching destinations:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchVisitedPlaces = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('visited_places')
+        .select('destination_slug')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const slugs = new Set(data?.map(v => v.destination_slug) || []);
+      setVisitedSlugs(slugs);
+    } catch (error) {
+      console.error('Error fetching visited places:', error);
     }
   };
 
@@ -112,6 +139,13 @@ export default function Home() {
           _score: getRecommendationScore(dest, index)
         }))
         .sort((a, b) => b._score - a._score);
+    }
+
+    // 🎯 When user is signed in: separate visited & unvisited, move visited to bottom
+    if (user && visitedSlugs.size > 0) {
+      const unvisited = filtered.filter(d => !visitedSlugs.has(d.slug));
+      const visited = filtered.filter(d => visitedSlugs.has(d.slug));
+      filtered = [...unvisited, ...visited];
     }
 
     setFilteredDestinations(filtered);
@@ -245,14 +279,16 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
-            {filteredDestinations.map((destination, index) => (
+            {filteredDestinations.map((destination, index) => {
+              const isVisited = user && visitedSlugs.has(destination.slug);
+              return (
               <button
                 key={destination.slug}
                 onClick={() => {
                   setSelectedDestination(destination);
                   setIsDrawerOpen(true);
                 }}
-                className="group cursor-pointer text-left animate-in fade-in slide-in-from-bottom-4"
+                className={`group cursor-pointer text-left animate-in fade-in slide-in-from-bottom-4 ${isVisited ? 'opacity-60' : ''}`}
                 style={{ animationDelay: `${index * 10}ms`, animationDuration: '300ms' }}
               >
                 {/* Image Container */}
@@ -261,7 +297,7 @@ export default function Home() {
                     <img
                       src={destination.image}
                       alt={destination.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isVisited ? 'grayscale' : ''}`}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
@@ -306,7 +342,8 @@ export default function Home() {
                   </div>
                 </div>
               </button>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>
