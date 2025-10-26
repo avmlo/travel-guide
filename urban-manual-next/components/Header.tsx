@@ -1,50 +1,78 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
-import { DarkModeToggle } from "./DarkModeToggle";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+  const [currentTime, setCurrentTime] = useState('');
 
+  // Initialize dark mode from localStorage or system preference
   useEffect(() => {
-    async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
+    setMounted(true);
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+
+    setIsDark(shouldBeDark);
+    if (shouldBeDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-    checkAuth();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
   }, []);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-  };
+  // Update time every minute
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }));
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const navigate = (path: string) => {
     router.push(path);
     setIsMenuOpen(false);
   };
 
+  const toggleDark = () => {
+    const newDarkState = !isDark;
+    setIsDark(newDarkState);
+
+    if (newDarkState) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
   return (
-    <header className="border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900">
+    <header className="border-b border-gray-200 dark:border-gray-800">
       {/* Title Bar */}
-      <div className="px-6 md:px-10 py-4 dark:text-white">
+      <div className="px-6 md:px-10 py-4">
         <div className="max-w-[1920px] mx-auto">
           <button
             onClick={() => navigate("/")}
-            className="text-[clamp(24px,5vw,48px)] font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
+            className="font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
+            style={{ fontSize: 'clamp(24px, 5vw, 48px)' }}
           >
             The Urban Manual
           </button>
@@ -52,15 +80,16 @@ export function Header() {
       </div>
 
       {/* Navigation Bar */}
-      <div className="px-6 md:px-10 border-t border-gray-200 dark:border-gray-800 dark:text-white">
+      <div className="px-6 md:px-10 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             <button onClick={() => navigate("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
             <button onClick={() => navigate("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
-            <button onClick={() => navigate("/explore")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Explore</button>
+            <button onClick={() => navigate("/lists")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Lists</button>
+            <button onClick={() => navigate("/feed")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Feed</button>
             <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Archive</a>
-            <button onClick={() => navigate("/editorial")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</button>
+            <a href="#" className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Editorial</a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -75,41 +104,85 @@ export function Header() {
           {/* Right Side */}
           <div className="flex items-center gap-4">
             <span className="hidden sm:inline text-xs font-bold uppercase">New York</span>
-            <span className="hidden sm:inline text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-            <DarkModeToggle />
+            {currentTime && (
+              <span className="hidden sm:inline text-xs font-bold">{currentTime}</span>
+            )}
+            {mounted && (
+              <button onClick={toggleDark} className="p-2 hover:opacity-60 transition-opacity">
+                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+            )}
+            <div className="hidden md:flex items-center gap-4">
+              {user ? (
+                <>
+                  <button
+                    onClick={() => navigate('/account')}
+                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                  >
+                    Account
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await signOut();
+                      navigate('/');
+                    }}
+                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigate('/auth/login')}
+                  className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 animate-in slide-in-from-top-4 duration-200">
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
           <div className="px-6 py-4 space-y-3">
-            <button
-              onClick={() => navigate("/")}
-              className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-            >
-              Catalogue
-            </button>
-            <button
-              onClick={() => navigate("/cities")}
-              className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-            >
-              Cities
-            </button>
-            <button
-              onClick={() => navigate("/explore")}
-              className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-            >
-              Explore
-            </button>
+            <button onClick={() => navigate("/")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Catalogue</button>
+            <button onClick={() => navigate("/cities")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Cities</button>
+            <button onClick={() => navigate("/lists")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Lists</button>
+            <button onClick={() => navigate("/feed")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Feed</button>
             <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Archive</a>
-            <button
-              onClick={() => navigate("/editorial")}
-              className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-            >
-              Editorial
-            </button>
+            <a href="#" className="block text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Editorial</a>
+
+            <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
+              {user ? (
+                <>
+                  <button
+                    onClick={() => navigate('/account')}
+                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                  >
+                    Account
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await signOut();
+                      navigate('/');
+                    }}
+                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigate('/auth/login')}
+                  className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

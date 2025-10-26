@@ -1,7 +1,9 @@
+'use client';
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Heart, MapPin, Star, List, User } from "lucide-react";
-import { useLocation } from "wouter";
+import { Heart, MapPin, Star, List, User, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Activity {
   id: string;
@@ -12,10 +14,10 @@ interface Activity {
   review_id: string | null;
   content: string | null;
   created_at: string;
-  user_profiles: {
+  user_profiles?: {
     username: string;
     display_name: string;
-    profile_photo: string;
+    profile_photo: string | null;
   };
   destinations?: {
     name: string;
@@ -30,15 +32,15 @@ interface Activity {
 }
 
 interface ActivityFeedProps {
-  userId?: string; // If provided, show only this user's activities
-  followingOnly?: boolean; // If true, show only activities from followed users
+  userId?: string;
+  followingOnly?: boolean;
   limit?: number;
 }
 
 export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: ActivityFeedProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [, setLocation] = useLocation();
+  const router = useRouter();
 
   useEffect(() => {
     fetchActivities();
@@ -72,7 +74,6 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
       if (userId) {
         query = query.eq('user_id', userId);
       } else if (followingOnly) {
-        // Get current user's following list
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: following } = await supabase
@@ -84,7 +85,6 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
             const followingIds = following.map(f => f.following_id);
             query = query.in('user_id', followingIds);
           } else {
-            // No following, return empty
             setActivities([]);
             setLoading(false);
             return;
@@ -98,7 +98,7 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
 
       setActivities(data || []);
     } catch (error) {
-      console.error("Error fetching activities:", error);
+      console.error('Error fetching activities:', error);
     } finally {
       setLoading(false);
     }
@@ -107,120 +107,68 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'saved':
-        return <Heart className="h-5 w-5 text-red-500" />;
+        return <Heart className="h-4 w-4 text-red-500" />;
       case 'visited':
-        return <MapPin className="h-5 w-5 text-green-500" />;
+        return <MapPin className="h-4 w-4 text-green-500" />;
       case 'reviewed':
-        return <Star className="h-5 w-5 text-yellow-500" />;
+        return <Star className="h-4 w-4 text-yellow-500" />;
       case 'created_list':
-        return <List className="h-5 w-5 text-blue-500" />;
-      case 'followed':
-        return <User className="h-5 w-5 text-purple-500" />;
+        return <List className="h-4 w-4 text-blue-500" />;
       default:
-        return <MapPin className="h-5 w-5 text-gray-500" />;
+        return <User className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getActivityText = (activity: Activity) => {
-    const displayName = activity.user_profiles?.display_name || activity.user_profiles?.username || 'Someone';
-    
+  const formatActivityText = (activity: Activity) => {
+    const username = activity.user_profiles?.display_name || activity.user_profiles?.username || 'Someone';
+    const destName = activity.destinations?.name || 'a destination';
+
     switch (activity.type) {
       case 'saved':
         return (
-          <>
-            <span className="font-semibold">{displayName}</span> saved{' '}
-            {activity.destinations && (
-              <button
-                onClick={() => setLocation(`/destination/${activity.destinations?.slug}`)}
-                className="font-semibold hover:underline"
-              >
-                {activity.destinations.name}
-              </button>
-            )}
-          </>
+          <span>
+            <strong>{username}</strong> saved <strong>{destName}</strong>
+          </span>
         );
       case 'visited':
         return (
-          <>
-            <span className="font-semibold">{displayName}</span> visited{' '}
-            {activity.destinations && (
-              <button
-                onClick={() => setLocation(`/destination/${activity.destinations?.slug}`)}
-                className="font-semibold hover:underline"
-              >
-                {activity.destinations.name}
-              </button>
-            )}
-          </>
+          <span>
+            <strong>{username}</strong> visited <strong>{destName}</strong>
+          </span>
         );
       case 'reviewed':
+        const stars = activity.reviews?.rating ? '⭐'.repeat(activity.reviews.rating) : '';
         return (
-          <>
-            <span className="font-semibold">{displayName}</span> reviewed{' '}
-            {activity.destinations && (
-              <button
-                onClick={() => setLocation(`/destination/${activity.destinations?.slug}`)}
-                className="font-semibold hover:underline"
-              >
-                {activity.destinations.name}
-              </button>
-            )}
-            {activity.reviews && (
-              <span className="ml-2 inline-flex items-center gap-1">
-                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm">{activity.reviews.rating}</span>
-              </span>
-            )}
-          </>
+          <span>
+            <strong>{username}</strong> reviewed <strong>{destName}</strong> {stars}
+          </span>
         );
       case 'created_list':
         return (
-          <>
-            <span className="font-semibold">{displayName}</span> created a list{' '}
-            {activity.lists && (
-              <span className="font-semibold">"{activity.lists.name}"</span>
-            )}
-          </>
-        );
-      case 'followed':
-        return (
-          <>
-            <span className="font-semibold">{displayName}</span> started following someone
-          </>
+          <span>
+            <strong>{username}</strong> created a list "<strong>{activity.lists?.name}</strong>"
+          </span>
         );
       default:
-        return (
-          <>
-            <span className="font-semibold">{displayName}</span> {activity.content || 'did something'}
-          </>
-        );
+        return <span>{activity.content || 'New activity'}</span>;
     }
   };
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const getTimeAgo = (date: string) => {
+    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
 
     if (seconds < 60) return 'just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
     if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-    
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return new Date(date).toLocaleDateString();
   };
 
   if (loading) {
     return (
       <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="animate-pulse flex gap-4 p-4 bg-white rounded-lg border border-gray-200">
-            <div className="w-10 h-10 bg-gray-200 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4" />
-              <div className="h-3 bg-gray-200 rounded w-1/4" />
-            </div>
-          </div>
+        {[1, 2, 3].map(i => (
+          <div key={i} className="animate-pulse bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 h-20"></div>
         ))}
       </div>
     );
@@ -228,11 +176,11 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
 
   if (activities.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg">
-        <p className="text-gray-500">
-          {followingOnly
-            ? "No recent activity from people you follow"
-            : "No activity yet"}
+      <div className="text-center py-12">
+        <User className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+        <p className="text-gray-500 dark:text-gray-400">No activity yet</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+          Start saving and visiting destinations to see activity here
         </p>
       </div>
     );
@@ -243,36 +191,24 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
       {activities.map((activity) => (
         <div
           key={activity.id}
-          className="flex gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => {
+            if (activity.destination_slug && activity.destinations) {
+              router.push(`/destination/${activity.destination_slug}`);
+            }
+          }}
         >
-          {/* User Avatar */}
-          <div className="flex-shrink-0">
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-              {activity.user_profiles?.profile_photo ? (
-                <img
-                  src={activity.user_profiles.profile_photo}
-                  alt={activity.user_profiles.display_name || activity.user_profiles.username}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-sm font-semibold text-gray-600">
-                  {(activity.user_profiles?.display_name || activity.user_profiles?.username || 'U')[0].toUpperCase()}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Activity Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-2">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-1">
               {getActivityIcon(activity.type)}
-              <div className="flex-1">
-                <p className="text-sm text-gray-900">
-                  {getActivityText(activity)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {formatTimeAgo(activity.created_at)}
-                </p>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-gray-900 dark:text-white">
+                {formatActivityText(activity)}
+              </p>
+              <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <Clock className="h-3 w-3" />
+                <span>{getTimeAgo(activity.created_at)}</span>
               </div>
             </div>
           </div>
@@ -281,4 +217,3 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
     </div>
   );
 }
-

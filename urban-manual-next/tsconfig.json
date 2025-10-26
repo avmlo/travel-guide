@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "components/old", "pages/old", "server"]
+  "exclude": ["node_modules"]
 }
