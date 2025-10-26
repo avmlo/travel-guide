@@ -59,42 +59,42 @@ export default function CitiesPage() {
   }
 
   return (
-    <div className="px-6 md:px-10 py-8 max-w-7xl mx-auto">
-      {/* Hero Section */}
-      <div className="mb-12">
-        <h1 className="text-4xl md:text-6xl font-bold mb-4">
-          Cities
-        </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
-          Explore destinations across {cityStats.length} cities worldwide
-        </p>
-      </div>
+    <main className="px-6 md:px-10 py-12 dark:text-white">
+      <div className="max-w-[1920px] mx-auto">
+        {/* Hero Section */}
+        <div className="mb-12">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            Cities
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Explore destinations across {cityStats.length} cities worldwide
+          </p>
+        </div>
 
-      {/* Cities Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {cityStats.map(({ city, country, count }) => (
-          <button
-            key={city}
-            onClick={() => router.push(`/city/${encodeURIComponent(city)}`)}
-            className="group text-left p-6 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-gray-900 dark:hover:border-gray-100 transition-colors"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold mb-2 group-hover:opacity-60 transition-opacity">
+        {/* Cities Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+          {cityStats.map(({ city, country, count }) => (
+            <button
+              key={city}
+              onClick={() => router.push(`/city/${encodeURIComponent(city)}`)}
+              className="group text-left p-5 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-gray-900 dark:hover:border-gray-100 transition-colors"
+            >
+              <div>
+                <h2 className="text-xl font-bold mb-2 group-hover:opacity-60 transition-opacity line-clamp-2">
                   {city}
                 </h2>
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  <MapPin className="h-4 w-4" />
-                  <span>{country}</span>
+                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mb-2">
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span className="line-clamp-1">{country}</span>
                 </div>
-                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <div className="text-xs font-medium text-gray-900 dark:text-gray-100">
                   {count} destination{count !== 1 ? 's' : ''}
                 </div>
               </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
