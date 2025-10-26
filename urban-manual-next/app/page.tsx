@@ -62,6 +62,25 @@ export default function Home() {
     }
   };
 
+  // Pinterest-like recommendation algorithm
+  const getRecommendationScore = (dest: Destination, index: number): number => {
+    let score = 0;
+
+    // Priority signals (like Pinterest's quality score)
+    if (dest.michelin_stars) score += dest.michelin_stars * 100; // Michelin is top priority
+    if (dest.crown) score += 50; // Crown badge = featured
+    if (dest.image) score += 10; // Images get boost
+
+    // Category diversity bonus (ensures mixed content like Pinterest)
+    const categoryBonus = (index % 7) * 2; // Rotate through categories
+    score += categoryBonus;
+
+    // Random discovery factor (15% variance for serendipity)
+    score += Math.random() * 15;
+
+    return score;
+  };
+
   const filterDestinations = () => {
     let filtered = destinations;
 
@@ -70,7 +89,6 @@ export default function Home() {
     }
 
     if (selectedCategory) {
-      // Use trim() and exact match to handle any whitespace issues
       filtered = filtered.filter(d =>
         d.category && d.category.trim() === selectedCategory.trim()
       );
@@ -83,6 +101,17 @@ export default function Home() {
         (d.category && d.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (d.content && d.content.toLowerCase().includes(searchTerm.toLowerCase()))
       );
+    }
+
+    // Pinterest-style recommendation sorting
+    // Only apply smart sorting when no search term (natural discovery)
+    if (!searchTerm) {
+      filtered = filtered
+        .map((dest, index) => ({
+          ...dest,
+          _score: getRecommendationScore(dest, index)
+        }))
+        .sort((a, b) => b._score - a._score);
     }
 
     setFilteredDestinations(filtered);
