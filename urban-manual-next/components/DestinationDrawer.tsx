@@ -301,27 +301,60 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
               <button
                 onClick={handleSave}
                 disabled={loading}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
+                className={`relative flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                   isSaved
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
+                } ${heartAnimating ? 'scale-95' : 'scale-100'}`}
               >
-                <Heart className={`h-5 w-5 ${isSaved ? 'fill-current' : ''}`} />
-                {isSaved ? 'Saved' : 'Save'}
+                <Heart className={`h-5 w-5 transition-all duration-300 ${isSaved ? 'fill-current scale-110' : 'scale-100'} ${heartAnimating ? 'animate-[heartBeat_0.6s_ease-in-out]' : ''}`} />
+                <span className={`${heartAnimating && isSaved ? 'animate-[fadeIn_0.3s_ease-in]' : ''}`}>
+                  {isSaved ? 'Saved' : 'Save'}
+                </span>
+                {heartAnimating && isSaved && (
+                  <style jsx>{`
+                    @keyframes heartBeat {
+                      0%, 100% { transform: scale(1); }
+                      15% { transform: scale(1.3); }
+                      30% { transform: scale(1.1); }
+                      45% { transform: scale(1.25); }
+                      60% { transform: scale(1.05); }
+                    }
+                    @keyframes fadeIn {
+                      from { opacity: 0; }
+                      to { opacity: 1; }
+                    }
+                  `}</style>
+                )}
               </button>
 
               <button
                 onClick={handleVisit}
                 disabled={loading}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${
+                className={`relative flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                   isVisited
                     ? 'bg-green-500 text-white hover:bg-green-600'
                     : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
+                } ${checkAnimating ? 'scale-95' : 'scale-100'}`}
               >
-                <Check className="h-5 w-5" />
-                {isVisited ? 'Visited' : 'Mark as Visited'}
+                <Check className={`h-5 w-5 transition-all duration-300 ${isVisited ? 'scale-110' : 'scale-100'} ${checkAnimating ? 'animate-[checkPop_0.6s_ease-in-out]' : ''}`} />
+                <span className={`${checkAnimating && isVisited ? 'animate-[fadeIn_0.3s_ease-in]' : ''}`}>
+                  {isVisited ? 'Visited' : 'Mark as Visited'}
+                </span>
+                {checkAnimating && isVisited && (
+                  <style jsx>{`
+                    @keyframes checkPop {
+                      0%, 100% { transform: scale(1) rotate(0deg); }
+                      25% { transform: scale(1.3) rotate(-10deg); }
+                      50% { transform: scale(1.1) rotate(5deg); }
+                      75% { transform: scale(1.2) rotate(-5deg); }
+                    }
+                    @keyframes fadeIn {
+                      from { opacity: 0; }
+                      to { opacity: 1; }
+                    }
+                  `}</style>
+                )}
               </button>
             </div>
           )}

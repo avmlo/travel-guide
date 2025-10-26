@@ -71,9 +71,14 @@ export default function RouteOptimizerPage() {
 
       if (error) throw error;
 
-      const places = (data
-        ?.map(item => item.destinations)
-        .filter((dest): dest is Destination => dest !== null && dest !== undefined) || []) as Destination[];
+      const places: Destination[] = [];
+      if (data) {
+        for (const item of data) {
+          if (item.destinations && typeof item.destinations === 'object' && !Array.isArray(item.destinations)) {
+            places.push(item.destinations as Destination);
+          }
+        }
+      }
 
       setSavedPlaces(places || []);
 

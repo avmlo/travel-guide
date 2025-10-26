@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <Header />
-          <main className="min-h-screen">
+          <main className="min-h-screen page-transition">
             {children}
           </main>
           <Footer />
