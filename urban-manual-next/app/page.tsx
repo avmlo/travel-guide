@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
 import { Search, MapPin } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
+import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 
 // Categories based on actual Supabase data
 const CATEGORIES = [
@@ -290,6 +291,9 @@ export default function Home() {
           setTimeout(() => setSelectedDestination(null), 300);
         }}
       />
+
+      {/* AI Chat Assistant */}
+      <ChatGPTStyleAI />
     </main>
   );
 }
