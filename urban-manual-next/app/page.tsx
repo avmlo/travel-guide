@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
-import { Search, MapPin, Clock } from 'lucide-react';
+import { Search, MapPin, Clock, Map, Grid3x3 } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 import { useAuth } from '@/contexts/AuthContext';
+import dynamic from 'next/dynamic';
+
+// Dynamically import MapView to avoid SSR issues
+const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
 
 // Category icons mapping - add more as needed
 const CATEGORY_ICONS: Record<string, string> = {
@@ -59,6 +63,7 @@ export default function Home() {
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
 
   useEffect(() => {
     fetchDestinations();
@@ -278,8 +283,35 @@ export default function Home() {
           )}
         </div>
 
-        {/* Open Now Filter */}
-        <div className="mb-6">
+        {/* View Controls */}
+        <div className="mb-6 flex items-center gap-2 flex-wrap">
+          {/* View Mode Toggle */}
+          <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'grid'
+                  ? 'bg-white dark:bg-gray-900 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+              }`}
+            >
+              <Grid3x3 className="h-4 w-4" />
+              <span>Grid</span>
+            </button>
+            <button
+              onClick={() => setViewMode('map')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'map'
+                  ? 'bg-white dark:bg-gray-900 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+              }`}
+            >
+              <Map className="h-4 w-4" />
+              <span>Map</span>
+            </button>
+          </div>
+
+          {/* Open Now Filter */}
           <button
             onClick={() => setOpenNowOnly(!openNowOnly)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -394,6 +426,16 @@ export default function Home() {
             >
               Clear filters
             </button>
+          </div>
+        ) : viewMode === 'map' ? (
+          <div className="h-[600px] rounded-2xl overflow-hidden">
+            <MapView
+              destinations={filteredDestinations}
+              onMarkerClick={(dest) => {
+                setSelectedDestination(dest);
+                setIsDrawerOpen(true);
+              }}
+            />
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
