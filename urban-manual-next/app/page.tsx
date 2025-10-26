@@ -146,6 +146,8 @@ export default function Home() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [displayedCount, setDisplayedCount] = useState(24); // Initial load: 24 items
+  const LOAD_MORE_INCREMENT = 24;
 
   useEffect(() => {
     fetchDestinations();
@@ -167,6 +169,8 @@ export default function Home() {
     } else {
       filterDestinations();
     }
+    // Reset displayed count when filters change
+    setDisplayedCount(24);
   }, [searchTerm, selectedCity, selectedCategory, destinations, visitedSlugs, openNowOnly]);
 
   const fetchDestinations = async () => {
@@ -520,8 +524,9 @@ export default function Home() {
             />
           </div>
         ) : (
+          <>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
-            {filteredDestinations.map((destination, index) => {
+            {filteredDestinations.slice(0, displayedCount).map((destination, index) => {
               const isVisited = user && visitedSlugs.has(destination.slug);
               return (
               <button
@@ -591,6 +596,19 @@ export default function Home() {
             );
             })}
           </div>
+
+          {/* Load More Button */}
+          {displayedCount < filteredDestinations.length && (
+            <div className="mt-12 text-center">
+              <button
+                onClick={() => setDisplayedCount(prev => prev + LOAD_MORE_INCREMENT)}
+                className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl hover:opacity-80 transition-opacity font-medium"
+              >
+                Load More ({filteredDestinations.length - displayedCount} remaining)
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
 
