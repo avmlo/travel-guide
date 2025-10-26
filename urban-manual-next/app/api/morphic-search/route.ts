@@ -4,7 +4,9 @@ import { supabase } from '@/lib/supabase';
 
 export const runtime = 'edge';
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
+const genAI = new GoogleGenerativeAI(
+  process.env.GOOGLE_AI_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''
+);
 
 export async function POST(req: NextRequest) {
   try {

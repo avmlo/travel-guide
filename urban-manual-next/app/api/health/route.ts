@@ -7,7 +7,7 @@ export async function GET() {
     SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
     SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     GOOGLE_MAPS_API_KEY: !!process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
-    GOOGLE_AI_API_KEY: !!process.env.GOOGLE_AI_API_KEY,
+    GOOGLE_AI_API_KEY: !!(process.env.GOOGLE_AI_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY),
   };
 
   const allPassing = Object.values(checks).every(Boolean);
