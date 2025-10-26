@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
-import { MapPin, Star, ArrowLeft, Heart } from 'lucide-react';
+import { MapPin, Star, ArrowLeft } from 'lucide-react';
 import { cityCountryMap } from '@/data/cityCountryMap';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -22,54 +22,10 @@ export default function CityPage() {
   const city = decodeURIComponent(params.city as string);
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     fetchDestinations();
-    if (user) {
-      checkFollowing();
-    }
-  }, [city, user]);
-
-  const checkFollowing = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from('follow_cities')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('city_slug', city)
-      .single();
-    setIsFollowing(!!data);
-  };
-
-  const toggleFollow = async () => {
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
-
-    setFollowLoading(true);
-    try {
-      if (isFollowing) {
-        await supabase
-          .from('follow_cities')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('city_slug', city);
-        setIsFollowing(false);
-      } else {
-        await supabase
-          .from('follow_cities')
-          .insert({ user_id: user.id, city_slug: city });
-        setIsFollowing(true);
-      }
-    } catch (error) {
-      console.error('Error toggling follow:', error);
-    } finally {
-      setFollowLoading(false);
-    }
-  };
+  }, [city]);
 
   const fetchDestinations = async () => {
     try {
@@ -112,32 +68,15 @@ export default function CityPage() {
 
         {/* Hero Section */}
         <div className="mb-8">
-          <div className="flex items-start justify-between mb-3">
-            <h1 className="text-4xl md:text-5xl font-bold flex-1">
-              {capitalizeCity(city)}
-            </h1>
-            {user && (
-              <button
-                onClick={toggleFollow}
-                disabled={followLoading}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                  isFollowing
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                } disabled:opacity-50`}
-              >
-                <Heart className={`h-4 w-4 ${isFollowing ? 'fill-current' : ''}`} />
-                <span>{isFollowing ? 'Following' : 'Follow'}</span>
-              </button>
-            )}
-          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-3">
+            {capitalizeCity(city)}
+          </h1>
           <div className="flex items-center gap-2 text-base text-gray-600 dark:text-gray-400 mb-2">
             <MapPin className="h-5 w-5" />
             <span>{country}</span>
           </div>
           <p className="text-base text-gray-600 dark:text-gray-400">
             {destinations.length} destination{destinations.length !== 1 ? 's' : ''}
-            {isFollowing && <span className="ml-2">• Following</span>}
           </p>
         </div>
 

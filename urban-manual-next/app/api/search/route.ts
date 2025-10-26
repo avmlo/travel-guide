@@ -154,23 +154,19 @@ async function searchWithDiscoveryEngine(
     pageSize,
     filter: filterString || undefined,
 
-    // Advanced ranking configuration - social signals
+    // Advanced ranking configuration - quality signals
     boostSpec: {
       conditionBoostSpecs: [
         {
-          condition: '(save_count >= 100)',
-          boost: 3.0, // Highly saved = very popular
+          condition: '(rating >= 4.5)',
+          boost: 2.5, // Highly rated places
         },
         {
-          condition: '(save_count >= 50)',
-          boost: 2.5,
-        },
-        {
-          condition: '(save_count >= 20)',
+          condition: '(rating >= 4.0)',
           boost: 2.0,
         },
         {
-          condition: '(save_count >= 10)',
+          condition: '(rating >= 3.5)',
           boost: 1.5,
         },
         {
@@ -278,13 +274,13 @@ async function searchWithGemini(
 
       const similarity = cosineSimilarity(queryEmbedding, dest.embedding);
 
-      // Apply social signal boosting
+      // Apply quality signal boosting
       let score = similarity;
-      const saveCount = dest.save_count || 0;
-      if (saveCount >= 100) score += 0.15;
-      else if (saveCount >= 50) score += 0.12;
-      else if (saveCount >= 20) score += 0.10;
-      else if (saveCount >= 10) score += 0.05;
+      const rating = dest.rating || 0;
+      if (rating >= 4.5) score += 0.15;
+      else if (rating >= 4.0) score += 0.12;
+      else if (rating >= 3.5) score += 0.08;
+      else if (rating >= 3.0) score += 0.04;
       if (dest.crown) score += 0.03;
 
       return {
@@ -374,12 +370,12 @@ async function searchBasic(
         if (contentLower.includes(word)) score += 0.5;
       });
 
-      // Social signal boosting (popularity)
-      const saveCount = dest.save_count || 0;
-      if (saveCount >= 100) score += 8;
-      else if (saveCount >= 50) score += 6;
-      else if (saveCount >= 20) score += 4;
-      else if (saveCount >= 10) score += 2;
+      // Quality signal boosting (Google ratings)
+      const rating = dest.rating || 0;
+      if (rating >= 4.5) score += 8;
+      else if (rating >= 4.0) score += 6;
+      else if (rating >= 3.5) score += 4;
+      else if (rating >= 3.0) score += 2;
       if (dest.crown) score += 1;
 
       return {
