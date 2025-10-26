@@ -3,7 +3,9 @@ import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://theurbanmanual.com';
+  // Use environment variable or default to production URL
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theurbanmanual.com';
+  const currentDate = new Date().toISOString();
 
   // Fetch all destinations and cities
   const { data: destinations } = await supabase
@@ -16,59 +18,47 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Get unique cities
   const cities = Array.from(new Set(destinationData.map(d => d.city)));
 
-  // Static pages
-  const staticPages = [
+  // Static pages (public only - no auth-required pages)
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      lastModified: currentDate,
+      changeFrequency: 'daily',
       priority: 1.0,
     },
     {
       url: `${baseUrl}/cities`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/explore`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/account`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/saved`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/trips`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
+      url: `${baseUrl}/privacy`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.3,
     },
   ];
 
   // City pages
-  const cityPages = cities.map(city => ({
+  const cityPages: MetadataRoute.Sitemap = cities.map(city => ({
     url: `${baseUrl}/city/${encodeURIComponent(city)}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
+    lastModified: currentDate,
+    changeFrequency: 'weekly',
     priority: 0.8,
   }));
 
-  // Destination pages
-  const destinationPages = destinationData.map(dest => ({
+  // Destination pages - highest priority as they are the core content
+  const destinationPages: MetadataRoute.Sitemap = destinationData.map(dest => ({
     url: `${baseUrl}/destination/${dest.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
+    lastModified: currentDate,
+    changeFrequency: 'monthly',
     priority: 0.7,
   }));
 
