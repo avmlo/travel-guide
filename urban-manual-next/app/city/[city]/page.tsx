@@ -93,7 +93,7 @@ export default function CityPage() {
                 style={{ animationDelay: `${index * 10}ms`, animationDuration: '300ms' }}
               >
                 {/* Image Container */}
-                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-2xl mb-3">
+                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-2xl mb-2">
                   {destination.image ? (
                     <img
                       src={destination.image}
