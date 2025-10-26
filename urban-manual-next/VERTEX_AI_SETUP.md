@@ -19,50 +19,50 @@ This guide walks you through setting up Google Vertex AI Search for natural lang
 
 ### 1. Create Google Cloud Project
 
-```bash
-# Visit https://console.cloud.google.com/
-# Click "Create Project"
-# Name it "urban-manual" or similar
-# Note your PROJECT_ID
-```
+1. Visit https://console.cloud.google.com/
+2. Click "Create Project"
+3. Name it "urban-manual" or similar
+4. **Note your PROJECT_ID** (e.g., `urban-manual-12345`)
 
 ### 2. Enable Required APIs
 
-```bash
-# In Google Cloud Console, enable these APIs:
-# - Discovery Engine API
-# - Vertex AI API
+Enable these APIs in your project:
 
-# Or via CLI:
+**Option A: Via Console**
+1. Go to https://console.cloud.google.com/apis/library
+2. Search and enable:
+   - **Discovery Engine API**
+   - **Vertex AI API**
+
+**Option B: Via CLI**
+```bash
 gcloud services enable discoveryengine.googleapis.com
 gcloud services enable aiplatform.googleapis.com
 ```
 
-### 3. Create Vertex AI Search Data Store
+### 3. Create API Credentials
 
-```bash
-# Go to: https://console.cloud.google.com/gen-app-builder/engines
-# Click "Create App"
-# Select "Search"
-# Name: "Urban Manual Destinations"
-# Data Store ID: "destinations-datastore" (must match .env)
-# Select "Unstructured data" or "Structured data" (we'll use JSON)
-```
+Since you mentioned you have API key access to all Google Cloud APIs:
 
-### 4. Create Service Account
+**Option A: Using Existing API Key**
+1. Go to https://console.cloud.google.com/apis/credentials
+2. Use your existing API key that has access to all APIs
+3. Make sure it has permissions for Discovery Engine API
 
-```bash
-# Go to: https://console.cloud.google.com/iam-admin/serviceaccounts
-# Click "Create Service Account"
-# Name: "vertex-ai-search"
-# Grant roles:
-#   - Discovery Engine Admin
-#   - Vertex AI User
+**Option B: Create Service Account (Recommended for Production)**
+1. Go to https://console.cloud.google.com/iam-admin/serviceaccounts
+2. Click "Create Service Account"
+3. Name: `vertex-ai-search`
+4. Grant roles:
+   - **Discovery Engine Admin**
+   - **Vertex AI User**
+5. Create JSON key and download it
 
-# Create JSON key:
-# Click on service account → Keys → Add Key → Create New Key → JSON
-# Download the JSON file
-```
+### 4. Data Store Creation (Automated!)
+
+**The sync script now creates the data store automatically via API!**
+
+You don't need to manually create it in the console. Just configure your environment variables (next step) and run the sync script.
 
 ### 5. Configure Environment Variables
 
@@ -81,7 +81,7 @@ GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
 ### 6. Add Service Account Key to .gitignore
 
 ```bash
-# Add to .gitignore
+# Add to .gitignore (if using service account JSON file)
 *.json
 !package.json
 !package-lock.json
@@ -95,19 +95,25 @@ npm install @google-cloud/discoveryengine
 npm install -D tsx  # For running TypeScript scripts
 ```
 
-### 8. Sync Your Destinations to Vertex AI
+### 8. Run the Setup & Sync Script
 
-Run the sync script to index all your destinations:
+**This is the magic step!** Run one command to:
+1. ✅ **Automatically create the data store** (if it doesn't exist)
+2. ✅ **Fetch all destinations from Supabase**
+3. ✅ **Index them in Vertex AI Search**
 
 ```bash
+cd urban-manual-next
 npx tsx scripts/sync-to-vertex-ai.ts
 ```
 
-This will:
-- Fetch all destinations from Supabase
-- Format them for Vertex AI
-- Upload them in batches of 100
-- Takes ~1-2 minutes for 1000 destinations
+**What the script does:**
+- Checks if data store exists
+- Creates it automatically if needed
+- Fetches all destinations from Supabase
+- Formats them for Vertex AI
+- Uploads them in batches of 100
+- Takes ~2-5 minutes total (including data store creation)
 
 **When to re-run:**
 - After adding new destinations

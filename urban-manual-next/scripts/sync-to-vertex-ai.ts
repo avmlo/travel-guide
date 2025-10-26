@@ -10,7 +10,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { DocumentServiceClient } from '@google-cloud/discoveryengine';
+import { DocumentServiceClient, DataStoreServiceClient } from '@google-cloud/discoveryengine';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -29,6 +29,58 @@ interface Destination {
   image: string | null;
   michelin_stars: number | null;
   crown: boolean;
+}
+
+async function ensureDataStoreExists() {
+  console.log('🔍 Checking if data store exists...\n');
+
+  const dataStoreClient = new DataStoreServiceClient();
+  const dataStorePath = `projects/${projectId}/locations/${location}/collections/default_collection/dataStores/${dataStoreId}`;
+
+  try {
+    // Try to get the data store
+    await dataStoreClient.getDataStore({ name: dataStorePath });
+    console.log('✅ Data store already exists\n');
+    return true;
+  } catch (error: any) {
+    if (error.code === 5) { // NOT_FOUND
+      console.log('📝 Data store not found, creating it...\n');
+
+      try {
+        // Create the data store
+        const parent = `projects/${projectId}/locations/${location}/collections/default_collection`;
+        const operation: any = await dataStoreClient.createDataStore({
+          parent,
+          dataStoreId,
+          dataStore: {
+            displayName: 'Destinations Search',
+            industryVertical: 'GENERIC' as any,
+            solutionTypes: ['SOLUTION_TYPE_SEARCH'] as any,
+            contentConfig: 'CONTENT_REQUIRED' as any,
+          },
+        });
+
+        console.log('⏳ Creating data store (this may take a few minutes)...');
+
+        // Handle both array and direct operation response
+        const op = Array.isArray(operation) ? operation[0] : operation;
+        if (op && op.promise) {
+          await op.promise();
+        }
+
+        console.log('✅ Data store created successfully!\n');
+        return true;
+      } catch (createError) {
+        console.error('❌ Error creating data store:', createError);
+        console.log('\n💡 You may need to create the data store manually in Google Cloud Console:');
+        console.log(`   https://console.cloud.google.com/gen-app-builder/engines\n`);
+        return false;
+      }
+    } else {
+      console.error('❌ Error checking data store:', error);
+      return false;
+    }
+  }
 }
 
 async function syncToVertexAI() {
@@ -129,8 +181,21 @@ async function syncToVertexAI() {
   }
 }
 
-// Run the sync
-syncToVertexAI()
+// Run the setup and sync
+async function main() {
+  // Step 1: Ensure data store exists
+  const dataStoreReady = await ensureDataStoreExists();
+
+  if (!dataStoreReady) {
+    console.error('❌ Cannot proceed without a data store');
+    process.exit(1);
+  }
+
+  // Step 2: Sync destinations
+  await syncToVertexAI();
+}
+
+main()
   .then(() => {
     console.log('\n🎉 All done!');
     process.exit(0);
