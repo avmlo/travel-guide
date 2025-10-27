@@ -193,7 +193,7 @@ export default buildConfig({
   // Connect to your Supabase PostgreSQL database
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URL,
+      connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
     },
   }),
 
