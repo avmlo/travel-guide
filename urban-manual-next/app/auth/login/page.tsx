@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -14,6 +15,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [returnTo, setReturnTo] = useState('/');
+
+  useEffect(() => {
+    const redirect = searchParams.get('redirect') || searchParams.get('returnTo');
+    if (redirect) {
+      setReturnTo(redirect);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +38,7 @@ export default function LoginPage() {
         setPassword('');
       } else {
         await signIn(email, password);
-        router.push('/');
+        router.push(returnTo);
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred');

@@ -24,7 +24,7 @@ export default function EnrichmentAdminPage() {
 
   useEffect(() => {
     if (!user) {
-      router.push('/auth/login');
+      router.push('/auth/login?redirect=/enrich-admin');
       return;
     }
     fetchStats();
