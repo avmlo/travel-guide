@@ -535,8 +535,7 @@ export default function Home() {
                   setSelectedDestination(destination);
                   setIsDrawerOpen(true);
                 }}
-                className={`group cursor-pointer text-left animate-in fade-in slide-in-from-bottom-4 ${isVisited ? 'opacity-60' : ''}`}
-                style={{ animationDelay: `${index * 10}ms`, animationDuration: '300ms' }}
+                className={`group cursor-pointer text-left ${isVisited ? 'opacity-60' : ''}`}
               >
                 {/* Image Container */}
                 <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 mb-2 hover-lift">
