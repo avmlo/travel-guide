@@ -1,18 +1,99 @@
 # The Urban Manual - iOS App
 
-Native SwiftUI iOS app for The Urban Manual travel guide.
+Complete native SwiftUI iOS app for The Urban Manual travel guide platform.
 
-## Features
+## 🎯 Features
 
-- **Home Feed**: Browse all destinations with search and filters
-- **Search**: Quick search overlay for finding destinations
-- **Category Filters**: Filter by restaurant, cafe, hotel, bar, shop, bakery
-- **City Filters**: Filter destinations by city
-- **Destination Cards**: Beautiful card layout with images and details
+### ✅ Core Features
+- **Home Feed**: Browse all destinations with infinite scroll
+- **Smart Search**: Real-time search with debouncing
+- **Advanced Filters**: Filter by category (restaurant, cafe, hotel, bar, shop, bakery) and city
+- **Destination Details**: Full destination info with maps, images, and actions
+- **Authentication**: Sign up/in with Supabase Auth
+- **Save & Bookmark**: Save favorite places
+- **Visited Tracking**: Mark places as visited with ratings
+- **Trip Planning**: Create trips with custom itineraries
+- **Interactive Map**: Explore destinations on map with category filtering
+- **User Profile**: View stats, manage account
+- **Settings**: Dark mode, notifications, privacy
 
-## Setup Instructions
+### 🏗️ Architecture
 
-### 1. Create New Xcode Project
+**MVVM Pattern**
+```
+Models/
+  - Destination.swift (Data models)
+  - Trip.swift (Trip & itinerary models)
+  - AppState.swift (Global app state)
+
+Views/
+  - HomeView.swift (Main feed)
+  - DestinationDetailView.swift (Detail screen)
+  - Auth/ (Sign in/up)
+  - Trips/ (Trip management)
+  - Saved/ (Saved & visited places)
+  - Map/ (Map exploration)
+  - Profile/ (User profile)
+  - Settings/ (App settings)
+  - Components/ (Reusable UI)
+
+ViewModels/
+  - HomeViewModel.swift
+  - DestinationDetailViewModel.swift
+  - AuthViewModel.swift
+  - TripsViewModel.swift
+  - ProfileViewModel.swift
+  - And more...
+
+Services/
+  - SupabaseService.swift (Complete API service)
+```
+
+## 📱 Screens
+
+### 1. Home (Tab 1)
+- Grid layout of destinations
+- Search bar (opens overlay)
+- Category pills
+- City filters with show more/less
+- Pull to refresh
+
+### 2. Map (Tab 2)
+- Interactive map with markers
+- Category filtering
+- Tap markers to see details
+- User location button
+- Map controls (compass, scale)
+
+### 3. Saved (Tab 3)
+- Saved places grid
+- Visited places grid
+- Segmented control to switch
+- Pull to refresh
+
+### 4. Trips (Tab 4)
+- List of trips
+- Create new trip
+- Trip detail with itinerary
+- Add items to itinerary
+- Add destinations to trips
+
+### 5. Profile (Tab 5)
+- User avatar & info
+- Stats (saved, visited, trips count)
+- Quick links to saved/visited/trips
+- Settings access
+- Sign out
+
+## 🚀 Setup Instructions
+
+### Prerequisites
+- Xcode 15.0+
+- iOS 17.0+
+- Active Supabase project
+- macOS Sonoma or later
+
+### Step 1: Create Xcode Project
 
 1. Open Xcode
 2. File → New → Project
@@ -23,63 +104,43 @@ Native SwiftUI iOS app for The Urban Manual travel guide.
    - Language: **Swift**
    - Minimum iOS: **17.0**
 
-### 2. Add Supabase Dependency
+### Step 2: Copy Source Files
 
-1. In Xcode, go to File → Add Package Dependencies
+Copy all files from `UrbanManualApp/` directory:
+
+```bash
+# From your terminal
+cp -r UrbanManualApp/* /path/to/your/xcode/project/UrbanManualApp/
+```
+
+Or manually drag files into Xcode project.
+
+### Step 3: Add Dependencies
+
+#### Supabase Swift SDK
+
+1. In Xcode: File → Add Package Dependencies
 2. Enter: `https://github.com/supabase/supabase-swift`
-3. Version: 2.0.0 or later
-4. Add to target: UrbanManualApp
+3. Version: `2.0.0` or later
+4. Add to target: `UrbanManualApp`
 
-### 3. Add Source Files
-
-Copy all the Swift files from this directory into your Xcode project:
-
-**App Structure:**
-```
-UrbanManualApp/
-├── UrbanManualApp.swift          # App entry point
-├── Models/
-│   └── Destination.swift         # Data models
-├── Services/
-│   └── SupabaseService.swift     # API service
-├── ViewModels/
-│   └── HomeViewModel.swift       # Home screen logic
-└── Views/
-    ├── HomeView.swift             # Main home screen
-    └── Components/
-        ├── SearchBarView.swift    # Search UI
-        ├── CategoryFilterView.swift # Category filters
-        ├── CityFilterView.swift   # City filters
-        ├── DestinationGridView.swift # Grid layout
-        └── DestinationCard.swift  # Card component
-```
-
-### 4. Configure Supabase
+### Step 4: Configure Supabase
 
 Edit `Services/SupabaseService.swift`:
 
 ```swift
-let supabaseURL = URL(string: "YOUR_SUPABASE_PROJECT_URL")!
-let supabaseKey = "YOUR_SUPABASE_ANON_KEY"
+let supabaseURL = URL(string: "https://[project-id].supabase.co")!
+let supabaseKey = "[your-anon-key]"
 ```
 
-Get these from your Supabase project dashboard:
-- Project URL: `https://[project-id].supabase.co`
-- Anon Key: Found in Settings → API
+Get credentials from Supabase Dashboard:
+- Project Settings → API
+- Project URL
+- Anon/Public Key
 
-### 5. Update Info.plist
+### Step 5: Configure Info.plist
 
-Add network permissions for Supabase:
-
-```xml
-<key>NSAppTransportSecurity</key>
-<dict>
-    <key>NSAllowsArbitraryLoads</key>
-    <true/>
-</dict>
-```
-
-Or specifically for your Supabase domain:
+Add network permissions:
 
 ```xml
 <key>NSAppTransportSecurity</key>
@@ -97,93 +158,75 @@ Or specifically for your Supabase domain:
 </dict>
 ```
 
-### 6. Run the App
+Add location permission (for map):
 
-1. Select your target device or simulator
-2. Press Cmd+R to build and run
-3. The home screen should load with destinations from your Supabase database
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to show nearby destinations</string>
+```
 
-## Architecture
+### Step 6: Build & Run
 
-### MVVM Pattern
-- **Models**: Data structures (Destination, Category)
-- **Views**: SwiftUI views (HomeView, DestinationCard)
-- **ViewModels**: Business logic (HomeViewModel)
-- **Services**: API calls (SupabaseService)
+1. Select target device or simulator
+2. Press `Cmd+R` to build and run
+3. App launches with authentication screen
+4. Sign up or skip to browse
 
-### Key Technologies
-- **SwiftUI**: Declarative UI framework
+## 📂 Project Structure
+
+```
+UrbanManualApp/
+├── UrbanManualApp.swift          # App entry point
+├── Models/
+│   ├── Destination.swift         # Destination & Category models
+│   ├── Trip.swift                # Trip & Itinerary models
+│   └── AppState.swift            # Global state management
+├── Services/
+│   └── SupabaseService.swift     # Complete Supabase API client
+├── ViewModels/
+│   ├── HomeViewModel.swift
+│   ├── DestinationDetailViewModel.swift
+│   ├── AuthViewModel.swift
+│   ├── TripsViewModel.swift
+│   ├── TripDetailViewModel.swift
+│   └── ProfileViewModel.swift
+└── Views/
+    ├── MainTabView.swift         # Tab navigation
+    ├── HomeView.swift            # Home feed
+    ├── DestinationDetailView.swift
+    ├── Auth/
+    │   └── AuthView.swift        # Sign in/up
+    ├── Trips/
+    │   ├── TripsView.swift
+    │   ├── TripDetailView.swift
+    │   ├── CreateTripView.swift
+    │   └── AddToTripView.swift
+    ├── Saved/
+    │   └── SavedPlacesView.swift
+    ├── Map/
+    │   └── MapView.swift
+    ├── Profile/
+    │   └── ProfileView.swift
+    ├── Settings/
+    │   └── SettingsView.swift
+    └── Components/
+        ├── SearchBarView.swift
+        ├── CategoryFilterView.swift
+        ├── CityFilterView.swift
+        ├── DestinationCard.swift
+        ├── DestinationGridView.swift
+        └── DestinationGridViewNavigable.swift
+```
+
+## 🔑 Key Technologies
+
+- **SwiftUI**: Modern declarative UI framework
 - **Combine**: Reactive programming for search debouncing
 - **Async/Await**: Modern concurrency for API calls
-- **Supabase Swift**: Database client
+- **MapKit**: Native map integration
+- **Supabase Swift**: Backend client
+- **MVVM**: Clean architecture pattern
 
-## Customization
+---
 
-### Change Grid Layout
-
-Edit `DestinationGridView.swift`:
-```swift
-private let columns = [
-    GridItem(.adaptive(minimum: 150), spacing: 16)
-]
-```
-
-Adjust `minimum` to control card size.
-
-### Add More Categories
-
-Edit `Models/Destination.swift`:
-```swift
-static let all = [
-    Category(id: "", label: "All", icon: "🌍"),
-    Category(id: "restaurant", label: "Restaurant", icon: "🍽️"),
-    // Add more...
-]
-```
-
-### Styling
-
-All views use SwiftUI's native styling. Customize colors, fonts, and spacing in individual view files.
-
-## Next Steps
-
-### Phase 2 - Destination Detail
-- Create `DestinationDetailView.swift`
-- Add navigation from cards
-- Show full content, map, photos
-
-### Phase 3 - User Features
-- Authentication (Supabase Auth)
-- Save/bookmark destinations
-- Mark as visited
-- User profile
-
-### Phase 4 - Trip Planning
-- Create trips
-- Add destinations to trips
-- Itinerary builder
-
-### Phase 5 - Advanced Features
-- Map view with annotations
-- AI recommendations
-- Offline support
-- Share destinations
-
-## Troubleshooting
-
-### Build Errors
-- Clean build folder: Cmd+Shift+K
-- Rebuild: Cmd+B
-
-### Supabase Connection Issues
-- Verify URL and API key
-- Check network permissions in Info.plist
-- Test connection in browser
-
-### UI Issues
-- Preview not working? Restart Xcode
-- Layout issues? Check device size in preview
-
-## Contributing
-
-This is the iOS frontend for The Urban Manual. The web version uses Next.js and shares the same Supabase backend.
+Built with ❤️ using SwiftUI and Supabase

@@ -54,7 +54,7 @@ struct HomeView: View {
                                 .padding(.horizontal)
 
                             // Destination Grid
-                            DestinationGridView(destinations: viewModel.filteredDestinations)
+                            DestinationGridViewNavigable(destinations: viewModel.filteredDestinations)
                                 .padding(.horizontal)
 
                             if viewModel.filteredDestinations.isEmpty && !viewModel.destinations.isEmpty {
