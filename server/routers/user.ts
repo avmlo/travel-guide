@@ -116,14 +116,23 @@ export const userRouter = router({
     }
 
     const pref = prefs[0];
+
+    // Helper function to safely parse JSON with fallback
+    const safeJsonParse = (jsonString: string | null): string[] => {
+      if (!jsonString) return [];
+      try {
+        const parsed = JSON.parse(jsonString);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.warn("[User Router] Failed to parse JSON:", error);
+        return [];
+      }
+    };
+
     return {
-      favoriteCategories: pref.favoriteCategories
-        ? JSON.parse(pref.favoriteCategories)
-        : [],
-      favoriteCities: pref.favoriteCities
-        ? JSON.parse(pref.favoriteCities)
-        : [],
-      interests: pref.interests ? JSON.parse(pref.interests) : [],
+      favoriteCategories: safeJsonParse(pref.favoriteCategories),
+      favoriteCities: safeJsonParse(pref.favoriteCities),
+      interests: safeJsonParse(pref.interests),
     };
   }),
 
@@ -236,13 +245,21 @@ export const userRouter = router({
       let favoriteCategories: string[] = [];
       let favoriteCities: string[] = [];
 
+      // Helper function to safely parse JSON with fallback
+      const safeJsonParse = (jsonString: string | null): string[] => {
+        if (!jsonString) return [];
+        try {
+          const parsed = JSON.parse(jsonString);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          console.warn("[User Router] Failed to parse JSON:", error);
+          return [];
+        }
+      };
+
       if (prefs.length > 0) {
-        favoriteCategories = prefs[0].favoriteCategories
-          ? JSON.parse(prefs[0].favoriteCategories)
-          : [];
-        favoriteCities = prefs[0].favoriteCities
-          ? JSON.parse(prefs[0].favoriteCities)
-          : [];
+        favoriteCategories = safeJsonParse(prefs[0].favoriteCategories);
+        favoriteCities = safeJsonParse(prefs[0].favoriteCities);
       }
 
       // Score destinations based on user preferences

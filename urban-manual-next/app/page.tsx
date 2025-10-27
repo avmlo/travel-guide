@@ -1,10 +1,8 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback } from "react";
-
-// Force dynamic rendering to avoid SSR issues with theme context
-export const dynamic = 'force-dynamic';
 import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2 } from "lucide-react";
 import { DestinationCardEnhanced } from "@/components/DestinationCardEnhanced";
@@ -53,7 +51,7 @@ export default function Home() {
   const [showAllCities, setShowAllCities] = useState(false);
   const [savedPlaces, setSavedPlaces] = useState<string[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Debounced search for smooth UX

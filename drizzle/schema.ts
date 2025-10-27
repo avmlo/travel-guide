@@ -5,6 +5,7 @@ export const users = mysqlTable("users", {
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }),
   avatar: varchar("avatar", { length: 500 }),
+  isAdmin: int("is_admin").notNull().default(0), // 0 = regular user, 1 = admin
   createdAt: datetime("created_at"),
   lastSignedIn: datetime("last_signed_in"),
 });
@@ -14,7 +15,7 @@ export type InsertUser = typeof users.$inferInsert;
 
 export const savedPlaces = mysqlTable("saved_places", {
   id: int("id").primaryKey().autoincrement(),
-  userId: varchar("user_id", { length: 255 }).notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
   destinationSlug: varchar("destination_slug", { length: 255 }).notNull(),
   savedAt: timestamp("saved_at").notNull(),
   notes: text("notes"),
@@ -22,7 +23,7 @@ export const savedPlaces = mysqlTable("saved_places", {
 
 export const visitedPlaces = mysqlTable("visited_places", {
   id: int("id").primaryKey().autoincrement(),
-  userId: varchar("user_id", { length: 255 }).notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
   destinationSlug: varchar("destination_slug", { length: 255 }).notNull(),
   visitedAt: timestamp("visited_at").notNull(),
   rating: int("rating"), // Optional rating 1-5
@@ -31,7 +32,7 @@ export const visitedPlaces = mysqlTable("visited_places", {
 
 export const userPreferences = mysqlTable("user_preferences", {
   id: int("id").primaryKey().autoincrement(),
-  userId: varchar("user_id", { length: 255 }).notNull().unique(),
+  userId: varchar("user_id", { length: 255 }).notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
   favoriteCategories: text("favorite_categories"), // JSON array
   favoriteCities: text("favorite_cities"), // JSON array
   interests: text("interests"), // JSON array
@@ -40,7 +41,7 @@ export const userPreferences = mysqlTable("user_preferences", {
 
 export const userActivity = mysqlTable("user_activity", {
   id: int("id").primaryKey().autoincrement(),
-  userId: varchar("user_id", { length: 255 }).notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
   destinationSlug: varchar("destination_slug", { length: 255 }).notNull(),
   action: varchar("action", { length: 50 }).notNull(), // 'view', 'search', 'save', 'unsave'
   timestamp: timestamp("timestamp").notNull(),
@@ -49,7 +50,7 @@ export const userActivity = mysqlTable("user_activity", {
 
 export const trips = mysqlTable("trips", {
   id: int("id").primaryKey().autoincrement(),
-  userId: varchar("user_id", { length: 255 }).notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   destination: varchar("destination", { length: 255 }), // Main city/destination
@@ -67,7 +68,7 @@ export type InsertTrip = typeof trips.$inferInsert;
 
 export const itineraryItems = mysqlTable("itinerary_items", {
   id: int("id").primaryKey().autoincrement(),
-  tripId: int("trip_id").notNull(),
+  tripId: int("trip_id").notNull().references(() => trips.id, { onDelete: 'cascade' }),
   destinationSlug: varchar("destination_slug", { length: 255 }),
   day: int("day").notNull(), // Day number in the trip (1-indexed)
   orderIndex: int("order_index").notNull(), // Order within the day
