@@ -574,7 +574,7 @@ export default function Home() {
 
                 {/* Info */}
                 <div className="space-y-0.5">
-                  <h3 className="font-medium text-sm leading-tight line-clamp-2 min-h-[2.5rem] text-black dark:text-white">
+                  <h3 className="font-medium text-sm leading-tight line-clamp-2 text-black dark:text-white">
                     {destination.name}
                   </h3>
 
