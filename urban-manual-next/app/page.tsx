@@ -538,12 +538,12 @@ export default function Home() {
                 className={`group cursor-pointer text-left ${isVisited ? 'opacity-60' : ''}`}
               >
                 {/* Image Container */}
-                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 mb-2 hover-lift">
+                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 mb-2">
                   {destination.image ? (
                     <img
                       src={destination.image}
                       alt={destination.name}
-                      className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isVisited ? 'grayscale' : ''}`}
+                      className={`w-full h-full object-cover ${isVisited ? 'grayscale' : ''}`}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
