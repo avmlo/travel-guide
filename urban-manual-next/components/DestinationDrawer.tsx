@@ -85,7 +85,7 @@ function getOpenStatus(openingHours: any, city: string): { isOpen: boolean; curr
     }
 
     // Parse time ranges (e.g., "10:00 AM – 9:00 PM" or "10:00 AM – 2:00 PM, 5:00 PM – 9:00 PM")
-    const timeRanges = hoursText.split(',').map(range => range.trim());
+    const timeRanges = hoursText.split(',').map((range: string) => range.trim());
     const currentTime = now.getHours() * 60 + now.getMinutes();
 
     for (const range of timeRanges) {
