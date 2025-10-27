@@ -62,7 +62,7 @@ export function ProgressiveImage({
           src={src}
           alt={alt}
           className={cn(
-            "w-full h-full object-cover",
+            "w-full h-full object-cover rounded-lg",
             "transition-all duration-500",
             isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
           )}
