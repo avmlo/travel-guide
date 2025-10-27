@@ -3,11 +3,19 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
-import { Search, MapPin, Clock, Map, Grid3x3 } from 'lucide-react';
+import { Search, MapPin, Clock, Map, Grid3x3, SlidersHorizontal, X } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 import { useAuth } from '@/contexts/AuthContext';
 import dynamic from 'next/dynamic';
+import {
+  initializeSession,
+  trackPageView,
+  trackDestinationClick,
+  trackSearch,
+  trackFilterChange,
+  getSessionId,
+} from '@/lib/tracking';
 
 // Dynamically import MapView to avoid SSR issues
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
@@ -147,10 +155,17 @@ export default function Home() {
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [displayedCount, setDisplayedCount] = useState(24); // Initial load: 24 items
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const LOAD_MORE_INCREMENT = 24;
 
   useEffect(() => {
     fetchDestinations();
+
+    // Initialize session tracking
+    initializeSession();
+
+    // Track homepage view
+    trackPageView({ pageType: 'home' });
   }, []);
 
   useEffect(() => {
@@ -171,6 +186,21 @@ export default function Home() {
     }
     // Reset displayed count when filters change
     setDisplayedCount(24);
+
+    // Track search if there's a search term
+    if (searchTerm.trim().length > 2) {
+      setTimeout(() => {
+        trackSearch({
+          query: searchTerm,
+          resultsCount: filteredDestinations.length,
+          filters: {
+            city: selectedCity || undefined,
+            category: selectedCategory || undefined,
+            openNow: openNowOnly || undefined,
+          },
+        });
+      }, 600);
+    }
   }, [searchTerm, selectedCity, selectedCategory, destinations, visitedSlugs, openNowOnly]);
 
   const fetchDestinations = async () => {
@@ -262,16 +292,16 @@ export default function Home() {
     let score = 0;
 
     // Priority signals (like Pinterest's quality score)
-    if (dest.michelin_stars) score += dest.michelin_stars * 100; // Michelin is top priority
-    if (dest.crown) score += 50; // Crown badge = featured
+    if (dest.crown) score += 20; // Crown badge = featured (reduced from 50)
     if (dest.image) score += 10; // Images get boost
+    // Michelin stars are displayed but don't affect ranking
 
     // Category diversity bonus (ensures mixed content like Pinterest)
-    const categoryBonus = (index % 7) * 2; // Rotate through categories
+    const categoryBonus = (index % 7) * 5; // Rotate through categories (increased from 2)
     score += categoryBonus;
 
-    // Random discovery factor (15% variance for serendipity)
-    score += Math.random() * 15;
+    // Random discovery factor (increased for more serendipity)
+    score += Math.random() * 30;
 
     return score;
   };
@@ -359,82 +389,151 @@ export default function Home() {
           )}
         </div>
 
-        {/* View Controls */}
-        <div className="mb-6 flex items-center gap-2 flex-wrap">
-          {/* View Mode Toggle */}
-          <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'grid'
-                  ? 'bg-white dark:bg-gray-900 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
-              }`}
-            >
-              <Grid3x3 className="h-4 w-4" />
-              <span>Grid</span>
-            </button>
-            <button
-              onClick={() => setViewMode('map')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'map'
-                  ? 'bg-white dark:bg-gray-900 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
-              }`}
-            >
-              <Map className="h-4 w-4" />
-              <span>Map</span>
-            </button>
-          </div>
-
-          {/* Open Now Filter */}
+        {/* Filters Button */}
+        <div className="mb-6">
           <button
-            onClick={() => setOpenNowOnly(!openNowOnly)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              openNowOnly
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
+            onClick={() => setIsFiltersOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
           >
-            <Clock className="h-4 w-4" />
-            <span>Open Now</span>
+            <SlidersHorizontal className="h-4 w-4" />
+            <span>Filters</span>
+            {(selectedCategory || openNowOnly) && (
+              <span className="ml-1 px-2 py-0.5 bg-black dark:bg-white text-white dark:text-black rounded-full text-xs">
+                {[selectedCategory ? 1 : 0, openNowOnly ? 1 : 0].reduce((a, b) => a + b)}
+              </span>
+            )}
           </button>
         </div>
 
-        {/* Category Filter - Hidden during search */}
-        {!searchTerm && categories.length > 0 && (
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-2">
-              {/* All button */}
-              <button
-                onClick={() => setSelectedCategory('')}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === ''
-                    ? "bg-black dark:bg-white text-white dark:text-black"
-                    : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md hover:-translate-y-0.5"
-                }`}
-              >
-                <span>🌍</span>
-                <span>All</span>
-              </button>
+        {/* Filters Drawer */}
+        {isFiltersOpen && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setIsFiltersOpen(false)}
+            />
 
-              {/* Dynamic categories from database */}
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    selectedCategory === category
-                      ? "bg-black dark:bg-white text-white dark:text-black"
-                      : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md hover:-translate-y-0.5"
-                  }`}
-                >
-                  <span>{getCategoryIcon(category)}</span>
-                  <span>{capitalizeCategory(category)}</span>
-                </button>
-              ))}
+            {/* Drawer */}
+            <div className="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-white dark:bg-gray-950 z-50 shadow-2xl overflow-y-auto">
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold">Filters</h2>
+                  <button
+                    onClick={() => setIsFiltersOpen(false)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* View Mode Toggle */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold mb-3">View</h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setViewMode('grid');
+                        trackFilterChange({ filterType: 'viewMode', value: 'grid' });
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        viewMode === 'grid'
+                          ? 'bg-black dark:bg-white text-white dark:text-black'
+                          : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <Grid3x3 className="h-4 w-4" />
+                      <span>Grid</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setViewMode('map');
+                        trackFilterChange({ filterType: 'viewMode', value: 'map' });
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        viewMode === 'map'
+                          ? 'bg-black dark:bg-white text-white dark:text-black'
+                          : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <Map className="h-4 w-4" />
+                      <span>Map</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Open Now Toggle */}
+                <div className="mb-6">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm font-semibold">Open Now</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newValue = !openNowOnly;
+                        setOpenNowOnly(newValue);
+                        trackFilterChange({ filterType: 'openNow', value: newValue });
+                      }}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        openNowOnly ? 'bg-black dark:bg-white' : 'bg-gray-200 dark:bg-gray-700'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-900 transition-transform ${
+                          openNowOnly ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </label>
+                </div>
+
+                {/* Categories */}
+                {categories.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold mb-3">Categories</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {/* All button */}
+                      <button
+                        onClick={() => {
+                          setSelectedCategory('');
+                          trackFilterChange({ filterType: 'category', value: 'all' });
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
+                          selectedCategory === ''
+                            ? "bg-black dark:bg-white text-white dark:text-black"
+                            : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        <span>🌍</span>
+                        <span>All</span>
+                      </button>
+
+                      {/* Dynamic categories from database */}
+                      {categories.map((category) => (
+                        <button
+                          key={category}
+                          onClick={() => {
+                            setSelectedCategory(category);
+                            trackFilterChange({ filterType: 'category', value: category });
+                          }}
+                          className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
+                            selectedCategory === category
+                              ? "bg-black dark:bg-white text-white dark:text-black"
+                              : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                          }`}
+                        >
+                          <span>{getCategoryIcon(category)}</span>
+                          <span>{capitalizeCategory(category)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* City Filter - Hidden during search */}
@@ -445,7 +544,10 @@ export default function Home() {
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
               <button
-                onClick={() => setSelectedCity("")}
+                onClick={() => {
+                  setSelectedCity("");
+                  trackFilterChange({ filterType: 'city', value: 'all' });
+                }}
                 className={`transition-all ${
                   !selectedCity
                     ? "font-medium text-black dark:text-white"
@@ -457,7 +559,11 @@ export default function Home() {
               {displayedCities.map((city) => (
                 <button
                   key={city}
-                  onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
+                  onClick={() => {
+                    const newCity = city === selectedCity ? "" : city;
+                    setSelectedCity(newCity);
+                    trackFilterChange({ filterType: 'city', value: newCity || 'all' });
+                  }}
                   className={`transition-all ${
                     selectedCity === city
                       ? "font-medium text-black dark:text-white"
@@ -515,7 +621,7 @@ export default function Home() {
           </div>
         ) : (
           <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6 items-start">
             {filteredDestinations.slice(0, displayedCount).map((destination, index) => {
               const isVisited = user && visitedSlugs.has(destination.slug);
               return (
@@ -524,6 +630,13 @@ export default function Home() {
                 onClick={() => {
                   setSelectedDestination(destination);
                   setIsDrawerOpen(true);
+
+                  // Track destination click
+                  trackDestinationClick({
+                    destinationSlug: destination.slug,
+                    position: index,
+                    source: 'grid',
+                  });
                 }}
                 className={`group cursor-pointer text-left ${isVisited ? 'opacity-60' : ''}`}
               >
