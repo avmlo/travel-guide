@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, MapPin, Tag, Heart, Check, Share2, Navigation, Sparkles, ChevronDown, Plus, Loader2 } from 'lucide-react';
+import { X, MapPin, Tag, Heart, Check, Share2, Navigation, Sparkles, ChevronDown, Plus, Loader2, Clock } from 'lucide-react';
 import { Destination } from '@/types/destination';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -35,6 +35,90 @@ function capitalizeCity(city: string): string {
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+}
+
+// City timezone mapping
+const CITY_TIMEZONES: Record<string, string> = {
+  'tokyo': 'Asia/Tokyo',
+  'new-york': 'America/New_York',
+  'london': 'Europe/London',
+  'paris': 'Europe/Paris',
+  'los-angeles': 'America/Los_Angeles',
+  'singapore': 'Asia/Singapore',
+  'hong-kong': 'Asia/Hong_Kong',
+  'sydney': 'Australia/Sydney',
+  'dubai': 'Asia/Dubai',
+  'bangkok': 'Asia/Bangkok',
+  // Add more as needed
+};
+
+function getOpenStatus(openingHours: any, city: string): { isOpen: boolean; currentDay?: string; todayHours?: string } {
+  if (!openingHours || !openingHours.weekday_text) {
+    return { isOpen: false };
+  }
+
+  try {
+    const timezone = CITY_TIMEZONES[city] || 'UTC';
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+    // Google Places API weekday_text starts with Monday (index 0)
+    // We need to convert: Sun=0 -> 6, Mon=1 -> 0, Tue=2 -> 1, etc.
+    const googleDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+    const todayText = openingHours.weekday_text[googleDayIndex];
+    const dayName = todayText?.split(':')[0];
+    const hoursText = todayText?.substring(todayText.indexOf(':') + 1).trim();
+
+    if (!hoursText) {
+      return { isOpen: false, currentDay: dayName, todayHours: hoursText };
+    }
+
+    // Check if closed
+    if (hoursText.toLowerCase().includes('closed')) {
+      return { isOpen: false, currentDay: dayName, todayHours: 'Closed' };
+    }
+
+    // Check if 24 hours
+    if (hoursText.toLowerCase().includes('24 hours') || hoursText.toLowerCase().includes('open 24 hours')) {
+      return { isOpen: true, currentDay: dayName, todayHours: 'Open 24 hours' };
+    }
+
+    // Parse time ranges (e.g., "10:00 AM – 9:00 PM" or "10:00 AM – 2:00 PM, 5:00 PM – 9:00 PM")
+    const timeRanges = hoursText.split(',').map(range => range.trim());
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+
+    for (const range of timeRanges) {
+      const times = range.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/gi);
+      if (times && times.length >= 2) {
+        const openTime = parseTime(times[0]);
+        const closeTime = parseTime(times[1]);
+
+        if (currentTime >= openTime && currentTime < closeTime) {
+          return { isOpen: true, currentDay: dayName, todayHours: hoursText };
+        }
+      }
+    }
+
+    return { isOpen: false, currentDay: dayName, todayHours: hoursText };
+  } catch (error) {
+    console.error('Error parsing opening hours:', error);
+    return { isOpen: false };
+  }
+}
+
+function parseTime(timeStr: string): number {
+  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return 0;
+
+  let hours = parseInt(match[1]);
+  const minutes = parseInt(match[2]);
+  const period = match[3].toUpperCase();
+
+  if (period === 'PM' && hours !== 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+
+  return hours * 60 + minutes;
 }
 
 export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, onVisitToggle }: DestinationDrawerProps) {
@@ -475,6 +559,52 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                 )}
               </div>
             )}
+
+            {/* Opening Hours */}
+            {destination.opening_hours && (() => {
+              const openStatus = getOpenStatus(destination.opening_hours, destination.city);
+              return (
+                <div className="mt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    {openStatus.todayHours && (
+                      <span className={`text-sm font-semibold ${openStatus.isOpen ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {openStatus.isOpen ? 'Open now' : 'Closed'}
+                      </span>
+                    )}
+                    {openStatus.todayHours && (
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        · {openStatus.todayHours}
+                      </span>
+                    )}
+                  </div>
+                  {destination.opening_hours.weekday_text && (
+                    <details className="text-sm">
+                      <summary className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+                        View all hours
+                      </summary>
+                      <div className="mt-2 space-y-1 pl-6">
+                        {destination.opening_hours.weekday_text.map((day: string, index: number) => {
+                          const [dayName, hours] = day.split(': ');
+                          const timezone = CITY_TIMEZONES[destination.city] || 'UTC';
+                          const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+                          const dayOfWeek = now.getDay();
+                          const googleDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                          const isToday = index === googleDayIndex;
+
+                          return (
+                            <div key={index} className={`flex justify-between ${isToday ? 'font-semibold text-black dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                              <span>{dayName}</span>
+                              <span>{hours}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Action Buttons */}
@@ -571,7 +701,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
           )}
 
           {/* Links Section */}
-          {(destination.website || destination.phone_number || destination.instagram_url) && (
+          {(destination.website || destination.phone_number || destination.instagram_url || destination.google_maps_url) && (
             <div className="mb-8">
               <style jsx>{`
                 .pill-button {
@@ -598,6 +728,18 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                 }
               `}</style>
               <div className="flex flex-wrap gap-3">
+                {destination.google_maps_url && (
+                  <a
+                    href={destination.google_maps_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="pill-button"
+                  >
+                    <span>📍</span>
+                    <span className="pill-separator">•</span>
+                    <span>Google Maps</span>
+                  </a>
+                )}
                 {destination.website && (
                   <a
                     href={destination.website.startsWith('http') ? destination.website : `https://${destination.website}`}
