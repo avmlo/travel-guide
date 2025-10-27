@@ -1,137 +1,161 @@
-import { useEffect, useRef, useState } from "react";
-import { Destination } from "@/types/destination";
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { Destination } from '@/types/destination';
 
 interface MapViewProps {
   destinations: Destination[];
-  onDestinationClick: (slug: string) => void;
+  onMarkerClick?: (destination: Destination) => void;
+  center?: { lat: number; lng: number };
+  zoom?: number;
 }
 
-declare global {
-  interface Window {
-    mapkit: any;
-  }
-}
-
-export function MapView({ destinations, onDestinationClick }: MapViewProps) {
+export default function MapView({
+  destinations,
+  onMarkerClick,
+  center = { lat: 48.8566, lng: 2.3522 }, // Default to Paris
+  zoom = 12,
+}: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const destinationsWithCoords = destinations.filter(
-    (d) => d.lat !== 0 && d.long !== 0
-  );
-
+  // Load Google Maps script
   useEffect(() => {
-    // Load MapKit JS script
-    const script = document.createElement("script");
-    script.src = "https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.core.js";
-    script.crossOrigin = "anonymous";
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+    if (!apiKey) {
+      setError('Google Maps API key is not configured. Please add NEXT_PUBLIC_GOOGLE_API_KEY to your environment variables.');
+      console.error('Google Maps API key is not configured');
+      return;
+    }
+
+    // Check if script is already loaded
+    if (window.google && window.google.maps) {
+      setLoaded(true);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
-    
-    script.onload = () => {
-      if (window.mapkit) {
-        // Initialize MapKit with a token (using anonymous mode for demo)
-        // Note: For production, you need to get a MapKit JS token from Apple Developer
-        try {
-          window.mapkit.init({
-            authorizationCallback: (done: any) => {
-              // For demo purposes, we'll use a public token approach
-              // In production, you should generate a JWT token from your server
-              done(""); // Empty token for now - will show error but demonstrate structure
-            }
-          });
-          setMapLoaded(true);
-        } catch (err) {
-          console.error("MapKit initialization error:", err);
-          setError("MapKit requires an Apple Developer token. Using fallback view.");
-        }
-      }
-    };
-
-    script.onerror = () => {
-      setError("Failed to load Apple Maps. Using fallback view.");
-    };
-
+    script.defer = true;
+    script.addEventListener('load', () => setLoaded(true));
+    script.addEventListener('error', () => {
+      setError('Failed to load Google Maps. Please check your API key and network connection.');
+    });
     document.head.appendChild(script);
 
     return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
       }
     };
   }, []);
 
+  // Initialize map
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !window.mapkit) return;
+    if (!loaded || !mapRef.current || mapInstanceRef.current) return;
 
-    try {
-      const map = new window.mapkit.Map(mapRef.current, {
-        center: new window.mapkit.Coordinate(25, 0),
-        zoom: 2,
-        showsMapTypeControl: false,
-        showsZoomControl: true,
-        showsUserLocationControl: false,
-      });
+    mapInstanceRef.current = new google.maps.Map(mapRef.current, {
+      center,
+      zoom,
+      styles: [
+        {
+          featureType: 'poi',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }],
+        },
+      ],
+    });
+  }, [loaded, center, zoom]);
 
-      // Add markers for destinations
-      const annotations = destinationsWithCoords.map((destination) => {
-        const annotation = new window.mapkit.MarkerAnnotation(
-          new window.mapkit.Coordinate(destination.lat, destination.long),
-          {
-            title: destination.name,
-            subtitle: destination.city,
-            color: "#007AFF",
+  // Update markers when destinations change
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.setMap(null));
+    markersRef.current = [];
+
+    // Create new markers
+    const bounds = new google.maps.LatLngBounds();
+
+    destinations.forEach(dest => {
+      if (!dest.place_id) return; // Skip destinations without location data
+
+      // Use Google Places API to get place details including coordinates
+      const service = new google.maps.places.PlacesService(mapInstanceRef.current!);
+
+      service.getDetails(
+        {
+          placeId: dest.place_id,
+          fields: ['geometry', 'name'],
+        },
+        (place, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+            const marker = new google.maps.Marker({
+              position: place.geometry.location,
+              map: mapInstanceRef.current!,
+              title: dest.name,
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: dest.crown ? '#fbbf24' : '#3b82f6',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+              },
+            });
+
+            // Add click listener
+            marker.addListener('click', () => {
+              if (onMarkerClick) {
+                onMarkerClick(dest);
+              }
+            });
+
+            markersRef.current.push(marker);
+            bounds.extend(place.geometry.location);
+
+            // Fit map to show all markers
+            if (markersRef.current.length > 0) {
+              mapInstanceRef.current!.fitBounds(bounds);
+            }
           }
-        );
-
-        annotation.addEventListener("select", () => {
-          onDestinationClick(destination.slug);
-        });
-
-        return annotation;
-      });
-
-      map.showItems(annotations);
-    } catch (err) {
-      console.error("Error creating map:", err);
-      setError("Unable to display map. Please check your connection.");
-    }
-  }, [mapLoaded, destinationsWithCoords, onDestinationClick]);
+        }
+      );
+    });
+  }, [destinations, onMarkerClick]);
 
   if (error) {
     return (
-      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex flex-col items-center justify-center p-8">
-        <p className="text-gray-600 mb-4 text-center">{error}</p>
-        <p className="text-sm text-gray-400 text-center max-w-md">
-          Showing {destinationsWithCoords.length} destinations with coordinates.
-          Click on any destination card to view details.
-        </p>
+      <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-2xl p-8">
+        <div className="text-center max-w-md">
+          <p className="text-red-600 dark:text-red-400 mb-2 font-medium">Map Loading Failed</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+        </div>
       </div>
     );
   }
 
-  if (!mapLoaded) {
+  if (!loaded) {
     return (
-      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400">Loading Apple Maps...</p>
-      </div>
-    );
-  }
-
-  if (destinationsWithCoords.length === 0) {
-    return (
-      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400">No destinations with coordinates to display on map.</p>
+      <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-2xl">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Loading map...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div 
-      ref={mapRef} 
-      className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm"
-      style={{ minHeight: "calc(100vh - 8rem)" }}
+    <div
+      ref={mapRef}
+      className="w-full h-full rounded-2xl overflow-hidden"
+      style={{ minHeight: '400px' }}
     />
   );
 }
-

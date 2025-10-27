@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { Header } from "@/components/Header";
-import { SimpleFooter } from "@/components/SimpleFooter";
-import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
-import { SkeletonGrid } from "@/components/SkeletonCard";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { Destination } from '@/types/destination';
+import { MapPin, Search, ChevronRight } from 'lucide-react';
+import { cityCountryMap } from '@/data/cityCountryMap';
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
+interface CityStats {
+  city: string;
+  country: string;
+  count: number;
+}
 
-// Helper function to capitalize city names
 function capitalizeCity(city: string): string {
   return city
     .split('-')
@@ -19,127 +20,136 @@ function capitalizeCity(city: string): string {
     .join(' ');
 }
 
-interface CityData {
-  city: string;
-  count: number;
-  country: string;
-}
-
-export default function Cities() {
+export default function CitiesPage() {
   const router = useRouter();
-  const [cities, setCities] = useState<CityData[]>([]);
+  const [cityStats, setCityStats] = useState<CityStats[]>([]);
+  const [filteredCities, setFilteredCities] = useState<CityStats[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadCities() {
-      const { data, error } = await supabase
-        .from('destinations')
-        .select('city');
+    fetchCityStats();
+  }, []);
 
-      if (!error && data) {
-        // Count destinations per city
-        const cityCount = data.reduce((acc: Record<string, number>, item) => {
-          acc[item.city] = (acc[item.city] || 0) + 1;
-          return acc;
-        }, {});
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = cityStats.filter(
+        (city) =>
+          city.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          city.country.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredCities(filtered);
+    } else {
+      setFilteredCities(cityStats);
+    }
+  }, [searchTerm, cityStats]);
 
-        // Convert to array with country info
-        const citiesArray: CityData[] = Object.entries(cityCount)
-          .map(([city, count]) => ({
-            city,
-            count,
-            country: cityCountryMap[city] || 'Other'
-          }));
+  const fetchCityStats = async () => {
+    try {
+      const { data, error } = await supabase.from('destinations').select('city');
 
-        // Sort by country priority, then by count within country
-        const sortedCities = citiesArray.sort((a, b) => {
-          const countryA = a.country;
-          const countryB = b.country;
+      if (error) throw error;
 
-          const indexA = countryOrder.indexOf(countryA);
-          const indexB = countryOrder.indexOf(countryB);
+      const destinations = data as Destination[];
+      const cityCounts = destinations.reduce((acc, dest) => {
+        acc[dest.city] = (acc[dest.city] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
-          // If same country, sort by count (descending)
-          if (countryA === countryB) {
-            return b.count - a.count;
-          }
+      const stats = Object.entries(cityCounts)
+        .map(([city, count]) => ({
+          city,
+          country: cityCountryMap[city] || 'Unknown',
+          count,
+        }))
+        .sort((a, b) => b.count - a.count); // Sort by count descending
 
-          // Sort by country priority
-          if (indexA === -1 && indexB === -1) return countryA.localeCompare(countryB);
-          if (indexA === -1) return 1;
-          if (indexB === -1) return -1;
-          return indexA - indexB;
-        });
-
-        setCities(sortedCities);
-      }
-
+      setCityStats(stats);
+      setFilteredCities(stats);
+    } catch (error) {
+      console.error('Error fetching city stats:', error);
+    } finally {
       setLoading(false);
     }
-
-    loadCities();
-  }, []);
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-        <Header />
-        <main className="px-6 md:px-10 py-12 dark:text-white">
-          <div className="max-w-[1920px] mx-auto">
-            {/* Title skeleton */}
-            <div className="mb-12">
-              <div className="h-12 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-4" />
-              <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
-            </div>
-
-            {/* Grid skeleton */}
-            <SkeletonGrid count={24} />
-          </div>
-        </main>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-pulse text-gray-500">Loading cities...</div>
       </div>
     );
   }
 
-  const totalCities = cities.length;
-  const totalPlaces = cities.reduce((sum, city) => sum + city.count, 0);
-
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-      <Header />
+    <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
+      <div className="max-w-6xl mx-auto">
+        {/* Hero Section */}
+        <div className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3">
+            Cities
+          </h1>
+          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400">
+            Discover {cityStats.length} cities around the world
+          </p>
+        </div>
 
-      {/* Main Content */}
-      <main className="px-6 md:px-10 py-12 dark:text-white">
-        <div className="max-w-[1920px] mx-auto">
-          {/* Page Title */}
-          <div className="mb-12 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-bold uppercase mb-4 text-black dark:text-white">Cities</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {totalCities} cities · {totalPlaces} places
-            </p>
-          </div>
-
-          {/* Cities Grid with staggered animations */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
-            {cities.map((cityData, index) => (
-              <button
-                key={cityData.city}
-                onClick={() => router.push(`/city/${cityData.city}`)}
-                className="border border-gray-200 dark:border-gray-700 p-6 hover:border-black dark:hover:border-white hover:shadow-lg transition-all duration-200 text-left group bg-white dark:bg-gray-900 animate-scale-in"
-                style={{ animationDelay: `${Math.min(index * 20, 400)}ms` }}
-              >
-                <h3 className="text-base font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity text-black dark:text-white">
-                  {capitalizeCity(cityData.city)}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {cityData.count} {cityData.count === 1 ? 'place' : 'places'}
-                </p>
-              </button>
-            ))}
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search cities..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+            />
           </div>
         </div>
-      </main>
 
-      <SimpleFooter />
-    </div>
+        {/* Cities List - App-like cards */}
+        <div className="space-y-3">
+          {filteredCities.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-gray-500">No cities found</p>
+            </div>
+          ) : (
+            filteredCities.map(({ city, country, count }, index) => (
+              <button
+                key={city}
+                onClick={() => router.push(`/city/${encodeURIComponent(city)}`)}
+                className="group w-full text-left p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 animate-in fade-in slide-in-from-bottom-4"
+                style={{ animationDelay: `${index * 30}ms`, animationDuration: '400ms' }}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-lg md:text-xl font-bold mb-1 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors truncate">
+                      {capitalizeCity(city)}
+                    </h2>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{country}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-black dark:text-white">
+                        {count}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {count === 1 ? 'place' : 'places'}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </main>
   );
 }

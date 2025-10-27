@@ -1,380 +1,385 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { Header } from "@/components/Header";
-import { SimpleFooter } from "@/components/SimpleFooter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, MapPin, Trash2, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { Plus, Calendar, MapPin, Trash2, X } from 'lucide-react';
 
 interface Trip {
-  id: number;
-  user_id: string;
+  id: string;
   title: string;
   description: string | null;
   destination: string | null;
   start_date: string | null;
   end_date: string | null;
   status: string;
+  is_public: boolean;
+  cover_image: string | null;
   created_at: string;
-  updated_at: string;
 }
 
-export default function Trips() {
+export default function TripsPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { user, loading: authLoading } = useAuth();
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newTrip, setNewTrip] = useState({
-    title: "",
-    description: "",
-    destination: "",
-    startDate: "",
-    endDate: "",
+    title: '',
+    description: '',
+    destination: '',
+    start_date: '',
+    end_date: '',
   });
 
-  // Check authentication
   useEffect(() => {
-    async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        router.push("/account");
-        return;
-      }
-
-      setUser(session.user);
-      setAuthChecked(true);
+    if (!authLoading && !user) {
+      router.push('/auth/login');
     }
+  }, [user, authLoading, router]);
 
-    checkAuth();
-  }, [router]);
-
-  // Load trips
   useEffect(() => {
-    async function loadTrips() {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('trips')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setTrips(data || []);
-      } catch (error) {
-        console.error('Error loading trips:', error);
-      } finally {
-        setIsLoading(false);
-      }
+    if (user) {
+      fetchTrips();
     }
-
-    loadTrips();
   }, [user]);
 
-  const handleCreateTrip = async () => {
-    if (!newTrip.title.trim()) {
-      alert("Please enter a trip title");
-      return;
-    }
-
+  const fetchTrips = async () => {
     try {
-      setIsCreating(true);
       const { data, error } = await supabase
         .from('trips')
-        .insert({
-          user_id: user.id,
-          title: newTrip.title,
-          description: newTrip.description || null,
-          destination: newTrip.destination || null,
-          start_date: newTrip.startDate || null,
-          end_date: newTrip.endDate || null,
-          status: 'planning',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      // Add to local state
-      setTrips([data, ...trips]);
-      setIsCreateDialogOpen(false);
-      setNewTrip({ title: "", description: "", destination: "", startDate: "", endDate: "" });
-
-      // Navigate to trip detail
-      if (data.id) {
-        router.push(`/trip/${data.id}`);
-      }
-    } catch (error: any) {
-      console.error('Error creating trip:', error);
-      alert(`Failed to create trip: ${error.message}`);
+      setTrips(data || []);
+    } catch (error) {
+      console.error('Error fetching trips:', error);
     } finally {
-      setIsCreating(false);
+      setLoading(false);
     }
   };
 
-  const handleDeleteTrip = async (id: number, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) {
+  const createTrip = async () => {
+    if (!newTrip.title.trim()) {
+      alert('Please enter a trip title');
       return;
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('trips')
-        .delete()
-        .eq('id', id);
+        .insert([
+          {
+            title: newTrip.title,
+            description: newTrip.description || null,
+            destination: newTrip.destination || null,
+            start_date: newTrip.start_date || null,
+            end_date: newTrip.end_date || null,
+            status: 'planning',
+            user_id: user?.id,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      setTrips([data, ...trips]);
+      setShowCreateDialog(false);
+      setNewTrip({ title: '', description: '', destination: '', start_date: '', end_date: '' });
+    } catch (error: any) {
+      console.error('Error creating trip:', error);
+
+      // Show detailed error message
+      let errorMessage = 'Failed to create trip';
+      if (error?.message) {
+        errorMessage += `: ${error.message}`;
+      }
+      if (error?.code === '42P01') {
+        errorMessage = 'Database table "trips" does not exist. Please run the migrations in Supabase. See migrations/README.md for instructions.';
+      }
+
+      alert(errorMessage);
+    }
+  };
+
+  const deleteTrip = async (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
+
+    try {
+      const { error } = await supabase.from('trips').delete().eq('id', id);
 
       if (error) throw error;
 
-      // Remove from local state
-      setTrips(trips.filter(t => t.id !== id));
-    } catch (error: any) {
+      setTrips(trips.filter((trip) => trip.id !== id));
+    } catch (error) {
       console.error('Error deleting trip:', error);
-      alert(`Failed to delete trip: ${error.message}`);
+      alert('Failed to delete trip');
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "planning": return "bg-blue-500";
-      case "upcoming": return "bg-green-500";
-      case "ongoing": return "bg-purple-500";
-      case "completed": return "bg-gray-500";
-      default: return "bg-gray-500";
+      case 'planning':
+        return 'bg-blue-500';
+      case 'upcoming':
+        return 'bg-green-500';
+      case 'ongoing':
+        return 'bg-purple-500';
+      case 'completed':
+        return 'bg-gray-500';
+      default:
+        return 'bg-gray-500';
     }
   };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null;
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    } catch {
-      return null;
-    }
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
-  if (!authChecked || isLoading) {
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-        <Header />
-        <main className="px-6 md:px-10 py-12 dark:text-white">
-          <div className="max-w-7xl mx-auto">
-            {/* Header skeleton */}
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer mb-2" />
-                <div className="h-4 w-64 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
-              </div>
-              <div className="h-10 w-28 bg-gray-200 dark:bg-gray-800 rounded animate-shimmer" />
-            </div>
-
-            {/* Grid skeleton */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-48 bg-gray-200 dark:bg-gray-800 rounded-lg animate-shimmer" />
-              ))}
-            </div>
+      <div className="px-6 md:px-10 py-12 dark:text-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-20">
+            <p className="text-gray-500">Loading...</p>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-      <Header />
+  if (!user) {
+    return null;
+  }
 
-      <main className="px-6 md:px-10 py-12 dark:text-white">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8 animate-fade-in">
-            <div>
-              <h1 className="text-3xl font-bold mb-2 text-black dark:text-white">My Trips</h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Plan and organize your travel itineraries
-              </p>
-            </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  New Trip
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Create New Trip</DialogTitle>
-                  <DialogDescription>
-                    Plan a new adventure. You can add details and itinerary items later.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Trip Title *</Label>
-                    <Input
-                      id="title"
-                      placeholder="e.g., Summer in Paris"
-                      value={newTrip.title}
-                      onChange={(e) => setNewTrip({ ...newTrip, title: e.target.value })}
+  return (
+    <div className="px-6 md:px-10 py-12 dark:text-white">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">My Trips</h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Plan and organize your adventures
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCreateDialog(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
+          >
+            <Plus className="h-5 w-5" />
+            <span>New Trip</span>
+          </button>
+        </div>
+
+        {/* Trips Grid */}
+        {trips.length === 0 ? (
+          <div className="text-center py-20">
+            <MapPin className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-700 mb-4" />
+            <h3 className="text-xl font-medium mb-2">No trips yet</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              Start planning your next adventure
+            </p>
+            <button
+              onClick={() => setShowCreateDialog(true)}
+              className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
+            >
+              Create Your First Trip
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {trips.map((trip) => (
+              <div
+                key={trip.id}
+                className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
+              >
+                {/* Cover Image */}
+                <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-600 relative">
+                  {trip.cover_image && (
+                    <img
+                      src={trip.cover_image}
+                      alt={trip.title}
+                      className="w-full h-full object-cover"
                     />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="destination">Destination</Label>
-                    <Input
-                      id="destination"
-                      placeholder="e.g., Paris, France"
-                      value={newTrip.destination}
-                      onChange={(e) => setNewTrip({ ...newTrip, destination: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="startDate">Start Date</Label>
-                      <Input
-                        id="startDate"
-                        type="date"
-                        value={newTrip.startDate}
-                        onChange={(e) => setNewTrip({ ...newTrip, startDate: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="endDate">End Date</Label>
-                      <Input
-                        id="endDate"
-                        type="date"
-                        value={newTrip.endDate}
-                        onChange={(e) => setNewTrip({ ...newTrip, endDate: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="What's this trip about?"
-                      value={newTrip.description}
-                      onChange={(e) => setNewTrip({ ...newTrip, description: e.target.value })}
-                      rows={3}
-                    />
+                  )}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <span
+                      className={`${getStatusColor(
+                        trip.status
+                      )} text-white text-xs px-3 py-1 rounded-full capitalize`}
+                    >
+                      {trip.status}
+                    </span>
                   </div>
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateTrip} disabled={isCreating}>
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      "Create Trip"
-                    )}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
 
-          {/* Trips Grid */}
-          {trips.length === 0 ? (
-            <div className="text-center py-20 animate-fade-in" style={{ animationDelay: '100ms' }}>
-              <div className="mb-6">
-                <MapPin className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-700" />
-              </div>
-              <h2 className="text-2xl font-semibold mb-2 text-black dark:text-white">No trips yet</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Start planning your next adventure
-              </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Your First Trip
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trips.map((trip, index) => (
-                <Card
-                  key={trip.id}
-                  className="hover:shadow-lg transition-all duration-200 cursor-pointer group animate-scale-in dark:bg-gray-900 dark:border-gray-800"
-                  style={{ animationDelay: `${Math.min(index * 50, 400)}ms` }}
-                  onClick={() => router.push(`/trip/${trip.id}`)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between mb-2">
-                      <Badge className={getStatusColor(trip.status || "planning")}>
-                        {trip.status || "planning"}
-                      </Badge>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTrip(trip.id, trip.title);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </div>
-                    <CardTitle className="text-xl">{trip.title}</CardTitle>
-                    {trip.description && (
-                      <CardDescription className="line-clamp-2">
-                        {trip.description}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent className="pb-3">
+                {/* Content */}
+                <div className="p-5">
+                  <h3 className="text-lg font-bold mb-2 line-clamp-2">{trip.title}</h3>
+
+                  {trip.description && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                      {trip.description}
+                    </p>
+                  )}
+
+                  <div className="space-y-2 mb-4">
                     {trip.destination && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <MapPin className="h-4 w-4" />
-                        {trip.destination}
+                        <span>{trip.destination}</span>
                       </div>
                     )}
+
                     {(trip.start_date || trip.end_date) && (
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <Calendar className="h-4 w-4" />
-                        {formatDate(trip.start_date)}
-                        {trip.start_date && trip.end_date && " - "}
-                        {formatDate(trip.end_date)}
+                        <span>
+                          {formatDate(trip.start_date)}
+                          {trip.end_date && ` - ${formatDate(trip.end_date)}`}
+                        </span>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+                  </div>
 
-      <SimpleFooter />
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/trips/${trip.id}`);
+                      }}
+                      className="flex-1 text-sm font-medium py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteTrip(trip.id, trip.title);
+                      }}
+                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 rounded transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Create Trip Dialog */}
+        {showCreateDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-lg max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Create New Trip</h2>
+                <button
+                  onClick={() => setShowCreateDialog(false)}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Trip Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={newTrip.title}
+                    onChange={(e) => setNewTrip({ ...newTrip, title: e.target.value })}
+                    placeholder="e.g., Summer in Paris"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <textarea
+                    value={newTrip.description}
+                    onChange={(e) =>
+                      setNewTrip({ ...newTrip, description: e.target.value })
+                    }
+                    placeholder="What's this trip about?"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Destination</label>
+                  <input
+                    type="text"
+                    value={newTrip.destination}
+                    onChange={(e) =>
+                      setNewTrip({ ...newTrip, destination: e.target.value })
+                    }
+                    placeholder="e.g., Paris, France"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Start Date</label>
+                    <input
+                      type="date"
+                      value={newTrip.start_date}
+                      onChange={(e) =>
+                        setNewTrip({ ...newTrip, start_date: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">End Date</label>
+                    <input
+                      type="date"
+                      value={newTrip.end_date}
+                      onChange={(e) =>
+                        setNewTrip({ ...newTrip, end_date: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowCreateDialog(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={createTrip}
+                    className="flex-1 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
+                  >
+                    Create Trip
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
