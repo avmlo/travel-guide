@@ -15,6 +15,8 @@ export interface Destination {
   phone_number?: string | null;
   website?: string | null;
   google_maps_url?: string | null;
+  instagram_handle?: string | null;
+  instagram_url?: string | null;
   tags?: string[] | null;
   last_enriched_at?: string | null;
   save_count?: number;

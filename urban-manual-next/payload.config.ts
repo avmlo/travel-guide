@@ -116,6 +116,22 @@ export default buildConfig({
           label: 'Google Maps URL',
         },
         {
+          name: 'instagram_handle',
+          type: 'text',
+          label: 'Instagram Handle',
+          admin: {
+            description: 'Instagram username without @ (e.g., "restaurant_name")',
+          },
+        },
+        {
+          name: 'instagram_url',
+          type: 'text',
+          label: 'Instagram URL',
+          admin: {
+            description: 'Full Instagram profile URL',
+          },
+        },
+        {
           name: 'tags',
           type: 'array',
           label: 'AI Tags',
