@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, X, Minimize2 } from "lucide-react";
+import { Send, Sparkles, X, Minimize2, MapPin } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -237,11 +237,13 @@ export function ChatGPTStyleAI() {
         .from('destinations')
         .select('*')
         .ilike('city', `%${city}%`)
-        .limit(5);
+        .limit(6);
 
       if (data && data.length > 0) {
-        const list = data.map(d => `• **${d.name}** - ${d.category}`).join('\n');
-        return { content: `I found these places in ${city}:\n\n${list}\n\nWould you like to know more about any of these?` };
+        return {
+          content: `I found these places in ${city}:`,
+          destinations: data
+        };
       }
     }
 
@@ -261,12 +263,14 @@ export function ChatGPTStyleAI() {
         query = query.ilike('city', `%${city}%`);
       }
 
-      const { data } = await query.limit(5);
+      const { data } = await query.limit(6);
 
       if (data && data.length > 0) {
-        const list = data.map(d => `• **${d.name}** in ${d.city.replace(/-/g, ' ')}`).join('\n');
         const location = cityInQuery ? ` in ${cityInQuery[1]}` : '';
-        return { content: `Here are some great ${foundCategory}s${location}:\n\n${list}` };
+        return {
+          content: `Here are some great ${foundCategory}s${location}:`,
+          destinations: data
+        };
       }
     }
 
@@ -277,14 +281,13 @@ export function ChatGPTStyleAI() {
         .select('*')
         .gt('michelin_stars', 0)
         .order('michelin_stars', { ascending: false })
-        .limit(5);
+        .limit(6);
 
       if (data && data.length > 0) {
-        const list = data.map(d => {
-          const stars = '⭐'.repeat(d.michelin_stars);
-          return `• **${d.name}** ${stars} - ${d.city.replace(/-/g, ' ')}`;
-        }).join('\n');
-        return { content: `Here are our top Michelin-starred restaurants:\n\n${list}` };
+        return {
+          content: `Here are our top Michelin-starred restaurants:`,
+          destinations: data
+        };
       }
     }
 
@@ -303,13 +306,14 @@ export function ChatGPTStyleAI() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 flex items-center gap-2 px-6 py-3 bg-black/90 dark:bg-white/90 backdrop-blur-xl text-white dark:text-black rounded-full shadow-lg border border-white/10 dark:border-black/10 hover:scale-105 transition-transform duration-200"
+        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 flex items-center gap-2 px-6 py-3 bg-white/10 dark:bg-white/10 backdrop-blur-xl text-white border border-white/20 hover:bg-white/20 transition-all duration-200"
         style={{
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',
+          borderRadius: '9999px'
         }}
       >
         <Sparkles className="h-5 w-5" />
-        <span className="font-medium">Ask AI Travel Assistant</span>
+        <span className="font-medium">AI</span>
       </button>
     );
   }
@@ -359,6 +363,56 @@ export function ChatGPTStyleAI() {
                         );
                       })}
                     </div>
+
+                    {/* Destination Cards */}
+                    {message.destinations && message.destinations.length > 0 && (
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        {message.destinations.map((dest) => (
+                          <a
+                            key={dest.slug}
+                            href={`/destination/${dest.slug}`}
+                            className="group block"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              window.location.href = `/destination/${dest.slug}`;
+                            }}
+                          >
+                            <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-2">
+                              {dest.image ? (
+                                <img
+                                  src={dest.image}
+                                  alt={dest.name}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                  <MapPin className="h-8 w-8 opacity-20" />
+                                </div>
+                              )}
+                              {dest.crown && (
+                                <div className="absolute top-2 left-2 text-lg">👑</div>
+                              )}
+                              {dest.michelin_stars && dest.michelin_stars > 0 && (
+                                <div className="absolute bottom-2 left-2 bg-white dark:bg-gray-900 px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                                  <img
+                                    src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                                    alt="Michelin star"
+                                    className="h-3 w-3"
+                                  />
+                                  <span>{dest.michelin_stars}</span>
+                                </div>
+                              )}
+                            </div>
+                            <h4 className="font-medium text-xs leading-tight line-clamp-2 mb-1 text-black dark:text-white">
+                              {dest.name}
+                            </h4>
+                            <p className="text-xs text-gray-500 capitalize">
+                              {dest.city.replace(/-/g, ' ')} · {dest.category}
+                            </p>
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
