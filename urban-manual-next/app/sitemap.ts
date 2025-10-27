@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://theurbanmanual.com'; // Update with your actual domain
@@ -32,30 +32,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Fetch all destinations
-  const { data: destinations } = await supabase
-    .from('destinations')
-    .select('slug, updated_at');
+  if (!isSupabaseConfigured()) {
+    return staticPages;
+  }
 
-  const destinationPages: MetadataRoute.Sitemap = destinations?.map((dest) => ({
-    url: `${baseUrl}/destination/${dest.slug}`,
-    lastModified: dest.updated_at ? new Date(dest.updated_at) : new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  })) || [];
+  try {
+    const supabase = getSupabaseClient();
 
-  // Fetch all cities
-  const { data: citiesData } = await supabase
-    .from('destinations')
-    .select('city');
+    // Fetch all destinations
+    const { data: destinations } = await supabase
+      .from('destinations')
+      .select('slug, updated_at');
 
-  const uniqueCities = [...new Set(citiesData?.map(d => d.city))];
-  const cityPages: MetadataRoute.Sitemap = uniqueCities.map((city) => ({
-    url: `${baseUrl}/city/${city}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
+    const destinationPages: MetadataRoute.Sitemap = destinations?.map((dest) => ({
+      url: `${baseUrl}/destination/${dest.slug}`,
+      lastModified: dest.updated_at ? new Date(dest.updated_at) : new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    })) || [];
 
-  return [...staticPages, ...cityPages, ...destinationPages];
+    // Fetch all cities
+    const { data: citiesData } = await supabase
+      .from('destinations')
+      .select('city');
+
+    const uniqueCities = [...new Set(citiesData?.map(d => d.city))];
+    const cityPages: MetadataRoute.Sitemap = uniqueCities.map((city) => ({
+      url: `${baseUrl}/city/${city}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
+
+    return [...staticPages, ...cityPages, ...destinationPages];
+  } catch (error) {
+    console.error('Failed to generate sitemap from Supabase data:', error);
+    return staticPages;
+  }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { Star, ThumbsUp, Edit2, Trash2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { ReviewForm } from "./ReviewForm";
@@ -27,6 +27,7 @@ interface ReviewsListProps {
 }
 
 export function ReviewsList({ destinationSlug, destinationName }: ReviewsListProps) {
+  const supabase = getSupabaseClient();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);

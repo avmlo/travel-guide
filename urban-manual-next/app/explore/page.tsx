@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, MapPin, Compass, Sparkles } from "lucide-react";
@@ -31,6 +31,7 @@ const CATEGORIES = [
 
 export default function Explore() {
   const router = useRouter();
+  const supabase = getSupabaseClient();
   const [featuredDestinations, setFeaturedDestinations] = useState<Destination[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
