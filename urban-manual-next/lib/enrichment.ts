@@ -35,12 +35,15 @@ export async function findPlaceByText(
   city: string
 ): Promise<PlacesEnrichmentData> {
   if (!GOOGLE_API_KEY) {
+    console.error('❌ NEXT_PUBLIC_GOOGLE_API_KEY is not configured in environment variables');
     throw new Error('Google API key not configured');
   }
 
   try {
     // Use Places API (New) - Text Search
     const searchQuery = `${name}, ${city}`;
+    console.log(`📍 Searching Google Places for: "${searchQuery}"`);
+
     const response = await fetch(
       `https://places.googleapis.com/v1/places:searchText`,
       {
@@ -58,12 +61,15 @@ export async function findPlaceByText(
     );
 
     if (!response.ok) {
-      throw new Error(`Places API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ Places API error ${response.status}:`, errorText);
+      throw new Error(`Places API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
 
     if (!data.places || data.places.length === 0) {
+      console.warn(`⚠️  No place found for: "${searchQuery}"`);
       return {
         place_id: null,
         rating: null,
@@ -77,6 +83,9 @@ export async function findPlaceByText(
     }
 
     const place = data.places[0];
+    console.log(`✅ Found place: ${place.displayName?.text || name} (${place.id})`);
+    console.log(`   Rating: ${place.rating || 'N/A'}, Types: ${(place.types || []).join(', ')}`);
+
 
     // Convert price level from Google's format to 1-4
     const priceLevelMap: Record<string, number> = {
@@ -123,10 +132,13 @@ export async function generateGeminiTags(
   googleTypes?: string[]
 ): Promise<GeminiTagsData> {
   if (!GOOGLE_API_KEY) {
+    console.error('❌ NEXT_PUBLIC_GOOGLE_API_KEY is not configured in environment variables');
     throw new Error('Google API key not configured');
   }
 
   try {
+    console.log(`🤖 Generating AI tags for: ${name}`);
+
     const prompt = `You are a travel expert categorizing destinations. Analyze this place and provide:
 1. 5-8 descriptive tags (e.g., "romantic", "family-friendly", "instagrammable", "hidden gem", "michelin-recommended", "rooftop", "speakeasy", etc.)
 2. Best category classification
@@ -165,7 +177,9 @@ Tags should be lowercase, concise, and highly searchable. Categories should be o
     );
 
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ Gemini API error ${response.status}:`, errorText);
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -174,10 +188,13 @@ Tags should be lowercase, concise, and highly searchable. Categories should be o
     // Extract JSON from response (Gemini sometimes adds markdown)
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error('❌ No valid JSON in Gemini response:', text);
       throw new Error('No valid JSON in Gemini response');
     }
 
     const result = JSON.parse(jsonMatch[0]);
+    console.log(`✅ Generated ${result.tags?.length || 0} tags: ${(result.tags || []).join(', ')}`);
+    console.log(`   Suggested category: ${result.suggested_category || 'None'}`);
 
     return {
       tags: result.tags || [],
@@ -228,7 +245,8 @@ export async function enrichDestination(
   existingCategory?: string,
   description?: string
 ): Promise<EnrichedData> {
-  console.log(`Enriching: ${name} in ${city}`);
+  console.log(`\n🚀 Starting enrichment for: ${name} in ${city}`);
+  console.log(`   Existing category: ${existingCategory || 'None'}`);
 
   // Step 1: Get Google Places data
   const placesData = await findPlaceByText(name, city);
@@ -249,11 +267,21 @@ export async function enrichDestination(
   if (placesData.google_types.length > 0) {
     const googleCategory = categorizePlaceFromTypes(placesData.google_types);
     if (googleCategory) {
+      console.log(`📂 Category from Google types: ${googleCategory}`);
       finalCategory = googleCategory;
     }
   } else if (geminiData.suggested_category) {
+    console.log(`📂 Category from Gemini: ${geminiData.suggested_category}`);
     finalCategory = geminiData.suggested_category;
+  } else {
+    console.log(`📂 Keeping existing category: ${finalCategory}`);
   }
+
+  console.log(`✨ Enrichment complete for ${name}`);
+  console.log(`   Place ID: ${placesData.place_id || 'Not found'}`);
+  console.log(`   Rating: ${placesData.rating || 'N/A'}`);
+  console.log(`   Tags: ${geminiData.tags.length} tags generated`);
+  console.log(`   Final category: ${finalCategory}\n`);
 
   return {
     places: placesData,

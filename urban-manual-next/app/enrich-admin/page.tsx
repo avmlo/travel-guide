@@ -103,15 +103,26 @@ export default function EnrichmentAdminPage() {
           });
 
           if (!response.ok) {
-            console.error(`Failed to enrich ${dest.name}`);
+            const errorData = await response.json().catch(() => ({}));
+            console.error(`❌ Failed to enrich ${dest.name}:`, errorData);
+            console.error(`   Status: ${response.status}`);
+            console.error(`   Message: ${errorData.message || 'Unknown error'}`);
+          } else {
+            const result = await response.json();
+            console.log(`✅ Successfully enriched: ${dest.name}`);
+            if (result.data) {
+              console.log(`   Place ID: ${result.data.places.place_id || 'Not found'}`);
+              console.log(`   Rating: ${result.data.places.rating || 'N/A'}`);
+              console.log(`   Tags: ${result.data.gemini.tags?.length || 0}`);
+            }
           }
 
           setProgress({ current: i + 1, total: destinations.length });
 
-          // Rate limiting - wait 100ms between requests
-          await new Promise(resolve => setTimeout(resolve, 100));
+          // Rate limiting - wait 500ms between requests to avoid API quota issues
+          await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
-          console.error(`Error enriching ${dest.name}:`, error);
+          console.error(`❌ Error enriching ${dest.name}:`, error);
         }
       }
 

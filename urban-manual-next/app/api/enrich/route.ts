@@ -58,11 +58,15 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Enrichment error:', error);
+    console.error('❌ Enrichment API error:', error);
+    console.error('   Stack:', error.stack);
+
     return NextResponse.json(
       {
+        success: false,
         error: 'Enrichment failed',
         message: error.message,
+        details: error.stack?.split('\n').slice(0, 3).join('\n'),
       },
       { status: 500 }
     );
