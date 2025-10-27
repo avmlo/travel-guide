@@ -4,6 +4,8 @@ import { getDb } from "../db";
 import { savedPlaces, userPreferences, userActivity } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { logger } from "../_core/logger";
+import { sanitizeText, sanitizeSlug } from "../_core/sanitize";
+import type { Destination, ScoredDestination } from "@shared/destination-types";
 
 export const userRouter = router({
   /**
@@ -43,6 +45,14 @@ export const userRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
+      // Sanitize inputs
+      const destinationSlug = sanitizeSlug(input.destinationSlug);
+      if (!destinationSlug) {
+        throw new Error("Invalid destination slug");
+      }
+
+      const notes = input.notes ? sanitizeText(input.notes, 1000) : null;
+
       // Check if already saved
       const existing = await db
         .select()
@@ -50,7 +60,7 @@ export const userRouter = router({
         .where(
           and(
             eq(savedPlaces.userId, ctx.user.id),
-            eq(savedPlaces.destinationSlug, input.destinationSlug)
+            eq(savedPlaces.destinationSlug, destinationSlug)
           )
         )
         .limit(1);
@@ -61,15 +71,15 @@ export const userRouter = router({
 
       await db.insert(savedPlaces).values({
         userId: ctx.user.id,
-        destinationSlug: input.destinationSlug,
+        destinationSlug,
         savedAt: new Date(),
-        notes: input.notes || null,
+        notes,
       });
 
       // Log activity
       await db.insert(userActivity).values({
         userId: ctx.user.id,
-        destinationSlug: input.destinationSlug,
+        destinationSlug,
         action: "save",
         timestamp: new Date(),
       });
@@ -88,19 +98,25 @@ export const userRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
+      // Sanitize input
+      const destinationSlug = sanitizeSlug(input.destinationSlug);
+      if (!destinationSlug) {
+        throw new Error("Invalid destination slug");
+      }
+
       await db
         .delete(savedPlaces)
         .where(
           and(
             eq(savedPlaces.userId, ctx.user.id),
-            eq(savedPlaces.destinationSlug, input.destinationSlug)
+            eq(savedPlaces.destinationSlug, destinationSlug)
           )
         );
 
       // Log activity
       await db.insert(userActivity).values({
         userId: ctx.user.id,
-        destinationSlug: input.destinationSlug,
+        destinationSlug,
         action: "unsave",
         timestamp: new Date(),
       });
@@ -219,11 +235,28 @@ export const userRouter = router({
       return { success: true };
     }),
 
-  // Get personalized recommendations based on user activity
+  /**
+   * Get personalized recommendations based on user activity
+   * Uses collaborative filtering to score destinations based on:
+   * - Favorite categories and cities
+   * - Similar places in saved destinations
+   * - Destination ratings
+   * @param destinations - Array of all available destinations
+   * @param limit - Maximum number of recommendations (default: 10)
+   * @returns Scored destinations sorted by relevance
+   */
   getPersonalizedRecommendations: protectedProcedure
     .input(
       z.object({
-        destinations: z.array(z.any()),
+        destinations: z.array(z.object({
+          slug: z.string(),
+          name: z.string(),
+          city: z.string(),
+          category: z.string(),
+          rating: z.union([z.string(), z.number()]).optional(),
+          description: z.string().optional(),
+          image: z.string().optional(),
+        })),
         limit: z.number().default(10),
       })
     )
@@ -280,9 +313,9 @@ export const userRouter = router({
       }
 
       // Score destinations based on user preferences
-      const scored = input.destinations
-        .filter((d: any) => !savedSlugs.has(d.slug) && !viewedSlugs.has(d.slug))
-        .map((d: any) => {
+      const scored: ScoredDestination[] = input.destinations
+        .filter((d) => !savedSlugs.has(d.slug) && !viewedSlugs.has(d.slug))
+        .map((d): ScoredDestination => {
           let score = 0;
 
           // Boost if matches favorite categories
@@ -298,7 +331,7 @@ export const userRouter = router({
           // Boost if similar to saved places
           const savedInSameCity = saved.filter((s) => {
             const dest = input.destinations.find(
-              (dd: any) => dd.slug === s.destinationSlug
+              (dd) => dd.slug === s.destinationSlug
             );
             return dest && dest.city === d.city;
           });
@@ -306,12 +339,12 @@ export const userRouter = router({
 
           // Boost if has high rating
           if (d.rating) {
-            score += parseFloat(d.rating) || 0;
+            score += parseFloat(String(d.rating)) || 0;
           }
 
           return { ...d, score };
         })
-        .sort((a: any, b: any) => b.score - a.score)
+        .sort((a, b) => b.score - a.score)
         .slice(0, input.limit);
 
       return scored;

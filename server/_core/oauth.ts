@@ -5,6 +5,7 @@ import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
 import { ENV } from "./env";
 import { logger } from "./logger";
+import { createCsrfToken, validateCsrfToken } from "./csrf";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -16,7 +17,7 @@ export function registerOAuthRoutes(app: Express) {
   app.get("/api/auth/login", async (req: Request, res: Response) => {
     try {
       const redirectUri = req.query.redirect_uri as string || req.headers.referer || "/";
-      const state = Buffer.from(redirectUri).toString('base64');
+      const state = createCsrfToken(redirectUri); // Secure CSRF token
       const authUrl = `https://accounts.manus.im/oauth/authorize?client_id=${ENV.appId}&response_type=code&redirect_uri=${encodeURIComponent(`${req.protocol}://${req.get('host')}/api/oauth/callback`)}&state=${state}`;
       res.redirect(302, authUrl);
     } catch (error) {
@@ -29,7 +30,7 @@ export function registerOAuthRoutes(app: Express) {
   app.get("/api/auth/signup", async (req: Request, res: Response) => {
     try {
       const redirectUri = req.query.redirect_uri as string || req.headers.referer || "/";
-      const state = Buffer.from(redirectUri).toString('base64');
+      const state = createCsrfToken(redirectUri); // Secure CSRF token
       const authUrl = `https://accounts.manus.im/oauth/authorize?client_id=${ENV.appId}&response_type=code&redirect_uri=${encodeURIComponent(`${req.protocol}://${req.get('host')}/api/oauth/callback`)}&state=${state}`;
       res.redirect(302, authUrl);
     } catch (error) {
@@ -47,6 +48,14 @@ export function registerOAuthRoutes(app: Express) {
       return;
     }
 
+    // Validate CSRF token
+    const redirectUri = validateCsrfToken(state);
+    if (!redirectUri) {
+      logger.warn({ state }, "Invalid or expired CSRF token");
+      res.status(400).json({ error: "Invalid or expired state token" });
+      return;
+    }
+
     try {
       const tokenResponse = await sdk.exchangeCodeForToken(code, state);
       const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
@@ -60,7 +69,7 @@ export function registerOAuthRoutes(app: Express) {
         id: userInfo.openId,
         name: userInfo.name || null,
         email: userInfo.email ?? null,
-        
+
         lastSignedIn: new Date(),
       });
 
@@ -72,7 +81,8 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      res.redirect(302, "/");
+      // Redirect to the validated redirect URI
+      res.redirect(302, redirectUri);
     } catch (error) {
       logger.error({ err: error, code, state }, "OAuth callback failed");
       res.status(500).json({ error: "OAuth callback failed" });
