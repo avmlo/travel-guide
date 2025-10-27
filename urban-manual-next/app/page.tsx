@@ -333,16 +333,6 @@ export default function Home() {
   return (
     <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
       <div className="max-w-[1920px] mx-auto">
-        {/* Hero Section */}
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3">
-            Discover
-          </h1>
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400">
-            Explore {destinations.length} curated destinations
-          </p>
-        </div>
-
         {/* Search Bar */}
         <div className="mb-8">
           <div className="relative max-w-md">
