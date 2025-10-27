@@ -543,7 +543,7 @@ export default function Home() {
                     <img
                       src={destination.image}
                       alt={destination.name}
-                      className={`w-full h-full object-cover ${isVisited ? 'grayscale' : ''}`}
+                      className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isVisited ? 'grayscale' : ''}`}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
