@@ -4,6 +4,7 @@ import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
 import { ENV } from "./env";
+import { logger } from "./logger";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -19,7 +20,7 @@ export function registerOAuthRoutes(app: Express) {
       const authUrl = `https://accounts.manus.im/oauth/authorize?client_id=${ENV.appId}&response_type=code&redirect_uri=${encodeURIComponent(`${req.protocol}://${req.get('host')}/api/oauth/callback`)}&state=${state}`;
       res.redirect(302, authUrl);
     } catch (error) {
-      console.error("[OAuth] Login failed", error);
+      logger.error({ err: error }, "OAuth login failed");
       res.status(500).json({ error: "Login failed" });
     }
   });
@@ -32,7 +33,7 @@ export function registerOAuthRoutes(app: Express) {
       const authUrl = `https://accounts.manus.im/oauth/authorize?client_id=${ENV.appId}&response_type=code&redirect_uri=${encodeURIComponent(`${req.protocol}://${req.get('host')}/api/oauth/callback`)}&state=${state}`;
       res.redirect(302, authUrl);
     } catch (error) {
-      console.error("[OAuth] Signup failed", error);
+      logger.error({ err: error }, "OAuth signup failed");
       res.status(500).json({ error: "Signup failed" });
     }
   });
@@ -73,7 +74,7 @@ export function registerOAuthRoutes(app: Express) {
 
       res.redirect(302, "/");
     } catch (error) {
-      console.error("[OAuth] Callback failed", error);
+      logger.error({ err: error, code, state }, "OAuth callback failed");
       res.status(500).json({ error: "OAuth callback failed" });
     }
   });

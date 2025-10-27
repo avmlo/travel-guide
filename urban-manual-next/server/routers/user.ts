@@ -116,14 +116,27 @@ export const userRouter = router({
     }
 
     const pref = prefs[0];
+
+    /**
+     * Safely parses JSON string with error handling
+     * @param jsonString - JSON string to parse
+     * @param fallback - Fallback value if parsing fails
+     * @returns Parsed value or fallback
+     */
+    const safeJsonParse = <T>(jsonString: string | null, fallback: T): T => {
+      if (!jsonString) return fallback;
+      try {
+        return JSON.parse(jsonString) as T;
+      } catch (error) {
+        console.error("[JSON Parse Error]", error);
+        return fallback;
+      }
+    };
+
     return {
-      favoriteCategories: pref.favoriteCategories
-        ? JSON.parse(pref.favoriteCategories)
-        : [],
-      favoriteCities: pref.favoriteCities
-        ? JSON.parse(pref.favoriteCities)
-        : [],
-      interests: pref.interests ? JSON.parse(pref.interests) : [],
+      favoriteCategories: safeJsonParse<string[]>(pref.favoriteCategories, []),
+      favoriteCities: safeJsonParse<string[]>(pref.favoriteCities, []),
+      interests: safeJsonParse<string[]>(pref.interests, []),
     };
   }),
 
@@ -237,12 +250,21 @@ export const userRouter = router({
       let favoriteCities: string[] = [];
 
       if (prefs.length > 0) {
-        favoriteCategories = prefs[0].favoriteCategories
-          ? JSON.parse(prefs[0].favoriteCategories)
-          : [];
-        favoriteCities = prefs[0].favoriteCities
-          ? JSON.parse(prefs[0].favoriteCities)
-          : [];
+        /**
+         * Safely parses JSON string with error handling
+         */
+        const safeJsonParse = <T>(jsonString: string | null, fallback: T): T => {
+          if (!jsonString) return fallback;
+          try {
+            return JSON.parse(jsonString) as T;
+          } catch (error) {
+            console.error("[JSON Parse Error]", error);
+            return fallback;
+          }
+        };
+
+        favoriteCategories = safeJsonParse<string[]>(prefs[0].favoriteCategories, []);
+        favoriteCities = safeJsonParse<string[]>(prefs[0].favoriteCities, []);
       }
 
       // Score destinations based on user preferences

@@ -1,17 +1,52 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { logger } from './_core/logger';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _pool: mysql.Pool | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
-export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+/**
+ * Gets or creates a MySQL connection pool
+ * Connection pooling improves performance by reusing connections
+ */
+function getPool() {
+  if (!_pool && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _pool = mysql.createPool({
+        uri: process.env.DATABASE_URL,
+        connectionLimit: 10,
+        queueLimit: 0,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 0,
+      });
+      logger.info("Database connection pool created");
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      logger.error({ err: error }, "Failed to create database pool");
+      _pool = null;
+    }
+  }
+  return _pool;
+}
+
+/**
+ * Lazily create the drizzle instance with connection pooling
+ * This allows local tooling to run without a DB
+ */
+export async function getDb() {
+  if (!_db) {
+    const pool = getPool();
+    if (!pool) {
+      logger.warn("Database pool not available");
+      return null;
+    }
+
+    try {
+      _db = drizzle(pool) as ReturnType<typeof drizzle>;
+    } catch (error) {
+      logger.warn({ err: error }, "Database connection failed");
       _db = null;
     }
   }
@@ -25,7 +60,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
+    logger.warn({ userId: user.id }, "Cannot upsert user: database not available");
     return;
   }
 
@@ -61,7 +96,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       set: updateSet,
     });
   } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
+    logger.error({ err: error, userId: user.id }, "Failed to upsert user");
     throw error;
   }
 }
@@ -69,7 +104,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 export async function getUser(id: string) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
+    logger.warn({ userId: id }, "Cannot get user: database not available");
     return undefined;
   }
 
