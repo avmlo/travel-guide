@@ -3,8 +3,13 @@ import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Use environment variable or default to production URL
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://theurbanmanual.com';
+  // Determine base URL based on environment
+  // Use VERCEL_URL for preview deployments, otherwise use custom domain
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
+    || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null)
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    || 'https://theurbanmanual.com';
+
   const currentDate = new Date().toISOString();
 
   let destinationData: Destination[] = [];
