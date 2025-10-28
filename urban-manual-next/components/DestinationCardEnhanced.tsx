@@ -30,16 +30,19 @@ export function DestinationCardEnhanced({
   animationDelay = 0,
 }: DestinationCardProps) {
   return (
-    <div
+    <button
+      type="button"
       className={cn(
-        "group cursor-pointer overflow-hidden",
+        "group cursor-pointer overflow-hidden w-full text-left",
         "transition-all duration-300 ease-out",
         "hover:opacity-90",
         "animate-fade-in",
+        "focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:ring-offset-2 rounded-lg",
         className
       )}
       style={{ animationDelay: `${animationDelay}ms` }}
       onClick={onClick}
+      aria-label={`View details for ${destination.name} in ${capitalizeCity(destination.city)}`}
     >
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg mb-3">
@@ -60,20 +63,20 @@ export function DestinationCardEnhanced({
 
         {/* Badges */}
         {destination.crown && (
-          <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 p-1.5 rounded shadow-lg animate-scale-in">
-            <Crown className="h-4 w-4" />
+          <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 p-1.5 rounded shadow-lg animate-scale-in" aria-label="Featured destination">
+            <Crown className="h-4 w-4" aria-hidden="true" />
           </div>
         )}
 
         {isSaved && (
-          <div className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg animate-scale-in">
-            <Heart className="h-3 w-3 fill-current" />
+          <div className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg animate-scale-in" aria-label="Saved to favorites">
+            <Heart className="h-3 w-3 fill-current" aria-hidden="true" />
           </div>
         )}
 
         {isVisited && (
-          <div className="absolute top-2 right-2 bg-green-500 text-white p-1.5 rounded-full shadow-lg animate-scale-in">
-            <Check className="h-3 w-3" />
+          <div className="absolute top-2 right-2 bg-green-500 text-white p-1.5 rounded-full shadow-lg animate-scale-in" aria-label="Visited">
+            <Check className="h-3 w-3" aria-hidden="true" />
           </div>
         )}
 
@@ -109,6 +112,6 @@ export function DestinationCardEnhanced({
           )}
         </div>
       </div>
-    </div>
+    </button>
   );
 }

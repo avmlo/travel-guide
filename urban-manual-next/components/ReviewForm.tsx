@@ -151,7 +151,8 @@ export function ReviewForm({
         </h3>
         <button
           onClick={onCancel}
-          className="text-gray-400 hover:text-gray-600"
+          className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 rounded"
+          aria-label="Close review form"
         >
           <X className="h-5 w-5" />
         </button>
@@ -163,7 +164,7 @@ export function ReviewForm({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Rating *
           </label>
-          <div className="flex gap-1">
+          <div className="flex gap-1" role="group" aria-label="Rating">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
@@ -171,7 +172,9 @@ export function ReviewForm({
                 onClick={() => setRating(star)}
                 onMouseEnter={() => setHoverRating(star)}
                 onMouseLeave={() => setHoverRating(0)}
-                className="focus:outline-none"
+                className="focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 rounded"
+                aria-label={`Rate ${star} out of 5 stars`}
+                aria-pressed={star <= rating}
               >
                 <Star
                   className={`h-8 w-8 transition-colors ${
@@ -183,14 +186,20 @@ export function ReviewForm({
               </button>
             ))}
           </div>
+          {rating > 0 && (
+            <p className="sr-only" aria-live="polite">
+              Current rating: {rating} out of 5 stars
+            </p>
+          )}
         </div>
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="review-title" className="block text-sm font-medium text-gray-700 mb-2">
             Title (optional)
           </label>
           <input
+            id="review-title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -202,10 +211,11 @@ export function ReviewForm({
 
         {/* Content */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="review-content" className="block text-sm font-medium text-gray-700 mb-2">
             Your Review *
           </label>
           <textarea
+            id="review-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Share your experience at this place..."
@@ -217,10 +227,11 @@ export function ReviewForm({
 
         {/* Visit Date */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="visit-date" className="block text-sm font-medium text-gray-700 mb-2">
             Visit Date (optional)
           </label>
           <input
+            id="visit-date"
             type="date"
             value={visitDate}
             onChange={(e) => setVisitDate(e.target.value)}
@@ -247,7 +258,8 @@ export function ReviewForm({
                   <button
                     type="button"
                     onClick={() => removePhoto(index)}
-                    className="absolute top-1 right-1 bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label={`Remove photo ${index + 1}`}
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -257,21 +269,26 @@ export function ReviewForm({
           )}
 
           {photos.length < 5 && (
-            <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400 cursor-pointer transition-colors">
-              <Upload className="h-5 w-5 text-gray-400" />
+            <label htmlFor="photo-upload" className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400 cursor-pointer transition-colors focus-within:border-black focus-within:ring-2 focus-within:ring-black">
+              <Upload className="h-5 w-5 text-gray-400" aria-hidden="true" />
               <span className="text-sm text-gray-600">
                 {uploading ? "Uploading..." : "Upload Photos"}
               </span>
               <input
+                id="photo-upload"
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={handlePhotoUpload}
                 disabled={uploading}
-                className="hidden"
+                className="sr-only"
+                aria-describedby="photo-upload-description"
               />
             </label>
           )}
+          <p id="photo-upload-description" className="sr-only">
+            Upload up to {5 - photos.length} more photos. Accepted formats: JPG, PNG, GIF.
+          </p>
         </div>
 
         {/* Submit Buttons */}

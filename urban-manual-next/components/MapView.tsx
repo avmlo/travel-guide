@@ -127,11 +127,23 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
   }
 
   return (
-    <div 
-      ref={mapRef} 
-      className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm"
-      style={{ minHeight: "calc(100vh - 8rem)" }}
-    />
+    <>
+      <div
+        id="map-instructions"
+        className="sr-only"
+        aria-live="polite"
+      >
+        Interactive map showing {destinationsWithCoords.length} destination markers. Click on markers to view destination details.
+      </div>
+      <div
+        ref={mapRef}
+        className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm"
+        style={{ minHeight: "calc(100vh - 8rem)" }}
+        role="application"
+        aria-label="Interactive map of destinations"
+        aria-describedby="map-instructions"
+      />
+    </>
   );
 }
 

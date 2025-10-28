@@ -253,10 +253,17 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+      {/* Skip Navigation Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-black focus:text-white dark:focus:bg-white dark:focus:text-black focus:rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black dark:focus:ring-white"
+      >
+        Skip to main content
+      </a>
       <Header />
 
       {/* Main Content */}
-      <main className="px-6 md:px-10 py-12 dark:text-white">
+      <main id="main-content" className="px-6 md:px-10 py-12 dark:text-white" role="main">
         <div className="max-w-[1920px] mx-auto">
           {/* Search Bar with smooth focus */}
           <div className="mb-8 animate-fade-in">
@@ -280,13 +287,14 @@ export default function Home() {
                 <button
                   key={category.id}
                   onClick={() => handleCategoryChange(category.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                     selectedCategory === category.id
-                      ? "bg-black dark:bg-white text-white dark:text-black scale-105"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:scale-102"
+                      ? "bg-black dark:bg-white text-white dark:text-black scale-105 focus:ring-black dark:focus:ring-white"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:scale-102 focus:ring-gray-400"
                   }`}
+                  aria-pressed={selectedCategory === category.id}
                 >
-                  <span>{category.icon}</span>
+                  <span aria-hidden="true">{category.icon}</span>
                   <span>{category.label}</span>
                 </button>
               ))}
@@ -301,11 +309,12 @@ export default function Home() {
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
               <button
                 onClick={() => setSelectedCity("")}
-                className={`transition-all duration-200 ${
+                className={`transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:ring-offset-2 rounded ${
                   !selectedCity
                     ? "font-medium text-black dark:text-white scale-105"
-                    : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
+                    : "font-medium text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300"
                 }`}
+                aria-pressed={!selectedCity}
               >
                 All
               </button>
@@ -313,11 +322,12 @@ export default function Home() {
                 <button
                   key={city}
                   onClick={() => setSelectedCity(city === selectedCity ? "" : city)}
-                  className={`transition-all duration-200 ${
+                  className={`transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:ring-offset-2 rounded ${
                     selectedCity === city
                       ? "font-medium text-black dark:text-white scale-105"
-                      : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
+                      : "font-medium text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300"
                   }`}
+                  aria-pressed={selectedCity === city}
                 >
                   {capitalizeCity(city)}
                 </button>

@@ -66,8 +66,10 @@ export function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 hover:opacity-60 transition-opacity"
+            className="md:hidden p-2 hover:opacity-60 transition-opacity focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white rounded"
             aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu"
           >
             {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -83,7 +85,12 @@ export function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 animate-in slide-in-from-top-4 duration-200">
+        <nav
+          id="mobile-menu"
+          className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 animate-in slide-in-from-top-4 duration-200"
+          role="navigation"
+          aria-label="Mobile navigation"
+        >
           <div className="px-6 py-4 space-y-3">
             <button
               onClick={() => navigate("/")}
@@ -111,7 +118,7 @@ export function Header() {
               Editorial
             </button>
           </div>
-        </div>
+        </nav>
       )}
     </header>
   );

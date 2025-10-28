@@ -19,9 +19,11 @@ interface DestinationCardProps {
 
 export function DestinationCard({ destination, onClick }: DestinationCardProps) {
   return (
-    <div 
-      className="group cursor-pointer destination-card overflow-hidden transition-all duration-300 hover:opacity-80 animate-in fade-in slide-in-from-bottom-4"
+    <button
+      type="button"
+      className="group cursor-pointer destination-card overflow-hidden transition-all duration-300 hover:opacity-80 animate-in fade-in slide-in-from-bottom-4 w-full text-left focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
       onClick={onClick}
+      aria-label={`View details for ${destination.name} in ${destination.city}`}
     >
       <div className="relative aspect-square overflow-hidden bg-gray-100">
         {destination.mainImage ? (
@@ -38,8 +40,8 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
         )}
         
         {destination.crown && (
-          <div className="absolute top-3 left-3 bg-yellow-400 text-yellow-900 p-2">
-            <Crown className="h-4 w-4" />
+          <div className="absolute top-3 left-3 bg-yellow-400 text-yellow-900 p-2" aria-label="Featured destination">
+            <Crown className="h-4 w-4" aria-hidden="true" />
           </div>
         )}
         {destination.michelinStars > 0 && (
@@ -63,7 +65,7 @@ export function DestinationCard({ destination, onClick }: DestinationCardProps) 
           {capitalizeCity(destination.city)}
         </p>
       </div>
-    </div>
+    </button>
   );
 }
 

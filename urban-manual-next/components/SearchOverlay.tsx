@@ -23,6 +23,20 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
   const [filteredResults, setFilteredResults] = useState<Destination[]>([]);
   const [introText, setIntroText] = useState("");
 
+  // Handle Escape key to close overlay
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
   useEffect(() => {
     if (query.trim()) {
       // Filter destinations based on query
@@ -60,7 +74,12 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-white dark:bg-gray-950 z-50 overflow-y-auto transition-colors duration-300">
+    <div
+      className="fixed inset-0 bg-white dark:bg-gray-950 z-50 overflow-y-auto transition-colors duration-300"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search destinations"
+    >
       {/* Header */}
       <div className="sticky top-0 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center gap-4">
@@ -80,7 +99,8 @@ export function SearchOverlay({ isOpen, onClose, destinations, onSelectDestinati
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+            aria-label="Close search"
           >
             <X className="h-5 w-5 dark:text-white" />
           </button>

@@ -72,13 +72,14 @@ export function ProgressiveImage({
 
       {/* Error state */}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800" role="img" aria-label="Image failed to load">
           <div className="text-gray-400 dark:text-gray-600 text-center">
             <svg
               className="h-8 w-8 mx-auto mb-2"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
