@@ -1,119 +1,56 @@
 import { MetadataRoute } from 'next';
+
 import { supabase } from '@/lib/supabase';
-import { Destination } from '@/types/destination';
+
+const BASE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://theurbanmanual.com').replace(/\/$/, '');
+
+const STATIC_ROUTES: Array<{
+  path: string;
+  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'];
+  priority: MetadataRoute.Sitemap[number]['priority'];
+}> = [
+  { path: '/', changeFrequency: 'daily', priority: 1 },
+  { path: '/cities', changeFrequency: 'weekly', priority: 0.9 },
+  { path: '/explore', changeFrequency: 'weekly', priority: 0.8 },
+  { path: '/account', changeFrequency: 'monthly', priority: 0.5 },
+  { path: '/saved', changeFrequency: 'weekly', priority: 0.6 },
+  { path: '/trips', changeFrequency: 'weekly', priority: 0.6 },
+];
+
+const now = new Date();
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Determine base URL based on environment
-  // Use VERCEL_URL for preview deployments, otherwise use custom domain
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
-    || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null)
-    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-    || 'https://theurbanmanual.com';
-
-  const currentDate = new Date().toISOString();
-
-  let destinationData: Destination[] = [];
-  let cities: string[] = [];
-
-  try {
-    // Fetch all destinations and cities
-    const { data: destinations, error } = await supabase
-      .from('destinations')
-      .select('slug, city, category')
-      .order('slug');
-
-    if (error) {
-      console.warn('Sitemap: Could not fetch destinations from Supabase:', error.message);
-    } else {
-      destinationData = (destinations || []) as Destination[];
-      // Get unique cities
-      cities = Array.from(new Set(destinationData.map(d => d.city)));
-    }
-  } catch (error) {
-    console.warn('Sitemap: Could not fetch destinations from Supabase:', error);
-    // This is fine during build without env vars - generate basic sitemap
-  }
-
-  // Main pages - highest priority
-  const mainPages: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/explore`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.95,
-    },
-    {
-      url: `${baseUrl}/cities`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-  ];
-
-  // Feature pages
-  const featurePages: MetadataRoute.Sitemap = [
-    {
-      url: `${baseUrl}/lists`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/feed`,
-      lastModified: currentDate,
-      changeFrequency: 'hourly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/trips`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.7,
-    },
-  ];
-
-  // City pages - important for discovery
-  const cityPages: MetadataRoute.Sitemap = cities.map(city => ({
-    url: `${baseUrl}/city/${encodeURIComponent(city)}`,
-    lastModified: currentDate,
-    changeFrequency: 'weekly',
-    priority: 0.85,
+  const staticPages: MetadataRoute.Sitemap = STATIC_ROUTES.map(({ path, changeFrequency, priority }) => ({
+    url: `${BASE_URL}${path === '/' ? '' : path}`,
+    lastModified: now,
+    changeFrequency,
+    priority,
   }));
 
-  // Destination pages - core content with high priority
-  const destinationPages: MetadataRoute.Sitemap = destinationData.map(dest => {
-    // Higher priority for featured destinations (restaurants, cafes, bars)
-    const isPrimaryCategory = ['restaurant', 'cafe', 'bar', 'hotel'].includes(dest.category?.toLowerCase() || '');
+  const [destinationsResult, citiesResult] = await Promise.all([
+    supabase.from('destinations').select('slug, updated_at').not('slug', 'is', null),
+    supabase.from('destinations').select('city').not('city', 'is', null),
+  ]);
 
-    return {
-      url: `${baseUrl}/destination/${dest.slug}`,
-      lastModified: currentDate,
+  const destinationPages: MetadataRoute.Sitemap = (destinationsResult.data ?? [])
+    .filter((destination): destination is { slug: string; updated_at: string | null } => Boolean(destination.slug))
+    .map((destination) => ({
+      url: `${BASE_URL}/destination/${encodeURIComponent(destination.slug)}`,
+      lastModified: destination.updated_at ? new Date(destination.updated_at) : now,
       changeFrequency: 'monthly',
-      priority: isPrimaryCategory ? 0.75 : 0.65,
-    };
-  });
+      priority: 0.7,
+    }));
 
-  // Legal/static pages
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: currentDate,
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-  ];
+  const cityPages: MetadataRoute.Sitemap = Array.from(
+    new Set((citiesResult.data ?? []).map((cityRecord) => cityRecord.city).filter((city): city is string => Boolean(city)))
+  )
+    .sort()
+    .map((city) => ({
+      url: `${BASE_URL}/city/${encodeURIComponent(city)}`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
 
-  return [
-    ...mainPages,
-    ...featurePages,
-    ...cityPages,
-    ...destinationPages,
-    ...staticPages,
-  ];
+  return [...staticPages, ...cityPages, ...destinationPages];
 }
