@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd urban-manual-next && npm install && npm run build",
+  "outputDirectory": "urban-manual-next/.next",
+  "installCommand": "cd urban-manual-next && npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"]
+}
