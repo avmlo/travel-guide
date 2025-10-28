@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { DarkModeToggle } from "./DarkModeToggle";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
 
 export function Header() {
   const router = useRouter();
@@ -79,6 +79,38 @@ export function Header() {
             <span className="hidden sm:inline text-xs font-bold uppercase">New York</span>
             <span className="hidden sm:inline text-xs font-bold">{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
             <DarkModeToggle />
+
+            {/* Desktop Auth */}
+            <div className="hidden md:flex items-center gap-4">
+              {user ? (
+                <>
+                  <button
+                    onClick={() => navigate('/account')}
+                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity flex items-center gap-1"
+                    aria-label="Account"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Account</span>
+                  </button>
+                  <button
+                    onClick={handleSignOut}
+                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity flex items-center gap-1"
+                    aria-label="Sign Out"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigate('/signin')}
+                  className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
+                  aria-label="Sign In"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -117,6 +149,38 @@ export function Header() {
             >
               Editorial
             </button>
+
+            {/* Mobile Auth */}
+            <div className="border-t border-gray-200 dark:border-gray-800 pt-3 mt-3">
+              {user ? (
+                <>
+                  <button
+                    onClick={() => navigate('/account')}
+                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2 flex items-center gap-2"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Account</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2 flex items-center gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigate('/signin')}
+                  className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
           </div>
         </nav>
       )}
