@@ -1,8 +1,11 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { router } from '@/lib/trpc/server';
+import { placesRouter } from '@/server/routers/placesRouter';
 
-// Simple app router - we'll add routers progressively
-const appRouter = router({});
+// App router with places enrichment
+const appRouter = router({
+  places: placesRouter,
+});
 
 export type AppRouter = typeof appRouter;
 

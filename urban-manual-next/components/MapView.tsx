@@ -8,90 +8,133 @@ interface MapViewProps {
 
 declare global {
   interface Window {
-    mapkit: any;
+    google: any;
   }
 }
+
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export function MapView({ destinations, onDestinationClick }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const googleMapRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
 
   const destinationsWithCoords = destinations.filter(
     (d) => d.lat !== 0 && d.long !== 0
   );
 
   useEffect(() => {
-    // Load MapKit JS script
+    if (!GOOGLE_MAPS_API_KEY) {
+      setError("Google Maps API key not configured. Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your environment variables.");
+      return;
+    }
+
+    // Load Google Maps script
     const script = document.createElement("script");
-    script.src = "https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.core.js";
-    script.crossOrigin = "anonymous";
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=marker`;
     script.async = true;
-    
+    script.defer = true;
+
     script.onload = () => {
-      if (window.mapkit) {
-        // Initialize MapKit with a token (using anonymous mode for demo)
-        // Note: For production, you need to get a MapKit JS token from Apple Developer
-        try {
-          window.mapkit.init({
-            authorizationCallback: (done: any) => {
-              // For demo purposes, we'll use a public token approach
-              // In production, you should generate a JWT token from your server
-              done(""); // Empty token for now - will show error but demonstrate structure
-            }
-          });
-          setMapLoaded(true);
-        } catch (err) {
-          console.error("MapKit initialization error:", err);
-          setError("MapKit requires an Apple Developer token. Using fallback view.");
-        }
-      }
+      setMapLoaded(true);
     };
 
     script.onerror = () => {
-      setError("Failed to load Apple Maps. Using fallback view.");
+      setError("Failed to load Google Maps.");
     };
 
-    document.head.appendChild(script);
+    if (!document.querySelector(`script[src^="https://maps.googleapis.com/maps/api/js"]`)) {
+      document.head.appendChild(script);
+    } else {
+      setMapLoaded(true);
+    }
 
     return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
+      // Cleanup markers
+      markersRef.current.forEach(marker => marker.setMap?.(null));
+      markersRef.current = [];
     };
   }, []);
 
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !window.mapkit) return;
+    if (!mapLoaded || !mapRef.current || !window.google) return;
 
     try {
-      const map = new window.mapkit.Map(mapRef.current, {
-        center: new window.mapkit.Coordinate(25, 0),
+      // Initialize Google Map
+      const map = new window.google.maps.Map(mapRef.current, {
+        center: { lat: 25, lng: 0 },
         zoom: 2,
-        showsMapTypeControl: false,
-        showsZoomControl: true,
-        showsUserLocationControl: false,
+        mapTypeControl: false,
+        fullscreenControl: true,
+        streetViewControl: false,
+        zoomControl: true,
+        styles: [
+          {
+            featureType: "poi",
+            elementType: "labels",
+            stylers: [{ visibility: "off" }]
+          }
+        ]
       });
 
-      // Add markers for destinations
-      const annotations = destinationsWithCoords.map((destination) => {
-        const annotation = new window.mapkit.MarkerAnnotation(
-          new window.mapkit.Coordinate(destination.lat, destination.long),
-          {
-            title: destination.name,
-            subtitle: destination.city,
-            color: "#007AFF",
-          }
-        );
+      googleMapRef.current = map;
 
-        annotation.addEventListener("select", () => {
+      // Clear existing markers
+      markersRef.current.forEach(marker => marker.setMap(null));
+      markersRef.current = [];
+
+      // Add markers for destinations
+      destinationsWithCoords.forEach((destination) => {
+        const marker = new window.google.maps.Marker({
+          position: { lat: destination.lat, lng: destination.long },
+          map: map,
+          title: destination.name,
+          animation: window.google.maps.Animation.DROP,
+        });
+
+        // Add info window
+        const infoWindow = new window.google.maps.InfoWindow({
+          content: `
+            <div style="padding: 8px;">
+              <h3 style="margin: 0 0 4px 0; font-weight: 600; font-size: 14px;">${destination.name}</h3>
+              <p style="margin: 0; color: #666; font-size: 12px;">${destination.city}</p>
+            </div>
+          `,
+        });
+
+        marker.addListener('click', () => {
+          // Close other info windows
+          markersRef.current.forEach(m => {
+            if (m.infoWindow) {
+              m.infoWindow.close();
+            }
+          });
+
+          infoWindow.open(map, marker);
           onDestinationClick(destination.slug);
         });
 
-        return annotation;
+        // Store info window reference
+        (marker as any).infoWindow = infoWindow;
+        markersRef.current.push(marker);
       });
 
-      map.showItems(annotations);
+      // Fit bounds to show all markers
+      if (destinationsWithCoords.length > 0) {
+        const bounds = new window.google.maps.LatLngBounds();
+        destinationsWithCoords.forEach((destination) => {
+          bounds.extend({ lat: destination.lat, lng: destination.long });
+        });
+        map.fitBounds(bounds);
+
+        // Adjust zoom if only one marker
+        if (destinationsWithCoords.length === 1) {
+          map.setZoom(15);
+        }
+      }
+
     } catch (err) {
       console.error("Error creating map:", err);
       setError("Unable to display map. Please check your connection.");
@@ -100,9 +143,9 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
 
   if (error) {
     return (
-      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex flex-col items-center justify-center p-8">
-        <p className="text-gray-600 mb-4 text-center">{error}</p>
-        <p className="text-sm text-gray-400 text-center max-w-md">
+      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-8">
+        <p className="text-gray-600 dark:text-gray-400 mb-4 text-center">{error}</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 text-center max-w-md">
           Showing {destinationsWithCoords.length} destinations with coordinates.
           Click on any destination card to view details.
         </p>
@@ -112,16 +155,16 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
 
   if (!mapLoaded) {
     return (
-      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400">Loading Apple Maps...</p>
+      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <p className="text-gray-400">Loading Google Maps...</p>
       </div>
     );
   }
 
   if (destinationsWithCoords.length === 0) {
     return (
-      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400">No destinations with coordinates to display on map.</p>
+      <div className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <p className="text-gray-400 dark:text-gray-500">No destinations with coordinates to display on map.</p>
       </div>
     );
   }
@@ -137,7 +180,7 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
       </div>
       <div
         ref={mapRef}
-        className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm"
+        className="w-full h-[calc(100vh-8rem)] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm"
         style={{ minHeight: "calc(100vh - 8rem)" }}
         role="application"
         aria-label="Interactive map of destinations"
@@ -146,4 +189,3 @@ export function MapView({ destinations, onDestinationClick }: MapViewProps) {
     </>
   );
 }
-
