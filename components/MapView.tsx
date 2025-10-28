@@ -3,6 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Destination } from '@/types/destination';
 
+// Declare google maps types for window
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+
 interface MapViewProps {
   destinations: Destination[];
   onMarkerClick?: (destination: Destination) => void;

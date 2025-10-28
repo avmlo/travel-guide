@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { NavigationBar } from "@/components/NavigationBar";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
@@ -36,11 +35,10 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <AuthProvider>
-          <Header />
+          <NavigationBar />
           <main className="min-h-screen page-transition">
             {children}
           </main>
-          <Footer />
         </AuthProvider>
         <Analytics />
         <SpeedInsights />
