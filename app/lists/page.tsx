@@ -18,6 +18,15 @@ interface List {
   updated_at: string;
   item_count?: number;
   like_count?: number;
+  cities?: string[];
+}
+
+// Helper function to capitalize city names
+function capitalizeCity(city: string): string {
+  return city
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 export default function ListsPage() {
@@ -56,7 +65,7 @@ export default function ListsPage() {
     if (error) {
       console.error('Error fetching lists:', error);
     } else if (data) {
-      // Fetch counts for each list
+      // Fetch counts and cities for each list
       const listsWithCounts = await Promise.all(
         data.map(async (list) => {
           const { count: itemCount } = await supabase
@@ -69,10 +78,30 @@ export default function ListsPage() {
             .select('*', { count: 'exact', head: true })
             .eq('list_id', list.id);
 
+          // Fetch destination cities for this list
+          let cities: string[] = [];
+          const { data: listItems } = await supabase
+            .from('list_items')
+            .select('destination_slug')
+            .eq('list_id', list.id);
+
+          if (listItems && listItems.length > 0) {
+            const slugs = listItems.map(item => item.destination_slug);
+            const { data: destinations } = await supabase
+              .from('destinations')
+              .select('city')
+              .in('slug', slugs);
+
+            if (destinations) {
+              cities = Array.from(new Set(destinations.map(d => d.city)));
+            }
+          }
+
           return {
             ...list,
             item_count: itemCount || 0,
             like_count: likeCount || 0,
+            cities,
           };
         })
       );
@@ -105,7 +134,7 @@ export default function ListsPage() {
       console.error('Error creating list:', error);
       alert('Failed to create list');
     } else if (data) {
-      setLists([{ ...data, item_count: 0, like_count: 0 }, ...lists]);
+      setLists([{ ...data, item_count: 0, like_count: 0, cities: [] }, ...lists]);
       setShowCreateModal(false);
       setNewListName("");
       setNewListDescription("");
@@ -209,15 +238,24 @@ export default function ListsPage() {
                   </button>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{list.item_count} {list.item_count === 1 ? 'place' : 'places'}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>{list.item_count} {list.item_count === 1 ? 'place' : 'places'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {list.is_public ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                      <span>{list.is_public ? 'Public' : 'Private'}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {list.is_public ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                    <span>{list.is_public ? 'Public' : 'Private'}</span>
-                  </div>
+
+                  {list.cities && list.cities.length > 0 && (
+                    <div className="text-xs text-gray-400 dark:text-gray-500">
+                      {list.cities.slice(0, 3).map(city => capitalizeCity(city)).join(', ')}
+                      {list.cities.length > 3 && ` +${list.cities.length - 3} more`}
+                    </div>
+                  )}
                 </div>
 
                 {(list.like_count || 0) > 0 && (
