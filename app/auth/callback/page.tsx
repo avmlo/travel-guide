@@ -21,11 +21,33 @@ function AuthCallbackContent() {
         return;
       }
 
-      // TODO: Implement Stytch authentication once SDK is properly configured
-      setError('Stytch authentication pending configuration');
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 3000);
+      try {
+        // Get OAuth token from URL
+        const token = searchParams.get('token');
+
+        if (!token) {
+          setError('No authentication token found in URL');
+          setTimeout(() => {
+            router.push('/auth/login');
+          }, 2000);
+          return;
+        }
+
+        // Authenticate with OAuth token
+        await stytch.oauth.authenticate(token, {
+          session_duration_minutes: 43200, // 30 days
+        });
+
+        // Get redirect URL and navigate
+        const redirect = searchParams.get('redirect') || '/';
+        router.push(redirect);
+      } catch (err: any) {
+        console.error('OAuth authentication error:', err);
+        setError(err.message || 'Authentication failed. Please try again.');
+        setTimeout(() => {
+          router.push('/auth/login');
+        }, 3000);
+      }
     };
 
     authenticate();

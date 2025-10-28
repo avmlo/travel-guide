@@ -35,8 +35,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Check if user has an active session
-        // For now, we'll set user to null until Stytch is fully configured
-        setUser(null);
+        const session = stytch.session.getSync();
+        const stytchUser = stytch.user.getSync();
+
+        if (session && stytchUser) {
+          // User is logged in, extract user info
+          setUser({
+            id: stytchUser.user_id,
+            email: stytchUser.emails?.[0]?.email,
+            name: stytchUser.name?.first_name
+              ? `${stytchUser.name.first_name} ${stytchUser.name.last_name || ''}`.trim()
+              : undefined,
+          });
+        } else {
+          setUser(null);
+        }
       } catch (error) {
         console.error('Error checking Stytch session:', error);
         setUser(null);
@@ -46,14 +59,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     checkSession();
+
+    // Listen for session changes
+    const stytch = getStytchClient();
+    if (stytch) {
+      const unsubscribe = stytch.session.onChange((session) => {
+        if (session) {
+          const stytchUser = stytch.user.getSync();
+          if (stytchUser) {
+            setUser({
+              id: stytchUser.user_id,
+              email: stytchUser.emails?.[0]?.email,
+              name: stytchUser.name?.first_name
+                ? `${stytchUser.name.first_name} ${stytchUser.name.last_name || ''}`.trim()
+                : undefined,
+            });
+          } else {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
   }, []);
 
   const signOut = async () => {
     try {
       const stytch = getStytchClient();
       if (stytch) {
-        // Attempt to revoke session
-        // This will be implemented once Stytch is fully configured
+        // Revoke the session
+        await stytch.session.revoke();
       }
       setUser(null);
     } catch (error) {

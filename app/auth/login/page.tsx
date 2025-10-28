@@ -21,19 +21,6 @@ function LoginForm() {
     }
   }, [user, authLoading, router, searchParams]);
 
-  // Handle OAuth redirect
-  useEffect(() => {
-    const token = searchParams.get('token');
-    if (token) {
-      handleOAuthCallback(token);
-    }
-  }, [searchParams]);
-
-  const handleOAuthCallback = async (token: string) => {
-    // TODO: Implement OAuth callback once Stytch is configured
-    setError('Stytch authentication is not fully configured yet.');
-  };
-
   const handlePasskeySignIn = async () => {
     const stytch = getStytchClient();
     if (!stytch) {
@@ -45,11 +32,24 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      // TODO: Implement passkey authentication once Stytch SDK is properly initialized
-      // stytch.webauthn.authenticate({ domain: window.location.hostname })
-      setError('Passkey authentication will be available once Stytch is configured');
+      // Authenticate with passkey
+      await stytch.webauthn.authenticate({
+        domain: window.location.hostname,
+        session_duration_minutes: 43200, // 30 days
+      });
+
+      // Redirect after successful authentication
+      const redirect = searchParams.get('redirect') || searchParams.get('returnTo') || '/';
+      router.push(redirect);
     } catch (err: any) {
-      setError(err.message || 'Passkey authentication failed');
+      console.error('Passkey authentication error:', err);
+      if (err.message?.includes('not supported')) {
+        setError('Passkeys are not supported on this device or browser. Please try Apple Sign In instead.');
+      } else if (err.message?.includes('not found')) {
+        setError('No passkey found for this device. You may need to register a passkey first or try Apple Sign In.');
+      } else {
+        setError(err.message || 'Passkey authentication failed. Please try again or use Apple Sign In.');
+      }
     } finally {
       setLoading(false);
     }
@@ -64,15 +64,16 @@ function LoginForm() {
 
     try {
       const redirect = searchParams.get('redirect') || searchParams.get('returnTo') || '/';
+      const callbackUrl = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`;
 
-      // TODO: Implement Apple OAuth once Stytch SDK is properly initialized
-      // stytch.oauth.apple.start({
-      //   login_redirect_url: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
-      //   signup_redirect_url: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
-      // });
-      setError('Apple Sign In will be available once Stytch is configured');
+      // Start Apple OAuth flow - this will redirect the browser
+      stytch.oauth.apple.start({
+        login_redirect_url: callbackUrl,
+        signup_redirect_url: callbackUrl,
+      });
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Apple');
+      console.error('Apple Sign In error:', err);
+      setError(err.message || 'Failed to sign in with Apple. Please try again.');
     }
   };
 
