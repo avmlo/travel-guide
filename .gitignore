@@ -109,3 +109,16 @@ temp/
 # Environment variables
 .env
 .env.local
+
+# Old/deprecated directories
+client/
+urban-manual-next/
+*.old
+
+# Payload CMS
+media/
+payload-types.ts
+generated-schema.graphql
+
+# Vercel
+.vercel
