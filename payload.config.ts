@@ -1,7 +1,6 @@
-import { buildConfig } from 'payload/config'
+import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
-import { slateEditor } from '@payloadcms/richtext-slate'
-import { webpackBundler } from '@payloadcms/bundler-webpack'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 
 // Collections
@@ -15,17 +14,7 @@ import { Lists } from './collections/Lists'
 import { Media } from './collections/Media'
 
 export default buildConfig({
-  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
-  admin: {
-    bundler: webpackBundler(),
-    user: 'users',
-    meta: {
-      titleSuffix: '- Urban Manual',
-      favicon: '/favicon.ico',
-      ogImage: '/og-image.jpg',
-    },
-  },
-  editor: slateEditor({}),
+  secret: process.env.PAYLOAD_SECRET || 'your-secret-key-here',
   collections: [
     Users,
     Destinations,
@@ -38,19 +27,7 @@ export default buildConfig({
   ],
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL,
+      connectionString: process.env.DATABASE_URL || '',
     },
   }),
-  typescript: {
-    outputFile: path.resolve(__dirname, 'payload-types.ts'),
-  },
-  graphQL: {
-    schemaOutputFile: path.resolve(__dirname, 'generated-schema.graphql'),
-  },
-  cors: [
-    process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
-  ].filter(Boolean),
-  csrf: [
-    process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
-  ].filter(Boolean),
 })
