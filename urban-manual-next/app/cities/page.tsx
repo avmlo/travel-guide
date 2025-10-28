@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
 import { SkeletonGrid } from "@/components/SkeletonCard";
+import { FollowCityButton } from "@/components/FollowCityButton";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -121,19 +122,26 @@ export default function Cities() {
           {/* Cities Grid with staggered animations */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6">
             {cities.map((cityData, index) => (
-              <button
+              <div
                 key={cityData.city}
-                onClick={() => router.push(`/city/${cityData.city}`)}
-                className="border border-gray-200 dark:border-gray-700 p-6 hover:border-black dark:hover:border-white hover:shadow-lg transition-all duration-200 text-left group bg-white dark:bg-gray-900 animate-scale-in"
+                className="border border-gray-200 dark:border-gray-700 hover:border-black dark:hover:border-white hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-900 animate-scale-in overflow-hidden"
                 style={{ animationDelay: `${Math.min(index * 20, 400)}ms` }}
               >
-                <h3 className="text-base font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity text-black dark:text-white">
-                  {capitalizeCity(cityData.city)}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {cityData.count} {cityData.count === 1 ? 'place' : 'places'}
-                </p>
-              </button>
+                <button
+                  onClick={() => router.push(`/city/${cityData.city}`)}
+                  className="w-full p-6 text-left group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black dark:focus:ring-white"
+                >
+                  <h3 className="text-base font-bold uppercase mb-2 group-hover:opacity-60 transition-opacity text-black dark:text-white">
+                    {capitalizeCity(cityData.city)}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {cityData.count} {cityData.count === 1 ? 'place' : 'places'}
+                  </p>
+                </button>
+                <div className="px-6 pb-4">
+                  <FollowCityButton city={cityData.city} variant="compact" />
+                </div>
+              </div>
             ))}
           </div>
         </div>
