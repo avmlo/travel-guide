@@ -1,4 +1,5 @@
 import { CollectionConfig } from 'payload'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
 
 export const Destinations: CollectionConfig = {
   slug: 'destinations',
@@ -68,6 +69,7 @@ export const Destinations: CollectionConfig = {
       type: 'richText',
       label: 'Description',
       required: true,
+      editor: lexicalEditor({}),
     },
     {
       name: 'subline',

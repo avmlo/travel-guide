@@ -15,6 +15,12 @@ import { Media } from './collections/Media'
 
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || 'your-secret-key-here',
+  admin: {
+    user: 'users',
+    importMap: {
+      baseDir: __dirname,
+    },
+  },
   collections: [
     Users,
     Destinations,
@@ -30,4 +36,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || '',
     },
   }),
+  typescript: {
+    outputFile: path.resolve(__dirname, 'payload-types.ts'),
+  },
 })
