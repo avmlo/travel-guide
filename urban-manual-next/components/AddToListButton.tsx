@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { Plus, Check, List } from "lucide-react";
 import { toast } from "sonner";
+import type { User } from "@supabase/supabase-js";
 
 interface List {
   id: string;
@@ -21,7 +22,7 @@ export function AddToListButton({
   variant = 'button',
   className = '' 
 }: AddToListButtonProps) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [lists, setLists] = useState<List[]>([]);
   const [addedToLists, setAddedToLists] = useState<Set<string>>(new Set());
   const [showModal, setShowModal] = useState(false);
@@ -35,14 +36,10 @@ export function AddToListButton({
     checkAuth();
   }, []);
 
-  useEffect(() => {
-    if (showModal && user) {
-      fetchLists();
+  const fetchLists = useCallback(async () => {
+    if (!showModal || !user) {
+      return;
     }
-  }, [showModal, user]);
-
-  async function fetchLists() {
-    if (!user) return;
 
     setLoading(true);
 
@@ -85,7 +82,11 @@ export function AddToListButton({
 
     setLists(listsWithCounts);
     setLoading(false);
-  }
+  }, [destinationSlug, showModal, user]);
+
+  useEffect(() => {
+    void fetchLists();
+  }, [fetchLists]);
 
   async function handleToggleList(listId: string) {
     if (!user) return;
@@ -216,7 +217,7 @@ function AddToListModal({
             <div className="text-center py-8 text-gray-400">Loading lists...</div>
           ) : lists.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">You don't have any lists yet</p>
+              <p className="text-gray-600 mb-4">You don’t have any lists yet</p>
               <button
                 onClick={() => {
                   onClose();

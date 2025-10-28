@@ -8,7 +8,7 @@ export function EnhancedFooter() {
         <div className="mb-16">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
             <div>
-              <p className="text-sm text-gray-400 mb-2">Let's explore</p>
+              <p className="text-sm text-gray-400 mb-2">Let’s explore</p>
             </div>
             <div>
               <h2 className="text-4xl md:text-5xl font-light mb-6 leading-tight">
@@ -114,9 +114,9 @@ export function EnhancedFooter() {
           {/* Tagline */}
           <div className="mt-12">
             <p className="text-sm text-gray-400 leading-relaxed max-w-md">
-              Discover the world's best destinations
+              Discover the world’s best destinations
               <br />
-              Curated experiences from travelers who've been there.
+              Curated experiences from travelers who’ve been there.
             </p>
           </div>
         </div>

@@ -197,7 +197,7 @@ export default function Account() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
-                  User accounts are coming soon. You'll be able to save your favorite places, track visits, and plan trips.
+                  User accounts are coming soon. You’ll be able to save your favorite places, track visits, and plan trips.
                 </p>
                 <Button
                   onClick={() => router.push('/')}
@@ -389,7 +389,7 @@ export default function Account() {
                 <CardContent>
                   {visitedPlaces.length === 0 ? (
                     <p className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      No visited places yet. Mark places you've been to!
+                      No visited places yet. Mark places you’ve been to!
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

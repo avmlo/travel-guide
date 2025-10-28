@@ -178,7 +178,7 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
           <>
             <span className="font-semibold">{displayName}</span> created a list{' '}
             {activity.lists && (
-              <span className="font-semibold">"{activity.lists.name}"</span>
+              <span className="font-semibold">&ldquo;{activity.lists.name}&rdquo;</span>
             )}
           </>
         );
