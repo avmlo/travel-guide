@@ -38,8 +38,9 @@ function AuthCallbackContent() {
           session_duration_minutes: 43200, // 30 days
         });
 
-        // Get redirect URL and navigate
-        const redirect = searchParams.get('redirect') || '/';
+        // Get redirect URL from localStorage (set before OAuth flow started)
+        const redirect = localStorage.getItem('auth_redirect') || '/';
+        localStorage.removeItem('auth_redirect'); // Clean up
         router.push(redirect);
       } catch (err: any) {
         console.error('OAuth authentication error:', err);

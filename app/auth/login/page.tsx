@@ -63,8 +63,12 @@ function LoginForm() {
     }
 
     try {
+      // Store intended redirect destination in localStorage
       const redirect = searchParams.get('redirect') || searchParams.get('returnTo') || '/';
-      const callbackUrl = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`;
+      localStorage.setItem('auth_redirect', redirect);
+
+      // Use fixed callback URL without query parameters
+      const callbackUrl = `${window.location.origin}/auth/callback`;
 
       // Start Apple OAuth flow - this will redirect the browser
       stytch.oauth.apple.start({
