@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { DestinationCardEnhanced } from "@/components/DestinationCardEnhanced";
@@ -21,12 +21,13 @@ function capitalizeCity(city: string): string {
 }
 
 interface CityPageProps {
-  params: {
+  params: Promise<{
     city: string;
-  };
+  }>;
 }
 
-export default function City({ params }: CityPageProps) {
+export default function City(props: CityPageProps) {
+  const params = use(props.params);
   const router = useRouter();
   const citySlug = params.city;
 

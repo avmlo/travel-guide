@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,12 +11,13 @@ import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
 
 interface DestinationDetailProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export default function DestinationDetail({ params }: DestinationDetailProps) {
+export default function DestinationDetail(props: DestinationDetailProps) {
+  const params = use(props.params);
   const router = useRouter();
   const [destination, setDestination] = useState<Destination | null>(null);
   const [loading, setLoading] = useState(true);
