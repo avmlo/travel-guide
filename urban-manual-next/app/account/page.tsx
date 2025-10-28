@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
-  MapPin, Heart, CheckCircle2, Map, Loader2
+  MapPin, Heart, CheckCircle2, Map, Loader2, User
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { SimpleFooter } from "@/components/SimpleFooter";
@@ -32,6 +32,10 @@ export default function Account() {
   const [visitedPlaces, setVisitedPlaces] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [birthday, setBirthday] = useState("");
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -63,8 +67,13 @@ export default function Account() {
       try {
         setIsLoadingData(true);
 
-        // Load both saved and visited places in parallel
-        const [savedResult, visitedResult] = await Promise.all([
+        // Load user profile, saved and visited places in parallel
+        const [profileResult, savedResult, visitedResult] = await Promise.all([
+          supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single(),
           supabase
             .from('saved_places')
             .select('destination_slug')
@@ -75,6 +84,12 @@ export default function Account() {
             .eq('user_id', user.id)
             .order('visited_at', { ascending: false })
         ]);
+
+        // Set user profile
+        if (profileResult.data) {
+          setUserProfile(profileResult.data);
+          setBirthday(profileResult.data.birthday || "");
+        }
 
         // Collect all unique slugs
         const allSlugs = new Set<string>();
@@ -138,6 +153,35 @@ export default function Account() {
 
     loadUserData();
   }, [user?.id]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    setIsSavingProfile(true);
+    try {
+      const profileData = {
+        user_id: user.id,
+        birthday,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert(profileData, {
+          onConflict: 'user_id'
+        });
+
+      if (error) throw error;
+
+      setUserProfile(profileData);
+      setIsEditingProfile(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -236,8 +280,9 @@ export default function Account() {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:w-[500px]">
+            <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="saved">Saved</TabsTrigger>
               <TabsTrigger value="visited">Visited</TabsTrigger>
             </TabsList>
@@ -335,6 +380,93 @@ export default function Account() {
                   </CardContent>
                 </Card>
               )}
+            </TabsContent>
+
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="space-y-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Profile Information</CardTitle>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      Manage your personal information
+                    </p>
+                  </div>
+                  {!isEditingProfile && (
+                    <Button
+                      onClick={() => setIsEditingProfile(true)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Edit Profile
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium mb-2">
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      value={user.email || ""}
+                      disabled
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Email cannot be changed
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="birthday" className="block text-sm font-medium mb-2">
+                      Birthday
+                    </label>
+                    <input
+                      id="birthday"
+                      type="date"
+                      value={birthday}
+                      onChange={(e) => setBirthday(e.target.value)}
+                      disabled={!isEditingProfile}
+                      max={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white disabled:bg-gray-50 dark:disabled:bg-gray-900 disabled:text-gray-500 dark:disabled:text-gray-400"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Your birthday helps us personalize your experience
+                    </p>
+                  </div>
+
+                  {isEditingProfile && (
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        onClick={handleSaveProfile}
+                        disabled={isSavingProfile}
+                        className="flex-1"
+                      >
+                        {isSavingProfile ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Changes'
+                        )}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setIsEditingProfile(false);
+                          setBirthday(userProfile?.birthday || "");
+                        }}
+                        variant="outline"
+                        disabled={isSavingProfile}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Saved Tab */}
