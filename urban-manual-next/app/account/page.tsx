@@ -45,7 +45,7 @@ export default function AccountPage() {
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'collection' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'collection' | 'settings'>('overview');
   const [showCreateTripDialog, setShowCreateTripDialog] = useState(false);
   const [newTrip, setNewTrip] = useState({
     title: '',
@@ -54,6 +54,10 @@ export default function AccountPage() {
     start_date: '',
     end_date: '',
   });
+  const [birthday, setBirthday] = useState("");
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -82,7 +86,7 @@ export default function AccountPage() {
       try {
         setLoading(true);
 
-        const [savedResult, visitedResult, tripsResult] = await Promise.all([
+        const [savedResult, visitedResult, tripsResult, profileResult] = await Promise.all([
           supabase
             .from('saved_places')
             .select('destination_slug')
@@ -96,7 +100,12 @@ export default function AccountPage() {
             .from('trips')
             .select('*')
             .eq('user_id', user!.id)
-            .order('created_at', { ascending: false })
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', user!.id)
+            .single()
         ]);
 
         // Check for errors
@@ -122,6 +131,12 @@ export default function AccountPage() {
         // Set trips data
         if (tripsResult.data) {
           setTrips(tripsResult.data);
+        }
+
+        // Set profile data
+        if (profileResult.data) {
+          setUserProfile(profileResult.data);
+          setBirthday(profileResult.data.birthday || "");
         }
 
         const allSlugs = new Set<string>();
@@ -277,6 +292,35 @@ export default function AccountPage() {
     });
   };
 
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    setIsSavingProfile(true);
+    try {
+      const profileData = {
+        user_id: user.id,
+        birthday,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert(profileData, {
+          onConflict: 'user_id'
+        });
+
+      if (error) throw error;
+
+      setUserProfile(profileData);
+      setIsEditingProfile(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
@@ -314,6 +358,19 @@ export default function AccountPage() {
             >
               Overview
               {activeTab === 'overview' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-6 py-3 text-sm font-medium transition-colors relative ${
+                activeTab === 'profile'
+                  ? 'text-black dark:text-white'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+              }`}
+            >
+              Profile
+              {activeTab === 'profile' && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black dark:bg-white" />
               )}
             </button>
@@ -581,6 +638,90 @@ export default function AccountPage() {
                     >
                       Plan Your First Trip
                     </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Profile Tab */}
+            {activeTab === 'profile' && (
+              <div className="space-y-6">
+                <div className="border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      <h2 className="text-xl font-bold">Profile Information</h2>
+                    </div>
+                    {!isEditingProfile && (
+                      <button
+                        onClick={() => setIsEditingProfile(true)}
+                        className="text-sm font-medium hover:opacity-60 transition-opacity"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-2">
+                        Email
+                      </label>
+                      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl">
+                        {user.email}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="birthday" className="text-sm font-medium text-gray-600 dark:text-gray-400 block mb-2">
+                        Birthday
+                      </label>
+                      <input
+                        id="birthday"
+                        type="date"
+                        value={birthday}
+                        onChange={(e) => setBirthday(e.target.value)}
+                        disabled={!isEditingProfile}
+                        max={new Date().toISOString().split('T')[0]}
+                        className={`w-full px-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-colors ${
+                          isEditingProfile
+                            ? 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950'
+                            : 'border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400'
+                        }`}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Your birthday helps us personalize your experience
+                      </p>
+                    </div>
+
+                    {isEditingProfile && (
+                      <div className="flex gap-3 pt-4">
+                        <button
+                          onClick={handleSaveProfile}
+                          disabled={isSavingProfile}
+                          className="flex-1 px-4 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-medium hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {isSavingProfile ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            'Save Changes'
+                          )}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsEditingProfile(false);
+                            setBirthday(userProfile?.birthday || "");
+                          }}
+                          disabled={isSavingProfile}
+                          className="px-6 py-3 border border-gray-200 dark:border-gray-800 rounded-2xl font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
