@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd urban-manual-next && npm run build",
-  "devCommand": "cd urban-manual-next && npm run dev",
-  "installCommand": "cd urban-manual-next && npm install",
-  "framework": null,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd urban-manual-next && npm install && npm run build",
+  "installCommand": "echo 'Skipping root install'",
+  "framework": "nextjs",
   "outputDirectory": "urban-manual-next/.next"
 }
