@@ -1,11 +1,12 @@
-# Allow all search engines to crawl the site
+# Allow all robots
 User-agent: *
 Allow: /
 
-# Disallow admin and API routes
-Disallow: /api/
-Disallow: /admin/
+# Disallow auth and account pages
+Disallow: /auth/
+Disallow: /account
+Disallow: /trips
+Disallow: /saved
 
-# Sitemap location
-Sitemap: https://urbanmanual.co/sitemap.xml
-
+# Sitemap
+Sitemap: https://theurbanmanual.com/sitemap.xml
