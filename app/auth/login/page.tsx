@@ -1,62 +1,73 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { getStytchClient } from '@/lib/stytch';
 import { ArrowLeft } from 'lucide-react';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, signUp, signInWithGoogle } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { user, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [returnTo, setReturnTo] = useState('/');
 
   useEffect(() => {
-    const redirect = searchParams.get('redirect') || searchParams.get('returnTo');
-    if (redirect) {
-      setReturnTo(redirect);
+    // Redirect if already logged in
+    if (!authLoading && user) {
+      const redirect = searchParams.get('redirect') || searchParams.get('returnTo') || '/';
+      router.push(redirect);
+    }
+  }, [user, authLoading, router, searchParams]);
+
+  // Handle OAuth redirect
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      handleOAuthCallback(token);
     }
   }, [searchParams]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleOAuthCallback = async (token: string) => {
+    // TODO: Implement OAuth callback once Stytch is configured
+    setError('Stytch authentication is not fully configured yet.');
+  };
+
+  const handleMagicLinkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
     try {
-      if (isSignUp) {
-        await signUp(email, password);
-        setSuccess('Account created! Please check your email to verify your account.');
-        setEmail('');
-        setPassword('');
-      } else {
-        await signIn(email, password);
-        router.push(returnTo);
+      const stytch = getStytchClient();
+      if (!stytch) {
+        setError('Stytch is not configured. Please add NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN to your environment variables.');
+        setLoading(false);
+        return;
       }
+
+      // TODO: Implement magic link authentication once Stytch SDK is properly initialized
+      setError('Stytch authentication pending full configuration');
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setError('');
-    setLoading(true);
-
-    try {
-      await signInWithGoogle();
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Google');
-      setLoading(false);
+    const stytch = getStytchClient();
+    if (!stytch) {
+      setError('Stytch is not configured. Please add NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN to your environment variables.');
+      return;
     }
+
+    // TODO: Implement Google OAuth once Stytch SDK is properly initialized
+    setError('Stytch authentication pending full configuration');
   };
 
   return (
@@ -73,12 +84,10 @@ function LoginForm() {
       {/* Title */}
       <div className="mb-8">
         <h1 className="text-4xl md:text-5xl font-bold mb-2">
-          {isSignUp ? 'Create Account' : 'Sign In'}
+          Sign In
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          {isSignUp
-            ? 'Start saving and organizing your destinations'
-            : 'Welcome back to The Urban Manual'}
+          Welcome to The Urban Manual
         </p>
       </div>
 
@@ -86,7 +95,7 @@ function LoginForm() {
       <button
         onClick={handleGoogleSignIn}
         disabled={loading}
-        className="w-full px-6 py-3 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mb-6"
+        className="w-full px-6 py-3 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mb-6"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24">
           <path
@@ -115,12 +124,12 @@ function LoginForm() {
           <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white dark:bg-gray-950 text-gray-500">Or continue with email</span>
+          <span className="px-2 bg-white dark:bg-gray-950 text-gray-500">Or sign in with email</span>
         </div>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Magic Link Form */}
+      <form onSubmit={handleMagicLinkSubmit} className="space-y-6">
         {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium mb-2">
@@ -135,28 +144,9 @@ function LoginForm() {
             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100"
             placeholder="you@example.com"
           />
-        </div>
-
-        {/* Password */}
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-2">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-100"
-            placeholder="••••••••"
-          />
-          {isSignUp && (
-            <p className="text-xs text-gray-500 mt-1">
-              Must be at least 6 characters
-            </p>
-          )}
+          <p className="text-xs text-gray-500 mt-1">
+            We'll send you a magic link to sign in
+          </p>
         </div>
 
         {/* Error Message */}
@@ -179,26 +169,16 @@ function LoginForm() {
           disabled={loading}
           className="w-full px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg hover:opacity-80 transition-opacity font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Loading...' : isSignUp ? 'Create Account' : 'Sign In'}
+          {loading ? 'Sending...' : 'Send Magic Link'}
         </button>
-
-        {/* Toggle Sign Up/Sign In */}
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError('');
-              setSuccess('');
-            }}
-            className="text-sm text-gray-600 dark:text-gray-400 hover:opacity-60 transition-opacity"
-          >
-            {isSignUp
-              ? 'Already have an account? Sign in'
-              : "Don't have an account? Create one"}
-          </button>
-        </div>
       </form>
+
+      {/* Info */}
+      <div className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
+        <p>
+          Secure passwordless authentication powered by Stytch
+        </p>
+      </div>
     </div>
   );
 }

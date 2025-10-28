@@ -17,6 +17,8 @@
     "@payloadcms/richtext-lexical": "^3.61.1",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
+    "@stytch/nextjs": "^21.15.0",
+    "@stytch/vanilla-js": "^5.40.0",
     "@supabase/supabase-js": "^2.76.1",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
