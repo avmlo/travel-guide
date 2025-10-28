@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
 import { useLocation } from "wouter";
@@ -9,25 +9,7 @@ export function UserDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  useEffect(() => {
-    // Close dropdown when clicking outside
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen]);
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -42,7 +24,25 @@ export function UserDropdown() {
     } catch (error) {
       console.error("Error fetching user profile:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void fetchUserProfile();
+  }, [fetchUserProfile]);
+
+  useEffect(() => {
+    // Close dropdown when clicking outside
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

@@ -386,7 +386,7 @@ export default function Home() {
               {/* End of results indicator */}
               {!hasMore && displayedDestinations.length > ITEMS_PER_PAGE && (
                 <div className="text-center mt-12 py-8 text-gray-400 dark:text-gray-600 text-sm">
-                  You've reached the end
+                  You’ve reached the end
                 </div>
               )}
             </>

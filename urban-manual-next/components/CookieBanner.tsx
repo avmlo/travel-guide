@@ -30,7 +30,7 @@ export function CookieBanner() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex-1">
             <p className="text-sm text-black">
-              <span className="font-bold">We use cookies</span> to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies.{" "}
+              <span className="font-bold">We use cookies</span> to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking &ldquo;Accept All&rdquo;, you consent to our use of cookies.{" "}
               <a href="/privacy" className="underline hover:no-underline">
                 Learn more
               </a>

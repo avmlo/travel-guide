@@ -546,13 +546,13 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
           <DialogHeader>
             <DialogTitle>Add to Trip</DialogTitle>
             <DialogDescription>
-              Add "{destination.name}" to one of your trips
+              Add &ldquo;{destination.name}&rdquo; to one of your trips
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {!trips || trips.length === 0 ? (
               <div className="text-center py-6 text-gray-600 dark:text-gray-400">
-                <p className="mb-4">You don't have any trips yet.</p>
+                <p className="mb-4">You don’t have any trips yet.</p>
                 <Button onClick={() => {
                   setIsAddToTripOpen(false);
                   window.location.href = '/trips';

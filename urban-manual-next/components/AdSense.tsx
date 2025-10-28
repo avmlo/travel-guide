@@ -17,7 +17,7 @@ export function AdSense({
 }: AdSenseProps) {
   useEffect(() => {
     try {
-      // @ts-ignore
+      // @ts-expect-error - The AdSense script augments the window object at runtime.
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (error) {
       console.error("AdSense error:", error);
