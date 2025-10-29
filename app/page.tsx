@@ -2,6 +2,7 @@ import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getSessionTokenFromCookies, getStytchClient } from '@/lib/stytch'
 
 async function getDestinations() {
   try {
@@ -24,8 +25,20 @@ async function getDestinations() {
   }
 }
 
+async function getSession() {
+  try {
+    const token = await getSessionTokenFromCookies()
+    if (!token) return null
+    const stytch = getStytchClient()
+    const { session } = await stytch.sessions.authenticate({ session_token: token })
+    return session
+  } catch {
+    return null
+  }
+}
+
 export default async function Home() {
-  const destinations = await getDestinations()
+  const [destinations, session] = await Promise.all([getDestinations(), getSession()])
 
   return (
     <main className="min-h-screen bg-white">
@@ -41,12 +54,28 @@ export default async function Home() {
                 A curated guide to the world's most exceptional places
               </p>
             </div>
-            <Link
-              href="/studio"
-              className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors text-sm"
-            >
-              Studio
-            </Link>
+            <div className="flex items-center gap-3">
+              {session ? (
+                <>
+                  <Link
+                    href="/studio"
+                    className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors text-sm"
+                  >
+                    Studio
+                  </Link>
+                  <form action="/api/auth/logout" method="post">
+                    <button className="border px-3 py-2 rounded text-sm">Sign out</button>
+                  </form>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors text-sm"
+                >
+                  Sign in
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </header>

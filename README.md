@@ -1,6 +1,6 @@
-# Urban Manual - Sanity CMS Edition
+# Urban Manual - Next.js + Sanity + Stytch
 
-A clean, modern travel guide built with Next.js 15 and Sanity CMS.
+A clean, modern travel guide built with Next.js and Sanity CMS, with Stytch authentication.
 
 ## 🚀 Quick Start
 
@@ -22,7 +22,21 @@ NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id_here
 NEXT_PUBLIC_SANITY_DATASET=production
 ```
 
-### 3. Run Development Server
+### 3. Set Up Stytch Authentication
+
+1. Create a Stytch B2C project (`test` is fine): `https://stytch.com`
+2. In your Stytch dashboard, set Allowed Redirect URLs to:
+   - `http://localhost:3000/api/auth/callback`
+3. Add these to `.env.local`:
+
+```env
+STYTCH_PROJECT_ID=your_stytch_project_id
+STYTCH_SECRET=your_stytch_secret
+STYTCH_ENV=test
+STYTCH_LOGIN_REDIRECT_URL=http://localhost:3000/api/auth/callback
+```
+
+### 4. Run Development Server
 
 ```bash
 npm run dev
@@ -33,8 +47,9 @@ npm run dev
 
 ## 📦 What's Included
 
-- ✅ **Next.js 15** - Latest App Router
+- ✅ **Next.js** - App Router
 - ✅ **Sanity CMS** - Hosted headless CMS
+- ✅ **Stytch Auth** - Magic links and session middleware
 - ✅ **Tailwind CSS** - Modern styling
 - ✅ **TypeScript** - Full type safety
 - ✅ **Clean Design** - Minimal, elegant UI
@@ -93,6 +108,10 @@ urban-manual/
 ```env
 NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
 NEXT_PUBLIC_SANITY_DATASET=production
+STYTCH_PROJECT_ID=your_stytch_project_id
+STYTCH_SECRET=your_stytch_secret
+STYTCH_ENV=test
+STYTCH_LOGIN_REDIRECT_URL=http://localhost:3000/api/auth/callback
 ```
 
 ## 📚 Documentation
