@@ -1,9 +1,3 @@
-import { getOptionalSession } from './stytch'
-
-export async function getCurrentSession() {
-  return getOptionalSession()
-}
-
 import { getSessionTokenFromCookies, getStytchClient } from '@/lib/stytch'
 
 export type AuthSession = {
