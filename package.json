@@ -23,7 +23,10 @@
     "sanity": "^4.12.0",
     "stytch": "^10.14.0",
     "styled-components": "^6.1.19",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-slot": "^1.1.0",
+    "wouter": "^3.7.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
