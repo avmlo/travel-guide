@@ -73,7 +73,8 @@ export default function Home() {
           .eq('user_id', session.user.id);
 
         if (savedData) {
-          setSavedPlaces(savedData.map(s => s.destination_slug));
+          const rows = savedData as Array<{ destination_slug: string }>
+          setSavedPlaces(rows.map((s) => s.destination_slug));
         }
 
         // Load visited places
@@ -83,7 +84,8 @@ export default function Home() {
           .eq('user_id', session.user.id);
 
         if (visitedData) {
-          setVisitedPlaces(visitedData.map(v => v.destination_slug));
+          const rows = visitedData as Array<{ destination_slug: string }>
+          setVisitedPlaces(rows.map((v) => v.destination_slug));
         }
       }
     }
