@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getStytchClient, STYTCH_SESSION_COOKIE } from '@/lib/stytch'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isStudio = pathname.startsWith('/studio')
   if (!isStudio) return NextResponse.next()
