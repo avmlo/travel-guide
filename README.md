@@ -1,160 +1,121 @@
-# The Urban Manual
+# Urban Manual v2
 
-A modern, curated travel guide featuring 897 destinations across the world.
+A premium travel and destination discovery application built with Next.js 15, Payload CMS, Stytch authentication, and Supabase.
 
-> **⚠️ IMPORTANT**: This project is being migrated to Next.js 16. Please use the **`urban-manual-next/`** directory for active development.
-
-## Active Development (Next.js 16)
-
-**Location**: `/urban-manual-next/`
-
-### Features
-
-- 🌍 **897 Curated Destinations** - Handpicked places across major cities worldwide
-- 🗺️ **Interactive Map** - Visualize countries you've visited
-- ⭐ **Michelin-Starred Restaurants** - Discover award-winning dining experiences
-- 👤 **User Accounts** - Track visited places, save favorites, and build your travel profile
-- 📱 **Responsive Design** - Beautiful on desktop and mobile
-- 🎨 **Urban Manual Inspired** - Clean, minimal, editorial design
-- 🌙 **Dark Mode** - Full dark mode support
-
-### Tech Stack (Next.js)
-
-- **Frontend**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS
-- **Database**: Supabase (PostgreSQL) with direct client integration
-- **Authentication**: Supabase Auth with Google OAuth
-- **Deployment**: Vercel
-
-## Environment Variables
-
-Create a `.env.local` file in the `urban-manual-next/` directory with:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://avdnefdfwvpjkuanhdwk.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Google Maps (optional - for map embeds)
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-```
-
-**Note**: Next.js requires the `NEXT_PUBLIC_` prefix for environment variables that need to be accessible in the browser.
-
-## Deployment to Vercel
-
-### Prerequisites
-- Vercel account (sign up at https://vercel.com)
-- GitHub account
-- This repository pushed to GitHub
-
-### Steps
-
-1. **Push to GitHub**
-   ```bash
-   git remote add origin https://github.com/yourusername/travel-guide.git
-   git push -u origin master
-   ```
-
-2. **Deploy on Vercel**
-   - Go to https://vercel.com/new
-   - Click "Import Git Repository"
-   - Select your `travel-guide` repository
-   - Vercel will auto-detect the settings
-   - Add environment variables in the Vercel dashboard
-   - Click "Deploy"
-
-3. **Configure Environment Variables in Vercel**
-   - Go to Project Settings → Environment Variables
-   - Add all variables from `.env` file
-   - Make sure to add them for Production, Preview, and Development
-
-4. **Update Supabase URLs**
-   - After deployment, get your Vercel URL
-   - Add it to Supabase Authentication → URL Configuration
-   - Site URL: `https://your-project.vercel.app`
-   - Redirect URLs: `https://your-project.vercel.app/**`
-
-## Local Development (Next.js)
+## 🚀 Quick Start
 
 ```bash
-# Navigate to Next.js app
-cd urban-manual-next
-
 # Install dependencies
 npm install
 
-# Run development server (http://localhost:3000)
+# Copy environment variables
+cp .env.example .env.local
+# Then edit .env.local with your credentials
+
+# Run development server
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
 ```
 
-**Note**: The old Vite app in `/client/` is deprecated and should not be used.
+Open [http://localhost:3000](http://localhost:3000)
 
-## Database Setup
+## ✨ Features
 
-The project uses Supabase with the following tables:
+- ✅ **Payload CMS** - Admin panel at `/admin`
+- ✅ **Stytch Auth** - Passkeys + Magic Links + Apple Sign In
+- ✅ **Supabase** - PostgreSQL database
+- ✅ **Builder.io Ready** - Visual editing
+- ✅ **Next.js 15** - App Router
+- ✅ **TypeScript** - Full type safety
+- ✅ **Tailwind CSS** - Modern styling
 
-### `destinations`
-- Stores all travel destinations
-- Fields: name, slug, city, category, description, image, michelin_stars, crown
+## 📦 Tech Stack
 
-### `visited_places`
-- Tracks user's visited destinations
-- Fields: user_id, destination_id, visited_date, rating, notes
+- Next.js 15.2.3
+- Payload CMS 3.x
+- Stytch Authentication
+- Supabase PostgreSQL
+- Tailwind CSS 4.x
+- TypeScript 5.x
 
-### SQL Setup
-Run these SQL commands in Supabase SQL Editor:
+## 🔧 Setup
 
-```sql
--- See setup_supabase.js for full schema
+### Environment Variables
+
+Required in `.env.local`:
+
+```bash
+# Payload CMS
+PAYLOAD_SECRET=your-secret-key
+DATABASE_URL=postgresql://...
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key
+
+# Stytch
+STYTCH_PROJECT_ID=your-id
+STYTCH_SECRET=your-secret
+NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN=your-token
+
+# Builder.io
+NEXT_PUBLIC_BUILDER_API_KEY=your-key
 ```
 
-## Features Overview
+### First Run
 
-### Home Page
-- Browse 897 destinations
-- Filter by city (pill-style buttons with counts)
-- Search functionality
-- Slideover drawer for destination details
+1. Start dev server: `npm run dev`
+2. Visit `/admin` to create admin user
+3. Add destinations via Payload CMS
+4. Configure Stytch authentication
 
-### AI Assistant
-- Natural language travel queries
-- Recommendations from curated database only
-- Itinerary generation
-- Personalized greetings when logged in
+## 📁 Structure
 
-### Account Page
-- Travel statistics (places visited, cities explored, countries)
-- Visited places grid with images and details
-- Interactive world map showing visited countries
-- Profile management
+```
+app/
+├── layout.tsx           # Root layout with Stytch
+├── page.tsx             # Homepage
+├── auth/login/          # Login page
+└── (payload)/admin/     # Payload CMS
 
-### Destination Details
-- Large hero images
-- Michelin star ratings
-- One-click "Mark as Visited"
-- Optional visit details (date, rating, notes)
-- Save for later functionality
+lib/
+├── supabase.ts          # Supabase client
+├── stytch.ts            # Stytch config
+└── utils.ts             # Utilities
 
-## Design Philosophy
+payload.config.ts        # CMS configuration
+```
 
-Inspired by Urban Manual and Little Places London:
-- Minimal, monochromatic color scheme
-- Bold typography
-- Large, beautiful imagery
-- Story-led content
-- Clean, editorial layout
+## 🎨 Builder.io Integration
 
-## License
+### Dev Command
 
-MIT
+```bash
+npm run dev
+```
 
-## Credits
+### Setup in Builder.io
 
-Built with ❤️ using modern web technologies
+1. Set Preview URL: `http://localhost:3000`
+2. Connect GitHub repo: `avmlo/urban-manual`
+3. Branch: `components` or `main`
 
+## 🚀 Deployment
+
+### Vercel
+
+```bash
+vercel
+```
+
+Add all environment variables in Vercel dashboard.
+
+## 📚 Documentation
+
+- [Payload CMS](https://payloadcms.com/docs)
+- [Stytch](https://stytch.com/docs)
+- [Next.js](https://nextjs.org/docs)
+- [Builder.io](https://www.builder.io/c/docs)
+
+---
+
+**Urban Manual v2** - Built with modern web technologies
