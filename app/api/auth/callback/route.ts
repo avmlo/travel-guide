@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     const stytch = getStytchClient()
     const { session_token, session } = await stytch.magicLinks.authenticate({
       token,
-      session_management_type: 'maintain',
+      session_duration_minutes: 60,
     })
 
     const res = NextResponse.redirect(new URL('/', url))
