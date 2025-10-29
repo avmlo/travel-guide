@@ -14,7 +14,7 @@ export async function getCurrentSession(): Promise<AuthSession> {
     const { session } = await stytch.sessions.authenticate({ session_token: token })
     return {
       userId: session.user_id,
-      expiresAt: session.expires_at,
+      expiresAt: session.expires_at ?? new Date(Date.now() + 60 * 60 * 1000).toISOString(),
       attributes: session.authentication_factors?.[0]?.attributes as Record<string, unknown> | undefined,
     }
   } catch {
