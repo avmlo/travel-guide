@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import StytchB2C from 'stytch'
+import { Client, envs } from 'stytch'
 import { getEnv } from './env'
 
 export function getStytchClient() {
@@ -7,10 +7,10 @@ export function getStytchClient() {
   if (!env.STYTCH_PROJECT_ID || !env.STYTCH_SECRET) {
     throw new Error('Missing STYTCH_PROJECT_ID or STYTCH_SECRET')
   }
-  return new StytchB2C({
+  return new Client({
     project_id: env.STYTCH_PROJECT_ID,
     secret: env.STYTCH_SECRET,
-    env: env.STYTCH_ENV === 'live' ? StytchB2C.envs.live : StytchB2C.envs.test,
+    env: env.STYTCH_ENV === 'live' ? envs.live : envs.test,
   })
 }
 
