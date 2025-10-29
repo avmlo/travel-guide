@@ -143,9 +143,30 @@ export default function Home() {
     loadDestinations();
   }, []);
 
+  // AI-like relevance score for destination ordering
+  const scoreDestination = useCallback((d: Destination) => {
+    let score = 0;
+    if (d.crown) score += 50;
+    if (d.michelinStars) score += d.michelinStars * 12;
+    if (d.content) score += Math.min(d.content.length / 120, 10);
+    const cat = (d.category || '').toLowerCase();
+    if (cat.includes('restaurant')) score += 6;
+    if (cat.includes('cafe')) score += 4;
+    if (cat.includes('bar')) score += 3;
+    if (cat.includes('hotel')) score += 2;
+    if (savedPlaces.includes(d.slug)) score += 15;
+    if (visitedPlaces.includes(d.slug)) score += 5;
+    score += (d.name?.charCodeAt(0) || 0) / 5000;
+    return score;
+  }, [savedPlaces, visitedPlaces]);
+
+  const sortedDestinations = useMemo(() => {
+    return [...destinations].sort((a, b) => scoreDestination(b) - scoreDestination(a));
+  }, [destinations, scoreDestination]);
+
   // Get sorted cities
   const cities = useMemo(() => {
-    const citySet = new Set(destinations.map((d) => d.city).filter(Boolean));
+    const citySet = new Set(sortedDestinations.map((d) => d.city).filter(Boolean));
     const cityArray = Array.from(citySet);
 
     // Sort cities by country priority, then alphabetically within country
@@ -167,17 +188,17 @@ export default function Home() {
       if (indexB === -1) return -1;
       return indexA - indexB;
     });
-  }, [destinations]);
+  }, [sortedDestinations]);
 
-  // Filter destinations with debounced search
+  // Filter destinations with debounced search (preserving AI order)
   const filteredDestinations = useMemo(() => {
-    return destinations.filter((dest) => {
+    return sortedDestinations.filter((dest) => {
       const matchesSearch =
         debouncedSearchQuery === "" ||
         dest.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
         dest.content.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
         dest.city.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-        dest.category.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+        dest.category.toLowerCase().includes(selectedCategory.toLowerCase());
 
       const matchesCity =
         !selectedCity || dest.city === selectedCity;
@@ -187,7 +208,7 @@ export default function Home() {
 
       return matchesSearch && matchesCity && matchesCategory;
     });
-  }, [destinations, debouncedSearchQuery, selectedCity, selectedCategory]);
+  }, [sortedDestinations, debouncedSearchQuery, selectedCity, selectedCategory]);
 
   const displayedDestinations = filteredDestinations.slice(0, displayCount);
   const hasMore = displayCount < filteredDestinations.length;
