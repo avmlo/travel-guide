@@ -17,12 +17,13 @@ export async function GET(request: Request) {
     })
 
     const res = NextResponse.redirect(new URL('/', url))
+    const fallbackExpiry = new Date(Date.now() + 60 * 60 * 1000)
     res.cookies.set(STYTCH_SESSION_COOKIE, session_token, {
       httpOnly: true,
       sameSite: 'lax',
       secure: true,
       path: '/',
-      expires: new Date(session.expires_at),
+      expires: new Date(session?.expires_at || fallbackExpiry),
     })
     return res
   } catch {
