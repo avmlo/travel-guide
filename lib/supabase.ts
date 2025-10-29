@@ -10,4 +10,13 @@ export function getSupabaseClient() {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } })
 }
 
+// Legacy default client used by v1 design code
+export const supabase = ((): ReturnType<typeof createClient> => {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    // Return a client that will error on use, but avoids import-time throw in RSC
+    return createClient('https://invalid.local', 'invalid', { auth: { persistSession: false } })
+  }
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } })
+})()
+
 
