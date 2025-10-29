@@ -2,8 +2,34 @@ import { client } from '@/sanity/lib/client'
 import { urlFor } from '@/sanity/lib/image'
 import Image from 'next/image'
 import Link from 'next/link'
+import Header from './components/Header'
+import { getSupabaseClient } from '@/lib/supabase'
 
 async function getDestinations() {
+  // Prefer Supabase data for runtime content; fall back to Sanity if unavailable
+  try {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase
+      .from('destinations')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(12)
+    if (!error && data && data.length > 0) {
+      return data.map((row: any) => ({
+        _id: row.id,
+        name: row.name,
+        slug: { current: row.slug || String(row.id) },
+        subline: row.subline || '',
+        mainImage: row.main_image || null,
+        city: row.city_name ? { name: row.city_name, country: row.country } : null,
+        category: row.category ? { name: row.category } : null,
+        michelinStars: row.michelin_stars || 0,
+        crown: !!row.crown,
+        imageUrl: row.image_url || null,
+      }))
+    }
+  } catch {}
+
   try {
     const query = `*[_type == "destination" && status == "published"] | order(_createdAt desc) {
       _id,
@@ -16,10 +42,8 @@ async function getDestinations() {
       michelinStars,
       crown
     }[0...12]`
-    
     return await client.fetch(query)
-  } catch (error) {
-    console.log('Sanity not configured yet')
+  } catch {
     return []
   }
 }
@@ -29,27 +53,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-light tracking-tight text-gray-900">
-                Urban Manual
-              </h1>
-              <p className="mt-2 text-sm text-gray-600">
-                A curated guide to the world's most exceptional places
-              </p>
-            </div>
-            <Link
-              href="/studio"
-              className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors text-sm"
-            >
-              Studio
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Destinations Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -62,14 +66,21 @@ export default async function Home() {
                 className="group"
               >
                 <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
-                  {destination.mainImage && (
+                  {destination.imageUrl ? (
+                    <Image
+                      src={destination.imageUrl}
+                      alt={destination.name}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : destination.mainImage ? (
                     <Image
                       src={urlFor(destination.mainImage).width(800).url()}
                       alt={destination.name}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                  )}
+                  ) : null}
                   {destination.crown && (
                     <div className="absolute top-4 right-4 bg-black text-white px-3 py-1 text-xs font-medium rounded-full">
                       Featured
