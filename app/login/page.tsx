@@ -1,21 +1,9 @@
-import { getSessionTokenFromCookies, getStytchClient } from '@/lib/stytch'
+import { getCurrentSession } from '@/lib/session'
 import Link from 'next/link'
-
-async function getSession() {
-  try {
-    const token = await getSessionTokenFromCookies()
-    if (!token) return null
-    const stytch = getStytchClient()
-    const { session } = await stytch.sessions.authenticate({ session_token: token })
-    return session
-  } catch {
-    return null
-  }
-}
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const params = await searchParams
-  const session = await getSession()
+  const session = await getCurrentSession()
   const error = params?.error
 
   return (
@@ -33,28 +21,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             </div>
           </form>
         ) : (
-          <form
-            className="space-y-4"
-            onSubmit={async (e) => {
-              e.preventDefault()
-              const form = e.currentTarget as HTMLFormElement
-              const email = (form.elements.namedItem('email') as HTMLInputElement).value
-              const btn = form.querySelector('button') as HTMLButtonElement
-              btn.disabled = true
-              try {
-                await fetch('/api/auth/start', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email }),
-                })
-                alert('Check your email for a magic link!')
-              } catch {
-                alert('Failed to send magic link')
-              } finally {
-                btn.disabled = false
-              }
-            }}
-          >
+          <form className="space-y-4" action="/api/auth/start" method="post">
             <input
               type="email"
               name="email"
@@ -63,6 +30,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               className="w-full rounded border px-3 py-2"
             />
             <button type="submit" className="w-full rounded bg-black px-4 py-2 text-white">Send magic link</button>
+            {params?.sent && (
+              <div className="text-sm text-gray-600">If that email exists, we sent a magic link.</div>
+            )}
           </form>
         )}
       </div>

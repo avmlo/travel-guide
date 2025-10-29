@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getStytchClient, setSessionCookie } from '@/lib/stytch'
+import { getStytchClient, STYTCH_SESSION_COOKIE } from '@/lib/stytch'
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -16,9 +16,15 @@ export async function GET(request: Request) {
       session_management_type: 'maintain',
     })
 
-    const response = NextResponse.redirect(new URL('/', url))
-    await setSessionCookie(session_token, new Date(session.expires_at))
-    return response
+    const res = NextResponse.redirect(new URL('/', url))
+    res.cookies.set(STYTCH_SESSION_COOKIE, session_token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: true,
+      path: '/',
+      expires: new Date(session.expires_at),
+    })
+    return res
   } catch {
     return NextResponse.redirect(new URL('/login?error=auth_failed', url))
   }
