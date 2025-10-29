@@ -26,7 +26,7 @@ export default function LoginPage() {
     try {
       await stytch.magicLinks.email.loginOrCreate(email)
       setMessage('Check your email for a magic link!')
-    } catch (error) {
+    } catch (_error) {
       setMessage('Error sending magic link. Please try again.')
     } finally {
       setIsLoading(false)
@@ -40,8 +40,9 @@ export default function LoginPage() {
     try {
       await stytch.webauthn.authenticate({
         domain: window.location.hostname,
+        session_duration_minutes: 60,
       })
-    } catch (error) {
+    } catch (_error) {
       setMessage('Passkey authentication failed. Please try again.')
     } finally {
       setIsLoading(false)
