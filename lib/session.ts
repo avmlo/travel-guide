@@ -3,7 +3,6 @@ import { getSessionTokenFromCookies, getStytchClient } from '@/lib/stytch'
 export type AuthSession = {
   userId: string
   expiresAt: string
-  attributes?: Record<string, unknown>
 } | null
 
 export async function getCurrentSession(): Promise<AuthSession> {
@@ -15,7 +14,6 @@ export async function getCurrentSession(): Promise<AuthSession> {
     return {
       userId: session.user_id,
       expiresAt: session.expires_at ?? new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-      attributes: session.authentication_factors?.[0]?.attributes as Record<string, unknown> | undefined,
     }
   } catch {
     return null
