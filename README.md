@@ -1,121 +1,114 @@
-# Urban Manual v2
+# Urban Manual - Sanity CMS Edition
 
-A premium travel and destination discovery application built with Next.js 15, Payload CMS, Stytch authentication, and Supabase.
+A clean, modern travel guide built with Next.js 15 and Sanity CMS.
 
 ## 🚀 Quick Start
 
+### 1. Install Dependencies
+
 ```bash
-# Install dependencies
 npm install
+```
 
-# Copy environment variables
-cp .env.example .env.local
-# Then edit .env.local with your credentials
+### 2. Set Up Sanity
 
-# Run development server
+1. Go to [sanity.io/manage](https://sanity.io/manage)
+2. Create a new project (free plan)
+3. Copy your Project ID
+4. Update `.env.local`:
+
+```env
+NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id_here
+NEXT_PUBLIC_SANITY_DATASET=production
+```
+
+### 3. Run Development Server
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+- **Frontend:** http://localhost:3000
+- **Sanity Studio:** http://localhost:3000/studio
 
-## ✨ Features
+## 📦 What's Included
 
-- ✅ **Payload CMS** - Admin panel at `/admin`
-- ✅ **Stytch Auth** - Passkeys + Magic Links + Apple Sign In
-- ✅ **Supabase** - PostgreSQL database
-- ✅ **Builder.io Ready** - Visual editing
-- ✅ **Next.js 15** - App Router
-- ✅ **TypeScript** - Full type safety
+- ✅ **Next.js 15** - Latest App Router
+- ✅ **Sanity CMS** - Hosted headless CMS
 - ✅ **Tailwind CSS** - Modern styling
+- ✅ **TypeScript** - Full type safety
+- ✅ **Clean Design** - Minimal, elegant UI
 
-## 📦 Tech Stack
+## 🏗️ Project Structure
 
-- Next.js 15.2.3
-- Payload CMS 3.x
-- Stytch Authentication
-- Supabase PostgreSQL
-- Tailwind CSS 4.x
-- TypeScript 5.x
+```
+urban-manual/
+├── app/                    # Next.js app directory
+│   ├── page.tsx           # Homepage
+│   └── studio/            # Sanity Studio
+├── sanity/
+│   ├── schemas/           # Content schemas
+│   │   ├── destination.ts
+│   │   ├── city.ts
+│   │   └── category.ts
+│   └── lib/               # Sanity client & utils
+├── sanity.config.ts       # Sanity configuration
+└── .env.local             # Environment variables
+```
 
-## 🔧 Setup
+## 📝 Content Types
+
+### Destination
+- Name, slug, brand, designer
+- Category & city (references)
+- Images, location, Michelin stars
+- Featured flag (crown)
+
+### City
+- Name, slug, country
+- Image & description
+
+### Category
+- Name, slug, description
+
+## 🎨 Features
+
+- **Clean Grid Layout** - Responsive destination cards
+- **Image Optimization** - Next.js Image component
+- **Sanity Studio** - Built-in CMS at `/studio`
+- **Type-Safe** - Full TypeScript support
+- **Production Ready** - Optimized build
+
+## 🚢 Deployment
+
+### Vercel (Recommended)
+
+1. Push to GitHub
+2. Import in Vercel
+3. Add environment variables
+4. Deploy!
 
 ### Environment Variables
 
-Required in `.env.local`:
-
-```bash
-# Payload CMS
-PAYLOAD_SECRET=your-secret-key
-DATABASE_URL=postgresql://...
-
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key
-
-# Stytch
-STYTCH_PROJECT_ID=your-id
-STYTCH_SECRET=your-secret
-NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN=your-token
-
-# Builder.io
-NEXT_PUBLIC_BUILDER_API_KEY=your-key
+```env
+NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
+NEXT_PUBLIC_SANITY_DATASET=production
 ```
-
-### First Run
-
-1. Start dev server: `npm run dev`
-2. Visit `/admin` to create admin user
-3. Add destinations via Payload CMS
-4. Configure Stytch authentication
-
-## 📁 Structure
-
-```
-app/
-├── layout.tsx           # Root layout with Stytch
-├── page.tsx             # Homepage
-├── auth/login/          # Login page
-└── (payload)/admin/     # Payload CMS
-
-lib/
-├── supabase.ts          # Supabase client
-├── stytch.ts            # Stytch config
-└── utils.ts             # Utilities
-
-payload.config.ts        # CMS configuration
-```
-
-## 🎨 Builder.io Integration
-
-### Dev Command
-
-```bash
-npm run dev
-```
-
-### Setup in Builder.io
-
-1. Set Preview URL: `http://localhost:3000`
-2. Connect GitHub repo: `avmlo/urban-manual`
-3. Branch: `components` or `main`
-
-## 🚀 Deployment
-
-### Vercel
-
-```bash
-vercel
-```
-
-Add all environment variables in Vercel dashboard.
 
 ## 📚 Documentation
 
-- [Payload CMS](https://payloadcms.com/docs)
-- [Stytch](https://stytch.com/docs)
-- [Next.js](https://nextjs.org/docs)
-- [Builder.io](https://www.builder.io/c/docs)
+- [Next.js Docs](https://nextjs.org/docs)
+- [Sanity Docs](https://www.sanity.io/docs)
+- [Tailwind CSS](https://tailwindcss.com/docs)
+
+## 🎯 Next Steps
+
+1. **Add Destinations** - Use Sanity Studio to add content
+2. **Customize Design** - Edit Tailwind classes
+3. **Add Features** - Search, filters, maps, etc.
+4. **Deploy** - Push to production
 
 ---
 
-**Urban Manual v2** - Built with modern web technologies
+Built with ❤️ using Next.js and Sanity
+
