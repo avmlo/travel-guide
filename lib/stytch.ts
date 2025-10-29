@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { StytchB2C } from 'stytch'
+import StytchB2C from 'stytch'
 import { getEnv } from './env'
 
 export function getStytchClient() {
