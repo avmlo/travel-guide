@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 export const dynamic = 'force-dynamic';
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Grid3x3, Image as ImageIcon } from "lucide-react";
 import { DestinationCardEnhanced } from "@/components/DestinationCardEnhanced";
 import { Destination } from "@/types/destination";
 import { supabase } from "@/lib/supabase";
@@ -18,6 +18,7 @@ import { SimpleFooter } from "@/components/SimpleFooter";
 import { cityCountryMap, countryOrder } from "@/data/cityCountryMap";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { ImmersiveVisualExplorer } from "@/components/ImmersiveVisualExplorer";
 
 // Helper function to capitalize city names
 function capitalizeCity(city: string): string {
@@ -55,6 +56,7 @@ export default function Home() {
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'visual'>('grid');
 
   // Debounced search for smooth UX
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -118,16 +120,23 @@ export default function Home() {
           city: d.city,
           category: d.category,
           content: d.content || d.description || '',
-          mainImage: d.image || '',
+          description: d.description || d.content || '',
+          mainImage: d.main_image || '',
+          main_image: d.main_image || '',
           michelinStars: d.michelin_stars || 0,
+          michelin_stars: d.michelin_stars || 0,
           crown: d.crown || false,
-          brand: '',
-          cardTags: '',
-          lat: 0,
-          long: 0,
+          brand: d.brand || '',
+          cardTags: d.card_tags || '',
+          lat: d.lat || 0,
+          long: d.long || 0,
           myRating: 0,
           reviewed: false,
-          subline: '',
+          subline: d.subline || '',
+          website: d.website || '',
+          instagram: d.instagram || '',
+          google_maps: d.google_maps || '',
+          tags: d.tags || [],
         }));
 
         setDestinations(transformedData);
@@ -273,6 +282,34 @@ export default function Home() {
             </button>
           </div>
 
+          {/* View Mode Toggle */}
+          <div className="mb-6 flex justify-end animate-fade-in" style={{ animationDelay: '25ms' }}>
+            <div className="inline-flex items-center gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'grid'
+                    ? "bg-white dark:bg-gray-700 text-black dark:text-white shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                }`}
+              >
+                <Grid3x3 className="w-4 h-4" />
+                <span>Grid</span>
+              </button>
+              <button
+                onClick={() => setViewMode('visual')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'visual'
+                    ? "bg-white dark:bg-gray-700 text-black dark:text-white shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                }`}
+              >
+                <ImageIcon className="w-4 h-4" />
+                <span>Visual</span>
+              </button>
+            </div>
+          </div>
+
           {/* Category Filter - App Store Style with smooth transitions */}
           <div className="mb-8 animate-fade-in" style={{ animationDelay: '50ms' }}>
             <div className="flex flex-wrap gap-2">
@@ -333,18 +370,30 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Results Count with loading indicator */}
-          <div className="mb-6 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '150ms' }}>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
-            </p>
-            {debouncedSearchQuery !== searchQuery && (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-            )}
-          </div>
+          {/* Results Count with loading indicator - Only show in grid mode */}
+          {viewMode === 'grid' && (
+            <div className="mb-6 flex items-center gap-3 animate-fade-in" style={{ animationDelay: '150ms' }}>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
+              </p>
+              {debouncedSearchQuery !== searchQuery && (
+                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+              )}
+            </div>
+          )}
 
-          {/* Destination Grid with staggered animation */}
-          {filteredDestinations.length === 0 ? (
+          {/* Visual Explorer or Grid View */}
+          {viewMode === 'visual' ? (
+            <ImmersiveVisualExplorer
+              destinations={displayedDestinations}
+              loading={loading || loadingMore}
+              onLoadMore={handleLoadMore}
+              hasMore={hasMore}
+              onCardClick={handleCardClick}
+              savedPlaces={savedPlaces}
+              visitedPlaces={visitedPlaces}
+            />
+          ) : filteredDestinations.length === 0 ? (
             <div className="text-center py-20 animate-fade-in">
               <p className="text-xl text-gray-400 mb-6">
                 No destinations found.

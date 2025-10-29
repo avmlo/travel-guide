@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { StytchProvider } from '@stytch/nextjs';
-import { createStytchUIClient } from '@stytch/nextjs/ui';
+import { StytchProvider } from '@/components/StytchProvider';
 
 const inter = Inter({ subsets: ['latin'] });
-
-const stytch = createStytchUIClient(process.env.NEXT_PUBLIC_STYTCH_PUBLIC_TOKEN || '');
 
 export const metadata: Metadata = {
   title: 'Urban Manual - Discover Premium Destinations',
@@ -19,12 +16,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <StytchProvider stytch={stytch}>
-      <html lang="en">
-        <body className={inter.className}>
+    <html lang="en">
+      <body className={inter.className}>
+        <StytchProvider>
           {children}
-        </body>
-      </html>
-    </StytchProvider>
+        </StytchProvider>
+      </body>
+    </html>
   );
 }

@@ -1,0 +1,347 @@
+# Urban Manual - Cursor AI Rules
+
+You are an expert full-stack developer helping with Urban Manual, a curated destination discovery platform with a minimalist, editorial aesthetic.
+
+## Project Overview
+Urban Manual is a Next.js application that curates 921+ design-focused destinations worldwide. Think of it as a digital magazine for discovering exceptional places - restaurants, cafes, hotels, bars, and cultural spaces.
+
+## Tech Stack
+- **Frontend:** Next.js 16 (App Router), React 19, TypeScript
+- **Styling:** Tailwind CSS, shadcn/ui components
+- **Backend:** Supabase (PostgreSQL database, Auth, Storage)
+- **API:** tRPC for type-safe API calls
+- **Deployment:** Vercel
+- **Maps:** Google Maps API
+- **AI:** OpenAI API (GPT-4), Gemini 2.0 Flash
+
+## Project Structure
+```
+urban-manual-next/
+├── app/                    # Next.js App Router
+│   ├── page.tsx           # Homepage with destination grid
+│   ├── destination/[slug] # Destination detail pages
+│   ├── cities/            # City listing pages
+│   └── explore/           # Explore view
+├── components/            # React components
+│   ├── DestinationCard.tsx
+│   ├── DestinationCardEnhanced.tsx
+│   ├── ImmersiveVisualExplorer.tsx
+│   └── VisualFilters.tsx
+├── lib/                   # Utilities and services
+│   ├── supabase/         # Supabase client
+│   └── utils.ts          # Helper functions
+├── types/                 # TypeScript type definitions
+│   └── destination.ts    # Destination type
+└── public/               # Static assets
+```
+
+## Database Schema (Supabase)
+```sql
+destinations (
+  id: uuid
+  slug: text (unique)
+  name: text
+  city: text
+  country: text
+  category: text (Restaurant, Cafe, Hotel, Bar, Shop, Bakery, Culture, Others)
+  main_image: text (URL)
+  description: text
+  content: text
+  address: text
+  latitude: numeric
+  longitude: numeric
+  website: text
+  phone: text
+  instagram: text
+  price_range: text
+  opening_hours: jsonb
+  vibe_tags: text[]
+  keywords: text[]
+  amenities: text[]
+  michelin_stars: integer
+  is_top_pick: boolean
+  created_at: timestamp
+  updated_at: timestamp
+)
+```
+
+## Design Philosophy
+Urban Manual follows a **minimalist, editorial aesthetic** inspired by high-end magazines:
+- **Typography:** Clean, bold uppercase titles with subtle body text
+- **Colors:** Primarily black, white, and gray with minimal accent colors
+- **Layout:** Generous white space, max-width containers (1920px)
+- **Interactions:** Subtle hover states (opacity: 60%), smooth transitions
+- **Images:** High-quality, editorial photography
+- **No emoji in UI** (except category filters where appropriate)
+
+## Code Style Guidelines
+
+### TypeScript
+- **Always use TypeScript** - No plain JavaScript
+- **Strict mode enabled** - Proper type definitions required
+- **Import types explicitly:** `import type { Destination } from '@/types/destination'`
+- **Use interfaces for objects:** Prefer `interface` over `type` for object shapes
+- **Avoid `any`:** Use proper types or `unknown` if truly dynamic
+
+### React & Next.js
+- **Prefer Server Components** - Use `'use client'` only when necessary
+- **File naming:** PascalCase for components (`DestinationCard.tsx`), camelCase for utilities
+- **Component structure:**
+  ```typescript
+  // 1. Imports
+  import type { Destination } from '@/types/destination'
+  
+  // 2. Type definitions
+  interface DestinationCardProps {
+    destination: Destination
+    onSave?: () => void
+  }
+  
+  // 3. Component
+  export default function DestinationCard({ destination, onSave }: DestinationCardProps) {
+    // Component logic
+  }
+  ```
+- **Use async/await** for data fetching in Server Components
+- **Error boundaries:** Always handle loading and error states
+- **Accessibility:** Include proper ARIA labels and semantic HTML
+
+### Styling (Tailwind CSS)
+- **Use Tailwind classes** - Avoid custom CSS unless absolutely necessary
+- **Responsive design:** Mobile-first approach
+  ```tsx
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  ```
+- **Consistent spacing:** Use Tailwind's spacing scale (4, 8, 12, 16, 24, 32)
+- **Dark mode support:** Use `dark:` prefix when applicable
+- **Hover states:** Always add subtle transitions
+  ```tsx
+  <button className="hover:opacity-60 transition-opacity duration-200">
+  ```
+
+### Supabase Integration
+- **Use typed queries:**
+  ```typescript
+  const { data, error } = await supabase
+    .from('destinations')
+    .select('*')
+    .eq('city', city)
+    .order('name')
+  ```
+- **Always handle errors:**
+  ```typescript
+  if (error) {
+    console.error('Error fetching destinations:', error)
+    throw new Error('Failed to fetch destinations')
+  }
+  ```
+- **Use RLS (Row Level Security):** Ensure proper policies are in place
+- **Environment variables:** Always use `process.env.NEXT_PUBLIC_SUPABASE_URL`
+
+### API Routes (tRPC)
+- **Type-safe procedures:** Use tRPC for all API endpoints
+- **Input validation:** Use Zod schemas for input validation
+- **Error handling:** Return proper error messages
+- **Example:**
+  ```typescript
+  export const destinationRouter = router({
+    getBySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        // Query logic
+      }),
+  })
+  ```
+
+## Common Patterns
+
+### Fetching Destinations
+```typescript
+// Server Component
+async function getDestinations(city?: string) {
+  const supabase = createClient()
+  
+  let query = supabase
+    .from('destinations')
+    .select('*')
+    .order('name')
+  
+  if (city) {
+    query = query.eq('city', city)
+  }
+  
+  const { data, error } = await query
+  
+  if (error) throw error
+  return data
+}
+```
+
+### Destination Card Component
+```typescript
+interface DestinationCardProps {
+  destination: Destination
+  variant?: 'grid' | 'list'
+  showSaveButton?: boolean
+}
+
+export default function DestinationCard({
+  destination,
+  variant = 'grid',
+  showSaveButton = true
+}: DestinationCardProps) {
+  return (
+    <Link href={`/destination/${destination.slug}`}>
+      <div className="group relative">
+        {/* Image */}
+        {/* Content */}
+        {/* Hover state */}
+      </div>
+    </Link>
+  )
+}
+```
+
+### Loading States
+```typescript
+export default function DestinationPage() {
+  return (
+    <Suspense fallback={<DestinationSkeleton />}>
+      <DestinationContent />
+    </Suspense>
+  )
+}
+```
+
+## When Generating Code
+
+### Always Include:
+- ✅ **Proper TypeScript types** for all props and variables
+- ✅ **Error handling** with try/catch or error states
+- ✅ **Loading states** for async operations
+- ✅ **Responsive design** (mobile, tablet, desktop)
+- ✅ **Accessibility** (ARIA labels, semantic HTML, keyboard navigation)
+- ✅ **Comments** for complex logic
+- ✅ **Consistent naming** following project conventions
+
+### Never Do:
+- ❌ Use `any` type
+- ❌ Ignore error handling
+- ❌ Use inline styles (use Tailwind)
+- ❌ Create client components unnecessarily
+- ❌ Hardcode values (use environment variables)
+- ❌ Use emoji in UI text (except category filters)
+- ❌ Create overly complex components (keep them focused)
+
+## AI-Specific Instructions
+
+### When I Ask You To:
+
+**"Create a component":**
+- Generate a complete, typed React component
+- Include props interface
+- Add proper imports
+- Include basic styling with Tailwind
+- Add loading and error states if applicable
+
+**"Add a feature":**
+- Explain the approach first
+- Show which files need to be modified
+- Provide complete code for each file
+- Include any new dependencies needed
+
+**"Fix a bug":**
+- Identify the root cause
+- Explain the issue
+- Provide the corrected code
+- Suggest how to prevent similar issues
+
+**"Refactor code":**
+- Explain what will be improved
+- Show before/after comparison
+- Ensure no functionality is lost
+- Maintain or improve type safety
+
+**"Optimize performance":**
+- Identify bottlenecks
+- Suggest React Server Components where applicable
+- Recommend caching strategies
+- Use Next.js Image component for images
+
+## Example Queries You Might Receive
+
+**"Add a search feature":**
+```typescript
+// I'll create:
+// 1. SearchBar component with debounced input
+// 2. Search API endpoint using tRPC
+// 3. Integration with Supabase full-text search
+// 4. Loading and empty states
+```
+
+**"Implement destination filtering":**
+```typescript
+// I'll create:
+// 1. Filter component with category, city, price range
+// 2. URL state management with searchParams
+// 3. Filtered query to Supabase
+// 4. Clear filters button
+```
+
+**"Add authentication":**
+```typescript
+// I'll implement:
+// 1. Supabase Auth integration
+// 2. Login/signup forms
+// 3. Protected routes
+// 4. User session management
+```
+
+## Testing Approach
+- Write tests for utility functions
+- Test API routes with mock data
+- Use React Testing Library for component tests
+- Prefer integration tests over unit tests
+- Test accessibility with axe-core
+
+## Performance Considerations
+- Use Next.js Image component for all images
+- Implement infinite scroll for long lists
+- Use React Server Components by default
+- Lazy load heavy components
+- Optimize Supabase queries (select only needed fields)
+- Use Vercel Edge Functions for API routes when possible
+
+## Security Best Practices
+- Never expose service role keys in client code
+- Use Supabase RLS for data access control
+- Validate all user inputs
+- Sanitize data before rendering
+- Use environment variables for sensitive data
+- Implement rate limiting on API routes
+
+## Deployment
+- **Platform:** Vercel
+- **Environment variables:** Set in Vercel dashboard
+- **Automatic deployments:** Push to `main` branch
+- **Preview deployments:** All PRs get preview URLs
+- **Edge runtime:** Use for API routes when possible
+
+## Additional Context
+- The project is in active development
+- Focus on user experience and performance
+- Maintain the editorial, magazine-like aesthetic
+- All destinations are manually curated for quality
+- Target audience: Design-conscious travelers and urban explorers
+
+## When In Doubt
+- Prioritize **simplicity** over complexity
+- Follow **Next.js best practices**
+- Maintain **type safety**
+- Keep the **minimalist aesthetic**
+- Ask clarifying questions if requirements are unclear
+
+---
+
+Remember: Urban Manual is about curation, quality, and a beautiful user experience. Every line of code should reflect that philosophy.
+

@@ -1,0 +1,238 @@
+[
+  {
+    "slug": "eslite-hotel",
+    "vibe_tags": [
+      "polished",
+      "book-themed",
+      "posh",
+      "elegant"
+    ],
+    "architectural_style": null,
+    "keywords": [
+      "hotel",
+      "book-themed cafe",
+      "steakhouse",
+      "lobby bar",
+      "polished",
+      "luxurious",
+      "dining",
+      "accommodation"
+    ]
+  },
+  {
+    "slug": "troutbeck",
+    "vibe_tags": [
+      "warm",
+      "cozy",
+      "rustic",
+      "country"
+    ],
+    "architectural_style": "enduring estate",
+    "keywords": [
+      "lodging",
+      "free Wi-Fi",
+      "breakfast included",
+      "country views",
+      "trout pools",
+      "estate hotel",
+      "nature retreat"
+    ]
+  },
+  {
+    "slug": "hotel-kinsley",
+    "vibe_tags": [
+      "chic",
+      "polished",
+      "charming",
+      "plant-filled"
+    ],
+    "architectural_style": null,
+    "keywords": [
+      "hotel",
+      "restaurant",
+      "lobby bar",
+      "sauna",
+      "chic quarters",
+      "polished hotel",
+      "plant-filled restaurant",
+      "charming atmosphere"
+    ]
+  },
+  {
+    "slug": "vila-foz-hotel-spa",
+    "vibe_tags": [
+      "modern",
+      "elegant",
+      "chic",
+      "luxurious"
+    ],
+    "architectural_style": null,
+    "keywords": [
+      "hotel",
+      "spa",
+      "restaurants",
+      "bar",
+      "modern quarters",
+      "elegant hotel",
+      "luxurious stay",
+      "chic bar"
+    ]
+  },
+  {
+    "slug": "dover-street-market-london",
+    "vibe_tags": [
+      "cool",
+      "luxurious",
+      "multi-story",
+      "fashion-forward"
+    ],
+    "architectural_style": null,
+    "keywords": [
+      "Dover Street Market",
+      "London",
+      "luxury designers",
+      "clothes emporium",
+      "multi-brand",
+      "fashion",
+      "designer brands",
+      "shopping"
+    ]
+  },
+  {
+    "slug": "dover-street-market-ginza",
+    "vibe_tags": [
+      "luxurious",
+      "high-end",
+      "fashion-forward",
+      "exclusive"
+    ],
+    "architectural_style": null,
+    "keywords": [
+      "designer clothing",
+      "men's fashion",
+      "women's fashion",
+      "accessories",
+      "high-end fashion",
+      "Paris origins",
+      "luxury retail",
+      "Dover Street Market"
+    ]
+  },
+  {
+    "slug": "taichung-green-museumbrary",
+    "vibe_tags": [
+      "striking",
+      "iconic",
+      "reflective",
+      "explorative"
+    ],
+    "architectural_style": null,
+    "keywords": [
+      "Taichung Green Museumbrary",
+      "Taichung",
+      "sanaa sejima and nishizawa",
+      "museum",
+      "library",
+      "culture",
+      "design",
+      "architecture"
+    ]
+  },
+  {
+    "slug": "toranomon-hills",
+    "vibe_tags": [
+      "distinctive",
+      "modern",
+      "urban",
+      "noteworthy"
+    ],
+    "architectural_style": "metropolitan architecture",
+    "keywords": [
+      "Toranomon Hills",
+      "Tokyo landmark",
+      "OMA office",
+      "modern architecture",
+      "urban design",
+      "distinctive features",
+      "metropolitan architecture"
+    ]
+  },
+  {
+    "slug": "dolce-tacubo-caffe",
+    "vibe_tags": [
+      "inviting",
+      "seasonal",
+      "quality-focused",
+      "consistent"
+    ],
+    "architectural_style": null,
+    "keywords": [
+      "Tokyo cafe",
+      "Dolce Tacubo Caffe",
+      "seasonal ingredients",
+      "tacubo brand",
+      "quality cafe",
+      "consistent experience",
+      "must-visit cafe",
+      "inviting atmosphere"
+    ]
+  },
+  {
+    "slug": "sta-azabudai",
+    "vibe_tags": [
+      "innovative",
+      "stylish",
+      "modern",
+      "trendy"
+    ],
+    "architectural_style": null,
+    "keywords": [
+      "Sta. Azabudai",
+      "Tokyo",
+      "innovative dishes",
+      "stylish ambiance",
+      "modern dining",
+      "unique cuisine",
+      "trendy spot"
+    ]
+  },
+  {
+    "slug": "the-sky-taipei",
+    "vibe_tags": [
+      "modern",
+      "functional",
+      "design-focused",
+      "elegant"
+    ],
+    "architectural_style": "antonio citterio patricia viel",
+    "keywords": [
+      "The Sky Taipei",
+      "hotel",
+      "Taipei",
+      "antonio citterio patricia viel",
+      "design",
+      "function",
+      "architecture",
+      "luxury hotel"
+    ]
+  },
+  {
+    "slug": "bon-broth",
+    "vibe_tags": [
+      "fresh",
+      "local",
+      "global",
+      "charming"
+    ],
+    "architectural_style": null,
+    "keywords": [
+      "Bon Broth",
+      "Singapore",
+      "dining",
+      "food scene",
+      "local charm",
+      "global flair",
+      "fresh twist"
+    ]
+  }
+]
