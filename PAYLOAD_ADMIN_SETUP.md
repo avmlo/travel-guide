@@ -38,7 +38,8 @@ Choose one of these options:
 
 ```bash
 # REQUIRED - Your PostgreSQL connection string
-DATABASE_URL=postgresql://user:password@host:port/database
+# Note: Vercel Postgres automatically sets POSTGRES_URL
+POSTGRES_URL=postgresql://user:password@host:port/database
 
 # REQUIRED - Generate with: openssl rand -base64 32
 PAYLOAD_SECRET=<your-secure-random-string>
@@ -48,6 +49,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-key
 SUPABASE_SERVICE_ROLE_KEY=placeholder-service-key
 ```
+
+**Note:** If you're using Vercel Postgres, the `POSTGRES_URL` is automatically set when you create the database. You only need to add `PAYLOAD_SECRET`.
 
 ### Step 3: Redeploy
 
@@ -76,7 +79,7 @@ Once deployed with the correct database URL:
 
 2. Update `.env` with your local PostgreSQL connection:
    ```bash
-   DATABASE_URL=postgresql://user:password@localhost:5432/urban_manual
+   POSTGRES_URL=postgresql://user:password@localhost:5432/urban_manual
    PAYLOAD_SECRET=$(openssl rand -base64 32)
    ```
 
@@ -97,14 +100,14 @@ Payload CMS automatically creates the necessary database tables on first run. Yo
 
 ### Error: "Application error: a server-side exception"
 - **Cause**: Database connection failed
-- **Fix**: Verify your `DATABASE_URL` is correct and the database is accessible
+- **Fix**: Verify your `POSTGRES_URL` is correct and the database is accessible
 
 ### Error: "Connection refused"
 - **Cause**: PostgreSQL database is not running or not accessible
 - **Fix**: Check your database service is running
 
 ### Error: "Invalid credentials"
-- **Cause**: Wrong username/password in `DATABASE_URL`
+- **Cause**: Wrong username/password in `POSTGRES_URL`
 - **Fix**: Update the connection string with correct credentials
 
 ### Error: "PAYLOAD_SECRET is required"
