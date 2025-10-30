@@ -1,6 +1,4 @@
-import { Input } from './ui/input';
 import { Search } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 interface GreetingHeroProps {
   searchQuery: string;
@@ -59,41 +57,27 @@ export default function GreetingHero({
             <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999]">
               <Search className="w-full h-full" strokeWidth={1.5} />
             </div>
-            <Input
+            <input
               placeholder="Search places..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="h-[44px] pl-[44px] bg-white border border-[#e0e0e0] rounded-[4px] font-['Inter:Regular',sans-serif] text-[14px] text-[#333333] placeholder:text-[#999999] text-center"
+              className="h-[44px] w-full pl-[44px] bg-white border border-[#e0e0e0] rounded-[4px] font-['Inter:Regular',sans-serif] text-[14px] text-[#333333] placeholder:text-[#999999] text-center outline-none"
             />
           </div>
         </div>
 
         {/* Category Filter */}
         <div className="mb-6">
-          <Select value={categoryFilter} onValueChange={onCategoryChange}>
-            <SelectTrigger className="h-[44px] w-full bg-white border border-[#e0e0e0] rounded-[4px] font-['Inter:Regular',sans-serif] text-[14px] text-[#333333]">
-              <SelectValue>
-                <span>{categoryFilter === 'all' ? 'All Categories' : categoryFilter}</span>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-white border-[#e0e0e0]">
-              <SelectItem
-                value="all"
-                className="font-['Inter:Regular',sans-serif] text-[14px] cursor-pointer"
-              >
-                All Categories
-              </SelectItem>
-              {categories.filter(c => c !== 'all').map((category) => (
-                <SelectItem
-                  key={category}
-                  value={category}
-                  className="font-['Inter:Regular',sans-serif] text-[14px] cursor-pointer"
-                >
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={categoryFilter}
+            onChange={(e) => onCategoryChange(e.target.value)}
+            className="h-[44px] w-full bg-white border border-[#e0e0e0] rounded-[4px] font-['Inter:Regular',sans-serif] text-[14px] text-[#333333] px-3"
+          >
+            <option value="all">All Categories</option>
+            {categories.filter(c => c !== 'all').map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
         </div>
       </div>
     </div>
