@@ -19,6 +19,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="The Urban Manual RSS Feed"
+          href="/feed.xml"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
