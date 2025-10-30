@@ -16,6 +16,7 @@ import {
   trackFilterChange,
   getSessionId,
 } from '@/lib/tracking';
+import GreetingHero from '@/components/GreetingHero';
 
 // Dynamically import MapView to avoid SSR issues
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
@@ -363,6 +364,16 @@ export default function Home() {
   return (
     <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
       <div className="max-w-[1920px] mx-auto">
+        {/* Greeting Hero above the search bar */}
+        <div className="mb-8">
+          <GreetingHero
+            searchQuery={searchTerm}
+            onSearchChange={setSearchTerm}
+            categoryFilter={selectedCategory || 'all'}
+            onCategoryChange={(value) => setSelectedCategory(value === 'all' ? '' : value)}
+            categories={["all", ...categories]}
+          />
+        </div>
         {/* Search Bar */}
         <div className="mb-8">
           <div className="relative max-w-md">
