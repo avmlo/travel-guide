@@ -35,14 +35,14 @@ export default function GreetingHero({
   });
 
   return (
-    <div className="w-full pt-8 pb-4" data-name="Greeting and Filters">
+    <div className="w-full pt-10 pb-6" data-name="Greeting and Filters">
       <div className="max-w-[680px] mx-auto px-[24px]">
         {/* Greeting */}
-        <div className="text-center mb-2">
-          <h1 className="font-['Inter:Regular',sans-serif] text-[11px] text-[#999999] uppercase tracking-[2px] mb-1">
+        <div className="text-center mb-3">
+          <h1 className="font-['Inter:Regular',sans-serif] text-[12px] text-[#6b7280] uppercase tracking-[2px] mb-1 font-medium">
             {greeting}
           </h1>
-          <p className="font-['Inter:Regular',sans-serif] text-[11px] text-[#999999]">
+          <p className="font-['Inter:Regular',sans-serif] text-[12px] text-[#6b7280]">
             Today is {dateStr}, {timeStr}
           </p>
         </div>
@@ -58,12 +58,12 @@ export default function GreetingHero({
                 placeholder="Search places..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="h-[44px] w-full pl-[44px] bg-white border border-[#e0e0e0] rounded-[4px] font-['Inter:Regular',sans-serif] text-[14px] text-[#333333] placeholder:text-[#999999] text-center outline-none"
+                className="h-12 w-full pl-[44px] bg-gray-100 border border-transparent rounded-2xl font-['Inter:Regular',sans-serif] text-[15px] text-black placeholder:text-[#9ca3af] text-center outline-none focus:ring-2 focus:ring-black"
               />
             </div>
             <button
               onClick={onOpenFilters}
-              className="flex items-center gap-2 px-4 h-[44px] bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-[8px] text-sm font-medium"
+              className="flex items-center gap-2 px-4 h-12 bg-black text-white hover:opacity-90 rounded-2xl text-sm font-medium"
               aria-label="Open filters"
             >
               <SlidersHorizontal className="h-4 w-4" />
