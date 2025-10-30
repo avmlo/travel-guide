@@ -6,8 +6,6 @@ import { supabase } from "@/lib/supabase";
 import {
   MapPin, Heart, CheckCircle2, Map, Loader2, User
 } from "lucide-react";
-import { Header } from "@/components/Header";
-import { SimpleFooter } from "@/components/SimpleFooter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -218,7 +216,6 @@ export default function Account() {
   if (!authChecked || isLoadingData) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-950">
-        <Header />
         <main className="px-6 md:px-10 py-12">
           <div className="max-w-7xl mx-auto flex items-center justify-center h-[50vh]">
             <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -232,7 +229,6 @@ export default function Account() {
   if (!user) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-950">
-        <Header />
         <main className="px-6 md:px-10 py-12 dark:text-white">
           <div className="max-w-md mx-auto">
             <Card className="p-8">
@@ -255,15 +251,12 @@ export default function Account() {
             </Card>
           </div>
         </main>
-        <SimpleFooter />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-      <Header />
-
       <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
