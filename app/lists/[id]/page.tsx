@@ -63,20 +63,17 @@ export default function ListDetailPage() {
   const [searchResults, setSearchResults] = useState<Destination[]>([]);
   const [searching, setSearching] = useState(false);
 
+  // Allow viewing public lists without requiring auth
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/login');
-    }
-  }, [user, authLoading, router]);
-
-  useEffect(() => {
-    if (user && listId) {
+    if (!authLoading) {
       fetchListDetails();
     }
-  }, [user, listId]);
+  }, [authLoading, user, listId]);
+
+  
 
   const fetchListDetails = async () => {
-    if (!user) return;
+    if (!listId) return;
     setLoading(true);
 
     // Fetch list details
@@ -84,11 +81,16 @@ export default function ListDetailPage() {
       .from('lists')
       .select('*')
       .eq('id', listId)
-      .eq('user_id', user.id)
       .single();
 
     if (listError || !listData) {
       console.error('Error fetching list:', listError);
+      router.push('/lists');
+      return;
+    }
+
+    // If list is private and user is not the owner, block access
+    if (!listData.is_public && listData.user_id !== user?.id) {
       router.push('/lists');
       return;
     }
@@ -246,7 +248,7 @@ export default function ListDetailPage() {
     );
   }
 
-  if (!user || !list) {
+  if (!list) {
     return null;
   }
 
@@ -293,34 +295,40 @@ export default function ListDetailPage() {
                   <span>Share</span>
                 </button>
               )}
-              <button
-                onClick={() => setShowEditModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <Edit2 className="h-4 w-4" />
-                <span>Edit</span>
-              </button>
-              <button
-                onClick={deleteList}
-                className="flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>Delete</span>
-              </button>
+              {user?.id === list.user_id && (
+                <>
+                  <button
+                    onClick={() => setShowEditModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={deleteList}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
 
         {/* Add Destination Button */}
-        <div className="mb-6">
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Place</span>
-          </button>
-        </div>
+        {user?.id === list.user_id && (
+          <div className="mb-6">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Place</span>
+            </button>
+          </div>
+        )}
 
         {/* Destinations Grid */}
         {destinations.length === 0 ? (
