@@ -509,16 +509,16 @@ export default function Home() {
         {!searchTerm && (
           <div className="mb-8 text-center">
             <div className="max-w-[680px] mx-auto px-[24px]">
-              <div className="flex flex-wrap justify-center gap-x-3 gap-y-3 text-sm">
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs">
               <button
                 onClick={() => {
                   setSelectedCity("");
                   trackFilterChange({ filterType: 'city', value: 'all' });
                 }}
-                  className={`px-3 py-1.5 rounded-full transition-all ${
+                  className={`transition-all ${
                   !selectedCity
-                    ? "bg-black text-white dark:bg-white dark:text-black"
-                    : "bg-gray-100 dark:bg-gray-800 text-black/70 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    ? "font-medium text-black dark:text-white"
+                    : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
                   }`}
               >
                 All
@@ -531,10 +531,10 @@ export default function Home() {
                     setSelectedCity(newCity);
                     trackFilterChange({ filterType: 'city', value: newCity || 'all' });
                   }}
-                    className={`px-3 py-1.5 rounded-full transition-all ${
+                    className={`transition-all ${
                       selectedCity === city
-                        ? "bg-black text-white dark:bg.white dark:text-black"
-                        : "bg-gray-100 dark:bg-gray-800 text-black/70 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        ? "font-medium text-black dark:text-white"
+                        : "font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300"
                     }`}
                 >
                   {capitalizeCity(city)}
@@ -543,7 +543,7 @@ export default function Home() {
               {cities.length > 20 && (
                 <button
                   onClick={() => setShowAllCities(!showAllCities)}
-                    className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-black/70 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    className="font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300 transition-colors"
                 >
                   {showAllCities ? '- Show Less' : '+ Show More'}
                 </button>
