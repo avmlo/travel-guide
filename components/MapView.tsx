@@ -22,9 +22,16 @@ export default function MapView({
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Prefer a valid API key from multiple env var names for compatibility
+  const getApiKey = () =>
+    process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+    || process.env.NEXT_PUBLIC_MAPS_API_KEY
+    || process.env.MAPS_API_KEY
+    || '';
+
   // Load Google Maps script
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+    const apiKey = getApiKey();
     if (!apiKey) {
       setError('Google Maps API key is not configured. Please add NEXT_PUBLIC_GOOGLE_API_KEY to your environment variables.');
       console.error('Google Maps API key is not configured');
