@@ -135,46 +135,29 @@ export function Header() {
         </div>
       )}
 
-      {/* Mobile Menu */}
+      {/* Burger Menu Dropdown (all breakpoints) */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <div className="px-6 py-4 space-y-3">
-            <button onClick={() => navigate("/")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Catalogue</button>
-            <button onClick={() => navigate("/cities")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Cities</button>
-            <button onClick={() => navigate("/explore")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Explore</button>
-            <button onClick={() => navigate("/lists")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Lists</button>
-            <button onClick={() => navigate("/feed")} className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2">Feed</button>
-
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-800">
+        <>
+          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setIsMenuOpen(false)} />
+          <div className="fixed right-4 top-16 z-50 w-64 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
+            <div className="py-2">
+              <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Catalogue</button>
+              <button onClick={() => { navigate('/cities'); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Cities</button>
+              <button onClick={() => { navigate('/explore'); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Explore</button>
+              <button onClick={() => { navigate('/lists'); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Lists</button>
+              <button onClick={() => { navigate('/feed'); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Feed</button>
+              <div className="my-2 border-t border-gray-200 dark:border-gray-800" />
               {user ? (
                 <>
-                  <button
-                    onClick={() => navigate('/account')}
-                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-                  >
-                    Account
-                  </button>
-                  <button
-                    onClick={async () => {
-                      await signOut();
-                      navigate('/');
-                    }}
-                    className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-                  >
-                    Sign Out
-                  </button>
+                  <button onClick={() => { navigate('/account'); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Account</button>
+                  <button onClick={async () => { await signOut(); setIsMenuOpen(false); navigate('/'); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Sign Out</button>
                 </>
               ) : (
-                <button
-                  onClick={() => navigate('/auth/login')}
-                  className="block w-full text-left text-sm font-bold uppercase hover:opacity-60 transition-opacity py-2"
-                >
-                  Sign In
-                </button>
+                <button onClick={() => { navigate('/auth/login'); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Sign In</button>
               )}
             </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );
