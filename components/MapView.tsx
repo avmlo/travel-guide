@@ -22,12 +22,8 @@ export default function MapView({
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Prefer a valid API key from multiple env var names for compatibility
-  const getApiKey = () =>
-    process.env.NEXT_PUBLIC_GOOGLE_API_KEY
-    || process.env.NEXT_PUBLIC_MAPS_API_KEY
-    || process.env.MAPS_API_KEY
-    || '';
+  // Use only the canonical env var
+  const getApiKey = () => process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '';
 
   // Load Google Maps script
   useEffect(() => {
