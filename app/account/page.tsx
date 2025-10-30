@@ -556,7 +556,6 @@ export default function Account() {
         </div>
       </main>
 
-      <SimpleFooter />
     </div>
   );
 }
