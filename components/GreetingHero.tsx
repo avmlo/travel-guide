@@ -1,19 +1,15 @@
-import { Search } from 'lucide-react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 
 interface GreetingHeroProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  categoryFilter: string;
-  onCategoryChange: (value: string) => void;
-  categories: string[];
+  onOpenFilters: () => void;
 }
 
 export default function GreetingHero({
   searchQuery,
   onSearchChange,
-  categoryFilter,
-  onCategoryChange,
-  categories,
+  onOpenFilters,
 }: GreetingHeroProps) {
   // Get current time for greeting
   const now = new Date();
@@ -39,7 +35,7 @@ export default function GreetingHero({
   });
 
   return (
-    <div className="w-full bg-[#f5f5f5] pt-12 pb-8" data-name="Greeting and Filters">
+    <div className="w-full pt-8 pb-4" data-name="Greeting and Filters">
       <div className="max-w-[680px] mx-auto px-[24px]">
         {/* Greeting */}
         <div className="text-center mb-2">
@@ -52,32 +48,28 @@ export default function GreetingHero({
         </div>
 
         {/* Search Bar */}
-        <div className="mt-8 mb-4">
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999]">
-              <Search className="w-full h-full" strokeWidth={1.5} />
+        <div className="mt-8 mb-2">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999]">
+                <Search className="w-full h-full" strokeWidth={1.5} />
+              </div>
+              <input
+                placeholder="Search places..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="h-[44px] w-full pl-[44px] bg-white border border-[#e0e0e0] rounded-[4px] font-['Inter:Regular',sans-serif] text-[14px] text-[#333333] placeholder:text-[#999999] text-center outline-none"
+              />
             </div>
-            <input
-              placeholder="Search places..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="h-[44px] w-full pl-[44px] bg-white border border-[#e0e0e0] rounded-[4px] font-['Inter:Regular',sans-serif] text-[14px] text-[#333333] placeholder:text-[#999999] text-center outline-none"
-            />
+            <button
+              onClick={onOpenFilters}
+              className="flex items-center gap-2 px-4 h-[44px] bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-[8px] text-sm font-medium"
+              aria-label="Open filters"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filters
+            </button>
           </div>
-        </div>
-
-        {/* Category Filter */}
-        <div className="mb-6">
-          <select
-            value={categoryFilter}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            className="h-[44px] w-full bg-white border border-[#e0e0e0] rounded-[4px] font-['Inter:Regular',sans-serif] text-[14px] text-[#333333] px-3"
-          >
-            <option value="all">All Categories</option>
-            {categories.filter(c => c !== 'all').map((category) => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
         </div>
       </div>
     </div>

@@ -365,56 +365,14 @@ export default function Home() {
     <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
       <div className="max-w-[1920px] mx-auto">
         {/* Greeting Hero above the search bar */}
-        <div className="mb-8">
+        <div className="mb-6">
           <GreetingHero
             searchQuery={searchTerm}
             onSearchChange={setSearchTerm}
-            categoryFilter={selectedCategory || 'all'}
-            onCategoryChange={(value) => setSelectedCategory(value === 'all' ? '' : value)}
-            categories={["all", ...categories]}
+            onOpenFilters={() => setIsFiltersOpen(true)}
           />
         </div>
-        {/* Search Bar */}
-        <div className="mb-8">
-          <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder={`Search destinations...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
-            />
-            {searching && (
-              <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                <div className="animate-spin h-4 w-4 border-2 border-gray-300 dark:border-gray-600 border-t-black dark:border-t-white rounded-full"></div>
-              </div>
-            )}
-          </div>
-          {searchTier && searchTerm.trim().length > 2 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              {searchTier === 'discovery-engine' && '🔍 Discovery Engine search'}
-              {searchTier === 'gemini-semantic' && '🧠 AI semantic search'}
-              {searchTier === 'basic' && '⚡ Keyword search'}
-            </p>
-          )}
-        </div>
-
-        {/* Filters Button */}
-        <div className="mb-6">
-          <button
-            onClick={() => setIsFiltersOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            <span>Filters</span>
-            {(selectedCategory || openNowOnly) && (
-              <span className="ml-1 px-2 py-0.5 bg-black dark:bg-white text-white dark:text-black rounded-full text-xs">
-                {[selectedCategory ? 1 : 0, openNowOnly ? 1 : 0].reduce((a, b) => a + b)}
-              </span>
-            )}
-          </button>
-        </div>
+        {/* Old search and standalone filters removed (now inside GreetingHero) */}
 
         {/* Filters Drawer */}
         {isFiltersOpen && (
@@ -549,11 +507,8 @@ export default function Home() {
 
         {/* City Filter - Hidden during search */}
         {!searchTerm && (
-          <div className="mb-8">
-            <div className="mb-3">
-              <h2 className="text-xs font-bold uppercase">Places</h2>
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+          <div className="mb-8 text-center">
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs">
               <button
                 onClick={() => {
                   setSelectedCity("");
