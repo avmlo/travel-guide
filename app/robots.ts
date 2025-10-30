@@ -7,6 +7,9 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/admin/'],
     },
-    sitemap: 'https://theurbanmanual.com/sitemap.xml',
+    sitemap: [
+      'https://theurbanmanual.com/sitemap.xml',
+      'https://theurbanmanual.com/feed.xml',
+    ],
   };
 }
