@@ -21,8 +21,8 @@ export default function RootLayout({
       <head>
         <link
           rel="alternate"
-          type="application/rss+xml"
-          title="The Urban Manual RSS Feed"
+          type="application/atom+xml"
+          title="The Urban Manual Atom Feed"
           href="/feed.xml"
         />
         <script

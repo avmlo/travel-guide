@@ -22,9 +22,9 @@ export async function GET() {
       favicon: `${baseUrl}/favicon.ico`,
       copyright: `All rights reserved ${new Date().getFullYear()}, The Urban Manual`,
       updated: new Date(),
-      generator: 'The Urban Manual RSS Generator',
+      generator: 'The Urban Manual Atom Feed Generator',
       feedLinks: {
-        rss2: `${baseUrl}/feed.xml`,
+        atom: `${baseUrl}/feed.xml`,
       },
     });
 
@@ -36,7 +36,7 @@ export async function GET() {
       .limit(100); // Limit to most recent 100 destinations
 
     if (error) {
-      console.error('RSS Feed: Could not fetch destinations from Supabase:', error.message);
+      console.error('Atom Feed: Could not fetch destinations from Supabase:', error.message);
     } else if (destinations) {
       // Add each destination to the feed
       (destinations as Destination[]).forEach((dest) => {
@@ -84,18 +84,18 @@ export async function GET() {
       });
     }
 
-    // Generate RSS 2.0 XML
-    const rss = feed.rss2();
+    // Generate Atom 1.0 XML
+    const atom = feed.atom1();
 
-    // Return the RSS feed with proper content type
-    return new NextResponse(rss, {
+    // Return the Atom feed with proper content type
+    return new NextResponse(atom, {
       headers: {
-        'Content-Type': 'application/rss+xml; charset=utf-8',
+        'Content-Type': 'application/atom+xml; charset=utf-8',
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
       },
     });
   } catch (error) {
-    console.error('RSS Feed generation error:', error);
-    return new NextResponse('Error generating RSS feed', { status: 500 });
+    console.error('Atom Feed generation error:', error);
+    return new NextResponse('Error generating Atom feed', { status: 500 });
   }
 }
