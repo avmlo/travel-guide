@@ -508,7 +508,8 @@ export default function Home() {
         {/* City Filter - Hidden during search */}
         {!searchTerm && (
           <div className="mb-8 text-center">
-            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs">
+            <div className="max-w-[680px] mx-auto px-[24px]">
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs">
               <button
                 onClick={() => {
                   setSelectedCity("");
@@ -547,6 +548,7 @@ export default function Home() {
                   {showAllCities ? '- Show Less' : '+ Show More'}
                 </button>
               )}
+              </div>
             </div>
           </div>
         )}
