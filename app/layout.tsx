@@ -19,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="color-scheme" content="dark light" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -28,6 +29,7 @@ export default function RootLayout({
                 const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
                 if (shouldBeDark) {
                   document.documentElement.classList.add('dark');
+                  document.documentElement.style.colorScheme = 'dark';
                 }
               })();
             `,

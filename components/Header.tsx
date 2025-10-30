@@ -55,13 +55,9 @@ export function Header() {
     const newDarkState = !isDark;
     setIsDark(newDarkState);
 
-    if (newDarkState) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    document.documentElement.classList.toggle('dark', newDarkState);
+    document.documentElement.style.colorScheme = newDarkState ? 'dark' : 'light';
+    localStorage.setItem('theme', newDarkState ? 'dark' : 'light');
   };
 
   return (
