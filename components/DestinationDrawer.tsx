@@ -494,9 +494,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
               <h1 className="text-3xl font-bold flex-1">
                 {destination.name}
               </h1>
-              {destination.crown && (
-                <span className="text-3xl flex-shrink-0">👑</span>
-              )}
+              {/* Crown hidden for now */}
             </div>
 
             {/* Meta Info */}
@@ -857,9 +855,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                             <MapPin className="h-8 w-8 opacity-20" />
                           </div>
                         )}
-                        {rec.crown && (
-                          <div className="absolute top-2 left-2 text-lg">👑</div>
-                        )}
+                        {/* Crown hidden for now */}
                         {rec.michelin_stars && rec.michelin_stars > 0 && (
                           <div className="absolute bottom-2 left-2 bg-white dark:bg-gray-900 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-0.5">
                             <img

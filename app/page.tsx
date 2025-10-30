@@ -624,11 +624,7 @@ export default function Home() {
                   )}
 
                   {/* Crown Badge */}
-                  {destination.crown && (
-                    <div className="absolute top-2 left-2 rounded-full bg-black/70 p-1">
-                      <Star className="h-4 w-4 text-white" />
-                    </div>
-                  )}
+                  {/* Feature badge hidden for now */}
 
                   {/* Michelin Stars */}
                   {destination.michelin_stars && destination.michelin_stars > 0 && (
