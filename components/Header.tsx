@@ -29,22 +29,7 @@ export function Header() {
     }
   }, []);
 
-  // Update time every minute
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(now.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }));
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // (Removed time display)
 
   const navigate = (path: string) => {
     router.push(path);
@@ -98,10 +83,6 @@ export function Header() {
 
           {/* Right Side */}
           <div className="flex items-center gap-4">
-            <span className="hidden sm:inline text-xs font-bold uppercase">New York</span>
-            {currentTime && (
-              <span className="hidden sm:inline text-xs font-bold">{currentTime}</span>
-            )}
             {mounted && (
               <button onClick={toggleDark} className="p-2 hover:opacity-60 transition-opacity">
                 {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}

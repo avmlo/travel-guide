@@ -63,11 +63,10 @@ export default function GreetingHero({
             </div>
             <button
               onClick={onOpenFilters}
-              className="flex items-center gap-2 px-4 h-12 bg-black text-white hover:opacity-90 rounded-2xl text-sm font-medium"
+              className="flex items-center justify-center w-12 h-12 bg-black text-white hover:opacity-90 rounded-2xl"
               aria-label="Open filters"
             >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
+              <SlidersHorizontal className="h-5 w-5" />
             </button>
           </div>
         </div>

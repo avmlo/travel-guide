@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { CARD_WRAPPER, CARD_MEDIA, CARD_TITLE } from '@/components/CardStyles';
 
 interface List {
   id: string;
@@ -345,9 +346,9 @@ export default function ListDetailPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {destinations.map((destination) => (
-              <div key={destination.slug} className="group relative">
+              <div key={destination.slug} className={`${CARD_WRAPPER}`}>
                 <Link href={`/destination/${destination.slug}`}>
-                  <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-2xl mb-2 hover-lift">
+                  <div className={`${CARD_MEDIA} mb-2 hover-lift`}>
                     {destination.image && (
                       <Image
                         src={destination.image}
@@ -359,7 +360,7 @@ export default function ListDetailPage() {
                     )}
                   </div>
                   <div className="space-y-0.5">
-                    <h3 className="font-medium text-sm leading-tight line-clamp-2 min-h-[2.5rem] text-black dark:text-white">
+                    <h3 className={`${CARD_TITLE} min-h-[2.5rem]`}>
                       {destination.name}
                     </h3>
                     <div className="flex items-center gap-1.5">

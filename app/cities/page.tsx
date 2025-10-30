@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
-import { MapPin, Search, ChevronRight } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
+import { CARD_MEDIA, CARD_TITLE } from '@/components/CardStyles';
 import { cityCountryMap } from '@/data/cityCountryMap';
 
 interface CityStats {
@@ -83,20 +84,18 @@ export default function CitiesPage() {
 
   return (
     <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        {/* Hero Section */}
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3">
-            Cities
-          </h1>
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400">
+      <div className="max-w-[1000px] mx-auto">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2">Cities</h1>
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
             Discover {cityStats.length} cities around the world
           </p>
         </div>
 
-        {/* Search Bar */}
+        {/* Search */}
         <div className="mb-8">
-          <div className="relative max-w-md">
+          <div className="relative max-w-[680px] mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
@@ -108,47 +107,33 @@ export default function CitiesPage() {
           </div>
         </div>
 
-        {/* Cities List - App-like cards */}
-        <div className="space-y-3">
-          {filteredCities.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-gray-500">No cities found</p>
-            </div>
-          ) : (
-            filteredCities.map(({ city, country, count }, index) => (
+        {/* Grid */}
+        {filteredCities.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-gray-500">No cities found</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+            {filteredCities.map(({ city, country, count }) => (
               <button
                 key={city}
                 onClick={() => router.push(`/city/${encodeURIComponent(city)}`)}
-                className="group w-full text-left p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 animate-in fade-in slide-in-from-bottom-4"
-                style={{ animationDelay: `${index * 30}ms`, animationDuration: '400ms' }}
+                className="group text-left"
               >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-lg md:text-xl font-bold mb-1 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors truncate">
-                      {capitalizeCity(city)}
-                    </h2>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <MapPin className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate">{country}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-black dark:text-white">
-                        {count}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {count === 1 ? 'place' : 'places'}
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
+                <div className={`${CARD_MEDIA} flex items-center justify-center`}>
+                  <span className="text-3xl md:text-4xl">🏙️</span>
+                </div>
+                <div className="mt-2">
+                  <h2 className={`${CARD_TITLE} md:text-base truncate`}>{capitalizeCity(city)}</h2>
+                  <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    <span className="truncate flex items-center gap-1"><MapPin className="h-3 w-3" />{country}</span>
+                    <span className="ml-2 whitespace-nowrap">{count} {count === 1 ? 'place' : 'places'}</span>
                   </div>
                 </div>
               </button>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );

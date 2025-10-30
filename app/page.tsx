@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
 import { Search, MapPin, Clock, Map, Grid3x3, SlidersHorizontal, X, Star } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
+import { CARD_WRAPPER, CARD_MEDIA, CARD_TITLE, CARD_META } from '@/components/CardStyles';
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 import { useAuth } from '@/contexts/AuthContext';
 import dynamic from 'next/dynamic';
@@ -606,10 +607,10 @@ export default function Home() {
                     source: 'grid',
                   });
                 }}
-                className={`group cursor-pointer text-left ${isVisited ? 'opacity-60' : ''}`}
+                className={`${CARD_WRAPPER} cursor-pointer text-left ${isVisited ? 'opacity-60' : ''}`}
               >
                 {/* Image Container */}
-                <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 mb-2">
+                <div className={`${CARD_MEDIA} mb-2`}>
                   {destination.image ? (
                     <img
                       src={destination.image}
@@ -644,11 +645,11 @@ export default function Home() {
 
                 {/* Info */}
                 <div className="space-y-0.5">
-                  <h3 className="font-medium text-sm leading-tight line-clamp-2 text-black dark:text-white">
+                  <h3 className={`${CARD_TITLE}`}>
                     {destination.name}
                   </h3>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className={`${CARD_META}`}>
                     <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
                       {capitalizeCity(destination.city)}
                     </p>
