@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
-import { Search, MapPin, Clock, Map, Grid3x3, SlidersHorizontal, X } from 'lucide-react';
+import { Search, MapPin, Clock, Map, Grid3x3, SlidersHorizontal, X, Star } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 import { useAuth } from '@/contexts/AuthContext';
@@ -624,8 +624,8 @@ export default function Home() {
 
                   {/* Crown Badge */}
                   {destination.crown && (
-                    <div className="absolute top-2 left-2 text-xl">
-                      👑
+                    <div className="absolute top-2 left-2 rounded-full bg-black/70 p-1">
+                      <Star className="h-4 w-4 text-white" />
                     </div>
                   )}
 
