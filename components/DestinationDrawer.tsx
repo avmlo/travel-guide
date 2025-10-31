@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { X, MapPin, Tag, Heart, Check, Share2, Navigation, Sparkles, ChevronDown, Plus, Loader2, Clock } from 'lucide-react';
-import { AppleMap } from '@/components/AppleMap';
 import { Destination } from '@/types/destination';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
