@@ -96,32 +96,39 @@ export default function AdminPage() {
               <CardTitle>Google Enrichment</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Enrich destinations with Google Places API data. Leave slug empty for batch processing.
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Enrich destinations with Google Places API data. 
+                <br />
+                <strong>Tip:</strong> If batch returns 0 results, all destinations may already be enriched. Try a specific slug to test or re-enrich a destination.
               </p>
               
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                 <input
                   type="text"
                   value={enrichSlug}
                   onChange={(e) => setEnrichSlug(e.target.value)}
-                  placeholder="Destination slug (optional)"
+                  placeholder="Destination slug (optional, recommended)"
                   className="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
                 />
                 <input
                   type="number"
                   value={enrichLimit}
                   onChange={(e) => setEnrichLimit(Number(e.target.value))}
-                  placeholder="Limit"
+                  placeholder="Limit (default: 100)"
                   className="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
                 />
                 <input
                   type="number"
                   value={enrichOffset}
                   onChange={(e) => setEnrichOffset(Number(e.target.value))}
-                  placeholder="Offset"
+                  placeholder="Offset (default: 0)"
                   className="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
                 />
+              </div>
+              
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                <strong>Batch mode:</strong> Finds destinations missing any enrichment data (google_place_id, formatted_address, phone, or website). 
+                If you get 0 results, try enriching a specific destination by slug.
               </div>
 
               <Button
