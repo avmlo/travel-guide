@@ -638,9 +638,9 @@ export default function AdminPage() {
             <div>
               <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
               <div className="flex items-center gap-2">
-                <p className="text-gray-600 dark:text-gray-400">
+                <span className="text-gray-600 dark:text-gray-400">
                   {user?.email}
-                </p>
+                </span>
                 <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs">Admin</Badge>
               </div>
             </div>
@@ -1029,11 +1029,11 @@ export default function AdminPage() {
               <CardTitle>Google Enrichment</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <span className="text-sm text-gray-600 dark:text-gray-400 mb-4 block">
                 Enrich destinations with Google Places API data. 
                 <br />
                 <strong>Tip:</strong> If batch returns 0 results, all destinations may already be enriched. Try a specific slug to test or re-enrich a destination.
-              </p>
+              </span>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                 <input
@@ -1066,7 +1066,7 @@ export default function AdminPage() {
 
               {/* Search for slugs */}
               <div className="border-t border-gray-200 dark:border-gray-800 pt-4 mt-4">
-                <p className="text-sm font-medium mb-2">Find Destination Slug</p>
+                <span className="text-sm font-medium mb-2">Find Destination Slug</span>
                 <div className="flex gap-2 mb-2">
                   <input
                     type="text"

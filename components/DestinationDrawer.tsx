@@ -644,9 +644,9 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             {/* Business Status */}
             {enrichedData?.business_status && enrichedData.business_status !== 'OPERATIONAL' && (
               <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                <span className="text-sm text-yellow-800 dark:text-yellow-200">
                   <strong>Status:</strong> {enrichedData.business_status.replace(/_/g, ' ')}
-                </p>
+                </span>
               </div>
             )}
 
@@ -654,9 +654,9 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             {enrichedData?.editorial_summary && (
               <div className="mt-4">
                 <h3 className="text-sm font-bold uppercase mb-2 text-gray-500 dark:text-gray-400">From Google</h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                   {enrichedData.editorial_summary}
-                </p>
+                </span>
               </div>
             )}
 
@@ -666,10 +666,10 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">Address</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{enrichedData.formatted_address}</p>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">Address</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">{enrichedData.formatted_address}</span>
                     {enrichedData.vicinity && enrichedData.vicinity !== enrichedData.formatted_address && (
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{enrichedData.vicinity}</p>
+                      <span className="text-xs text-gray-500 dark:text-gray-500 mt-1">{enrichedData.vicinity}</span>
                     )}
                   </div>
                 </div>
@@ -679,7 +679,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             {/* Place Types */}
             {enrichedData?.place_types && Array.isArray(enrichedData.place_types) && enrichedData.place_types.length > 0 && (
               <div className="mt-4">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Types</p>
+                <span className="text-xs text-gray-500 dark:text-gray-400 mb-2">Types</span>
                 <div className="flex flex-wrap gap-2">
                   {enrichedData.place_types.slice(0, 5).map((type: string, idx: number) => (
                     <span
@@ -818,9 +818,9 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
           {/* Sign in prompt */}
           {!user && (
             <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 <a href="/auth/login" className="font-medium hover:opacity-60">Sign in</a> to save destinations and track your visits
-              </p>
+              </span>
             </div>
           )}
 
@@ -921,7 +921,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                   <div key={idx} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-medium text-sm">{review.author_name}</p>
+                        <span className="font-medium text-sm">{review.author_name}</span>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-yellow-500">⭐</span>
                           <span className="text-sm text-gray-600 dark:text-gray-400">{review.rating}</span>
@@ -932,7 +932,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                       </div>
                     </div>
                     {review.text && (
-                      <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 line-clamp-3">{review.text}</p>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 mt-2 line-clamp-3">{review.text}</span>
                     )}
                   </div>
                 ))}
@@ -1034,9 +1034,9 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                       <h4 className="font-medium text-xs leading-tight line-clamp-2 mb-1">
                         {rec.name}
                       </h4>
-                      <p className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500">
                         {capitalizeCity(rec.city)}
-                      </p>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -1086,7 +1086,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
               </div>
             ) : userLists.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">You don't have any lists yet</p>
+                <span className="text-gray-500 mb-4">You don't have any lists yet</span>
                 <button
                   onClick={() => {
                     setShowListsModal(false);

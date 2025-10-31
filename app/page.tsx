@@ -609,15 +609,15 @@ export default function Home() {
                   </h3>
 
                   <div className={`${CARD_META}`}>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
+                    <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
                       {capitalizeCity(destination.city)}
-                    </p>
+                    </span>
                     {destination.category && (
                       <>
                         <span className="text-gray-300 dark:text-gray-700">•</span>
-                        <p className="text-xs text-gray-500 dark:text-gray-500 capitalize line-clamp-1">
+                        <span className="text-xs text-gray-500 dark:text-gray-500 capitalize line-clamp-1">
                           {destination.category}
-                        </p>
+                        </span>
                       </>
                     )}
                     </div>

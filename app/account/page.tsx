@@ -248,9 +248,9 @@ export default function Account() {
                 <CardTitle className="text-2xl text-center mb-4">Account</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
+                <span className="text-center text-gray-600 dark:text-gray-400 mb-6 block">
                   User accounts are coming soon. You'll be able to save your favorite places, track visits, and plan trips.
-                </p>
+                </span>
                 <Button
                   onClick={() => router.push('/')}
                   className="w-full"
@@ -276,9 +276,9 @@ export default function Account() {
             <div>
               <h1 className="text-3xl font-bold mb-2">Account</h1>
               <div className="flex items-center gap-2">
-                <p className="text-gray-600 dark:text-gray-400">
+                <span className="text-gray-600 dark:text-gray-400">
                   {user.email}
-                </p>
+                </span>
                 {isAdmin && (
                   <>
                     <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs">Admin</Badge>
@@ -313,9 +313,9 @@ export default function Account() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{visitedPlaces.length}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <span className="text-xs text-muted-foreground mt-1 block">
                       Across {stats.uniqueCities.size} cities
-                    </p>
+                    </span>
                   </CardContent>
                 </Card>
 
@@ -326,9 +326,9 @@ export default function Account() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{savedPlaces.length}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <span className="text-xs text-muted-foreground mt-1 block">
                       Wishlist items
-                    </p>
+                    </span>
                   </CardContent>
                 </Card>
 
@@ -339,9 +339,9 @@ export default function Account() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{stats.uniqueCities.size}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <span className="text-xs text-muted-foreground mt-1 block">
                       Explored
-                    </p>
+                    </span>
                   </CardContent>
                 </Card>
 
@@ -352,9 +352,9 @@ export default function Account() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{stats.uniqueCountries.size}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <span className="text-xs text-muted-foreground mt-1 block">
                       Visited
-                    </p>
+                    </span>
                   </CardContent>
                 </Card>
               </div>
@@ -382,12 +382,12 @@ export default function Account() {
                           )}
                           <div className="flex-1">
                             <h3 className="font-semibold">{place.destination.name}</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="text-sm text-gray-600 dark:text-gray-400 block">
                               {capitalizeCity(place.destination.city)} • {place.destination.category}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-500 mt-1 block">
                               {new Date(place.visited_at).toLocaleDateString()}
-                            </p>
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -403,7 +403,7 @@ export default function Account() {
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <CardTitle>Profile Information</CardTitle>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
                       Manage your personal information
                     </p>
                   </div>
@@ -429,7 +429,7 @@ export default function Account() {
                       disabled
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400"
                     />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
                       Email cannot be changed
                     </p>
                   </div>
@@ -447,7 +447,7 @@ export default function Account() {
                       max={new Date().toISOString().split('T')[0]}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white disabled:bg-gray-50 dark:disabled:bg-gray-900 disabled:text-gray-500 dark:disabled:text-gray-400"
                     />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
                       Your birthday helps us personalize your experience
                     </p>
                   </div>
@@ -492,7 +492,7 @@ export default function Account() {
                 </CardHeader>
                 <CardContent>
                   {savedPlaces.length === 0 ? (
-                    <p className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <span className="text-center py-8 text-gray-500 dark:text-gray-400 block">
                       No saved places yet. Start exploring and save your favorites!
                     </p>
                   ) : (
@@ -512,7 +512,7 @@ export default function Account() {
                           )}
                           <div className="p-4">
                             <h3 className="font-semibold mb-1">{place.destination.name}</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="text-sm text-gray-600 dark:text-gray-400 block">
                               {capitalizeCity(place.destination.city)}
                             </p>
                             <Badge variant="secondary" className="mt-2">
@@ -535,7 +535,7 @@ export default function Account() {
                 </CardHeader>
                 <CardContent>
                   {visitedPlaces.length === 0 ? (
-                    <p className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <span className="text-center py-8 text-gray-500 dark:text-gray-400 block">
                       No visited places yet. Mark places you've been to!
                     </p>
                   ) : (
@@ -555,7 +555,7 @@ export default function Account() {
                           )}
                           <div className="p-4">
                             <h3 className="font-semibold mb-1">{place.destination.name}</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="text-sm text-gray-600 dark:text-gray-400 block">
                               {capitalizeCity(place.destination.city)}
                             </p>
                             <div className="flex items-center justify-between mt-2">
