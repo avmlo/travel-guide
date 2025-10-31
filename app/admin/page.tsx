@@ -29,6 +29,8 @@ export default function AdminPage() {
   const [destinationList, setDestinationList] = useState<any[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [listOffset, setListOffset] = useState(0);
+  const [bulkEnriching, setBulkEnriching] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
 
   // Check authentication
   useEffect(() => {
@@ -214,14 +216,92 @@ export default function AdminPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Enrichment Status</CardTitle>
-                <Button 
-                  onClick={loadEnrichmentStats} 
-                  variant="outline" 
-                  size="sm"
-                  disabled={isLoadingStats}
-                >
-                  {isLoadingStats ? 'Loading...' : 'Refresh'}
-                </Button>
+                <div className="flex gap-2">
+                  {enrichmentStats && enrichmentStats.needsEnrichment > 0 && (
+                    <Button
+                      onClick={async () => {
+                        if (!user?.email || bulkEnriching) return;
+                        setBulkEnriching(true);
+                        setBulkProgress({ current: 0, total: enrichmentStats.needsEnrichment });
+                        
+                        try {
+                          // Get all destinations that need enrichment
+                          const { data: needsEnrichment } = await supabase
+                            .from('destinations')
+                            .select('slug')
+                            .or('google_place_id.is.null,formatted_address.is.null,international_phone_number.is.null,website.is.null')
+                            .order('slug', { ascending: true });
+                          
+                          if (!needsEnrichment || needsEnrichment.length === 0) {
+                            alert('No destinations need enrichment');
+                            return;
+                          }
+                          
+                          let processed = 0;
+                          const batchSize = 10; // Process 10 at a time
+                          
+                          for (let i = 0; i < needsEnrichment.length; i += batchSize) {
+                            const batch = needsEnrichment.slice(i, i + batchSize);
+                            
+                            await Promise.all(
+                              batch.map(async (dest: any) => {
+                                try {
+                                  const res = await fetch('/api/enrich-google', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'x-admin-email': user.email },
+                                    body: JSON.stringify({ slug: dest.slug, limit: 1, offset: 0 })
+                                  });
+                                  const result = await res.json();
+                                  if (result.results?.[0]?.ok) {
+                                    processed++;
+                                  }
+                                } catch (e) {
+                                  console.error(`Error enriching ${dest.slug}:`, e);
+                                }
+                                setBulkProgress({ current: processed, total: needsEnrichment.length });
+                              })
+                            );
+                            
+                            // Small delay between batches to avoid rate limiting
+                            if (i + batchSize < needsEnrichment.length) {
+                              await new Promise(resolve => setTimeout(resolve, 1000));
+                            }
+                          }
+                          
+                          alert(`Bulk enrichment complete! ${processed}/${needsEnrichment.length} destinations enriched.`);
+                          // Refresh stats
+                          await loadEnrichmentStats();
+                          await loadDestinationList();
+                        } catch (e: any) {
+                          console.error('Bulk enrichment error:', e);
+                          alert(`Error during bulk enrichment: ${e.message}`);
+                        } finally {
+                          setBulkEnriching(false);
+                          setBulkProgress({ current: 0, total: 0 });
+                        }
+                      }}
+                      variant="default"
+                      size="sm"
+                      disabled={bulkEnriching || !user?.email}
+                    >
+                      {bulkEnriching ? (
+                        <>
+                          Enriching... ({bulkProgress.current}/{bulkProgress.total})
+                        </>
+                      ) : (
+                        `Enrich All (${enrichmentStats.needsEnrichment})`
+                      )}
+                    </Button>
+                  )}
+                  <Button 
+                    onClick={loadEnrichmentStats} 
+                    variant="outline" 
+                    size="sm"
+                    disabled={isLoadingStats}
+                  >
+                    {isLoadingStats ? 'Loading...' : 'Refresh'}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
