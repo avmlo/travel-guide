@@ -154,9 +154,9 @@ export default function EnrichmentAdminPage() {
             <Sparkles className="h-8 w-8 text-purple-600 dark:text-purple-400" />
             <h1 className="text-4xl font-bold">Destination Enrichment</h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <span className="text-gray-600 dark:text-gray-400">
             Enhance destinations with Google Places API + Gemini AI tags
-          </p>
+          </span>
         </div>
 
         {/* Stats Grid */}
@@ -234,9 +234,9 @@ export default function EnrichmentAdminPage() {
             <div className="flex items-start gap-4">
               <div className="flex-1">
                 <h3 className="font-semibold mb-1">Enrich Unenriched Destinations</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   Enrich only destinations that haven't been enriched yet ({stats?.unenriched || 0} remaining)
-                </p>
+                </span>
               </div>
               <button
                 onClick={() => handleEnrich(false)}
@@ -260,9 +260,9 @@ export default function EnrichmentAdminPage() {
             <div className="border-t border-gray-200 dark:border-gray-800 pt-4 flex items-start gap-4">
               <div className="flex-1">
                 <h3 className="font-semibold mb-1">Re-enrich All Destinations</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   Re-enrich all {stats?.total || 0} destinations (updates existing data)
-                </p>
+                </span>
               </div>
               <button
                 onClick={() => handleEnrich(true)}
@@ -286,9 +286,9 @@ export default function EnrichmentAdminPage() {
             <div className="border-t border-gray-200 dark:border-gray-800 pt-4 flex items-start gap-4">
               <div className="flex-1">
                 <h3 className="font-semibold mb-1">Refresh Stats</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   Reload enrichment statistics
-                </p>
+                </span>
               </div>
               <button
                 onClick={fetchStats}
@@ -312,9 +312,9 @@ export default function EnrichmentAdminPage() {
             <li>• Adds price level indicators ($$, $$$, $$$$)</li>
             <li>• Makes search more accurate and powerful</li>
           </ul>
-          <p className="text-xs text-blue-700 dark:text-blue-300 mt-3">
+          <span className="text-xs text-blue-700 dark:text-blue-300 mt-3">
             Cost: ~$0.017 per destination (Places API) + ~$0.00001 (Gemini)
-          </p>
+          </span>
         </div>
       </div>
     </main>

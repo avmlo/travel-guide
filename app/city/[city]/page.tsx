@@ -75,9 +75,9 @@ export default function CityPage() {
             <MapPin className="h-5 w-5" />
             <span>{country}</span>
           </div>
-          <p className="text-base text-gray-600 dark:text-gray-400">
+          <span className="text-base text-gray-600 dark:text-gray-400">
             {destinations.length} destination{destinations.length !== 1 ? 's' : ''}
-          </p>
+          </span>
         </div>
 
         {/* Destinations Grid */}
@@ -129,9 +129,9 @@ export default function CityPage() {
                   <h3 className="font-medium text-sm leading-tight line-clamp-2 min-h-[2.5rem] text-black dark:text-white">
                     {destination.name}
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 capitalize line-clamp-1">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 capitalize line-clamp-1">
                     {destination.category}
-                  </p>
+                  </span>
                 </div>
               </button>
             ))}

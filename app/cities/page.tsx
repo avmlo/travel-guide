@@ -88,9 +88,9 @@ export default function CitiesPage() {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-2">Cities</h1>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+          <span className="text-sm md:text-base text-gray-600 dark:text-gray-400">
             Discover {cityStats.length} cities around the world
-          </p>
+          </span>
         </div>
 
         {/* Search */}
@@ -110,7 +110,7 @@ export default function CitiesPage() {
         {/* Grid */}
         {filteredCities.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-gray-500">No cities found</p>
+            <span className="text-gray-500">No cities found</span>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">

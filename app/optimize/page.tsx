@@ -275,15 +275,15 @@ export default function RouteOptimizerPage() {
             <Sparkles className="h-8 w-8 text-yellow-500" />
             <h1 className="text-4xl font-bold">Route Optimizer</h1>
           </div>
-          <p className="text-base text-gray-600 dark:text-gray-400">
+          <span className="text-base text-gray-600 dark:text-gray-400">
             AI-powered trip planning • Drag places to create your perfect day
-          </p>
+          </span>
         </div>
 
         {savedPlaces.length === 0 ? (
           <div className="text-center py-20">
             <MapPin className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-            <p className="text-xl text-gray-400 mb-6">No saved places yet</p>
+            <span className="text-xl text-gray-400 mb-6">No saved places yet</span>
             <button
               onClick={() => router.push('/')}
               className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl hover:opacity-80 transition-opacity font-medium"
@@ -407,7 +407,7 @@ export default function RouteOptimizerPage() {
               {optimizedRoute.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <Calendar className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                  <p>Select places and click "Optimize My Day"</p>
+                  <span>Select places and click "Optimize My Day"</span>
                 </div>
               ) : (
                 <div className="space-y-4">

@@ -406,9 +406,9 @@ export function ChatGPTStyleAI() {
                             <h4 className="font-medium text-xs leading-tight line-clamp-2 mb-1 text-black dark:text-white">
                               {dest.name}
                             </h4>
-                            <p className="text-xs text-gray-500 capitalize">
+                            <span className="text-xs text-gray-500 capitalize">
                               {dest.city.replace(/-/g, ' ')} · {dest.category}
-                            </p>
+                            </span>
                           </a>
                         ))}
                       </div>

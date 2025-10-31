@@ -153,16 +153,16 @@ export default function MorphicSearch({ onClose }: MorphicSearchProps) {
           {/* Error State */}
           {error && (
             <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+              <span className="text-red-600 dark:text-red-400 text-sm">{error}</span>
             </div>
           )}
 
           {/* Streaming AI Response */}
           {streamingResponse && (
             <div className="mb-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+              <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                 {streamingResponse}
-              </p>
+              </span>
             </div>
           )}
 
@@ -180,13 +180,13 @@ export default function MorphicSearch({ onClose }: MorphicSearchProps) {
                     className="block p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:shadow-md transition-all"
                   >
                     <h4 className="font-medium text-sm mb-1">{destination.name}</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                    <span className="text-xs text-gray-600 dark:text-gray-400">
                       {destination.city} • {destination.category}
-                    </p>
+                    </span>
                     {relevance && (
-                      <p className="text-xs text-purple-600 dark:text-purple-400 mt-2 line-clamp-2">
+                      <span className="text-xs text-purple-600 dark:text-purple-400 mt-2 line-clamp-2">
                         {relevance}
-                      </p>
+                      </span>
                     )}
                   </a>
                 ))}
@@ -198,7 +198,7 @@ export default function MorphicSearch({ onClose }: MorphicSearchProps) {
           {!streamingResponse && !isSearching && !error && (
             <div className="text-center text-gray-400 dark:text-gray-600 text-sm py-8">
               <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>Ask me to find destinations, recommend places, or answer questions...</p>
+              <span>Ask me to find destinations, recommend places, or answer questions...</span>
             </div>
           )}
         </div>

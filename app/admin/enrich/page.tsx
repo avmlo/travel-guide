@@ -34,7 +34,7 @@ export default function AdminEnrichPage() {
     <main className="px-4 md:px-6 lg:px-10 py-12 min-h-screen dark:text-white">
       <div className="max-w-xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Google Enrichment</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Run enrichment for a single slug (recommended) or leave empty to process a small batch.</p>
+        <span className="text-sm text-gray-600 dark:text-gray-400 mb-6">Run enrichment for a single slug (recommended) or leave empty to process a small batch.</span>
 
         <div className="flex items-center gap-2 mb-4">
           <input

@@ -75,11 +75,11 @@ function LoginForm() {
         <h1 className="text-4xl md:text-5xl font-bold mb-2">
           {isSignUp ? 'Create Account' : 'Sign In'}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <span className="text-gray-600 dark:text-gray-400">
           {isSignUp
             ? 'Start saving and organizing your destinations'
             : 'Welcome back to The Urban Manual'}
-        </p>
+        </span>
       </div>
 
       {/* Google Sign In */}
@@ -153,9 +153,9 @@ function LoginForm() {
             placeholder="••••••••"
           />
           {isSignUp && (
-            <p className="text-xs text-gray-500 mt-1">
+            <span className="text-xs text-gray-500 mt-1">
               Must be at least 6 characters
-            </p>
+            </span>
           )}
         </div>
 

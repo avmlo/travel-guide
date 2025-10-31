@@ -5,12 +5,12 @@ export default function SavedPage() {
         <h1 className="text-4xl md:text-5xl font-bold mb-6">
           Saved Destinations
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
+        <span className="text-xl text-gray-600 dark:text-gray-400 mb-8">
           Coming Soon
-        </p>
-        <p className="text-base text-gray-500 dark:text-gray-500">
+        </span>
+        <span className="text-base text-gray-500 dark:text-gray-500">
           Save your favorite destinations and access them here. This feature will be available once authentication is implemented.
-        </p>
+        </span>
       </div>
     </div>
   );

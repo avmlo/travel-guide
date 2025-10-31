@@ -44,9 +44,9 @@ export default function GreetingHero({
           <h1 className="font-['Inter:Regular',sans-serif] text-[12px] text-[#6b7280] uppercase tracking-[2px] mb-1 font-medium">
             {greeting}{userName ? `, ${userName}` : ''}
           </h1>
-          <p className="font-['Inter:Regular',sans-serif] text-[12px] text-[#6b7280]">
+          <span className="font-['Inter:Regular',sans-serif] text-[12px] text-[#6b7280]">
             Today is {dateStr}, {timeStr}
-          </p>
+          </span>
         </div>
 
         {/* Search Bar */}

@@ -529,17 +529,17 @@ export default function Home() {
 
         {/* Results Count */}
         <div className="mb-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
-          </p>
+          </span>
         </div>
 
         {/* Destination Grid */}
         {filteredDestinations.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-xl text-gray-400 mb-6">
+            <span className="text-xl text-gray-400 mb-6">
               No destinations found.
-            </p>
+            </span>
             <button
               onClick={() => {
                 setSearchTerm("");

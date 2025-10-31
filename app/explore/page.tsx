@@ -125,9 +125,9 @@ export default function ExplorePage() {
             <Sparkles className="h-8 w-8" />
             <h1 className="text-4xl md:text-5xl font-bold">Explore</h1>
           </div>
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400">
+          <span className="text-base md:text-lg text-gray-600 dark:text-gray-400">
             Discover destinations by category, city, or browse our curated collections
-          </p>
+          </span>
         </div>
 
         {/* Categories Grid */}
@@ -145,9 +145,9 @@ export default function ExplorePage() {
                   {stat.icon}
                 </div>
                 <h3 className="font-bold text-sm mb-1 capitalize">{stat.category}</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {stat.count} {stat.count === 1 ? 'place' : 'places'}
-                </p>
+                </span>
               </button>
             ))}
           </div>
@@ -199,9 +199,9 @@ export default function ExplorePage() {
                     <h3 className="font-medium text-sm leading-tight line-clamp-2 text-black dark:text-white">
                       {dest.name}
                     </h3>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                    <span className="text-xs text-gray-600 dark:text-gray-400">
                       {capitalizeCity(dest.city)} • {dest.category}
-                    </p>
+                    </span>
                   </div>
                 </button>
               ))}
@@ -239,9 +239,9 @@ export default function ExplorePage() {
                 <h3 className="font-bold text-base mb-1 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
                   {capitalizeCity(city.city)}
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {city.count === 1 ? '1 place' : `${city.count} places`}
-                </p>
+                </span>
               </button>
             ))}
           </div>

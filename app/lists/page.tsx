@@ -179,9 +179,9 @@ export default function ListsPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold mb-2">My Lists</h1>
-            <p className="text-base text-gray-600 dark:text-gray-400">
+            <span className="text-base text-gray-600 dark:text-gray-400">
               Organize destinations into collections
-            </p>
+            </span>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -202,7 +202,7 @@ export default function ListsPage() {
         ) : lists.length === 0 ? (
           <div className="text-center py-20">
             <Heart className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-            <p className="text-xl text-gray-400 mb-6">No lists yet</p>
+            <span className="text-xl text-gray-400 mb-6">No lists yet</span>
             <button
               onClick={() => setShowCreateModal(true)}
               className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl hover:opacity-80 transition-opacity font-medium"
@@ -222,9 +222,9 @@ export default function ListsPage() {
                   <div className="flex-1">
                     <h3 className="font-bold text-lg mb-1">{list.name}</h3>
                     {list.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                         {list.description}
-                      </p>
+                      </span>
                     )}
                   </div>
                   <button

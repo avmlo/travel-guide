@@ -405,7 +405,7 @@ export default function Account() {
                     <CardTitle>Profile Information</CardTitle>
                     <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
                       Manage your personal information
-                    </p>
+                    </span>
                   </div>
                   {!isEditingProfile && (
                     <Button
@@ -431,7 +431,7 @@ export default function Account() {
                     />
                     <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
                       Email cannot be changed
-                    </p>
+                    </span>
                   </div>
 
                   <div>
@@ -449,7 +449,7 @@ export default function Account() {
                     />
                     <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
                       Your birthday helps us personalize your experience
-                    </p>
+                    </span>
                   </div>
 
                   {isEditingProfile && (
@@ -494,7 +494,7 @@ export default function Account() {
                   {savedPlaces.length === 0 ? (
                     <span className="text-center py-8 text-gray-500 dark:text-gray-400 block">
                       No saved places yet. Start exploring and save your favorites!
-                    </p>
+                    </span>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {savedPlaces.map((place) => (
@@ -514,7 +514,7 @@ export default function Account() {
                             <h3 className="font-semibold mb-1">{place.destination.name}</h3>
                             <span className="text-sm text-gray-600 dark:text-gray-400 block">
                               {capitalizeCity(place.destination.city)}
-                            </p>
+                            </span>
                             <Badge variant="secondary" className="mt-2">
                               {place.destination.category}
                             </Badge>
@@ -537,7 +537,7 @@ export default function Account() {
                   {visitedPlaces.length === 0 ? (
                     <span className="text-center py-8 text-gray-500 dark:text-gray-400 block">
                       No visited places yet. Mark places you've been to!
-                    </p>
+                    </span>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {visitedPlaces.map((place) => (
@@ -557,7 +557,7 @@ export default function Account() {
                             <h3 className="font-semibold mb-1">{place.destination.name}</h3>
                             <span className="text-sm text-gray-600 dark:text-gray-400 block">
                               {capitalizeCity(place.destination.city)}
-                            </p>
+                            </span>
                             <div className="flex items-center justify-between mt-2">
                               <Badge variant="secondary">
                                 {place.destination.category}

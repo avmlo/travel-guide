@@ -35,9 +35,9 @@ export default function FeedPage() {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Activity Feed</h1>
-          <p className="text-base text-gray-600 dark:text-gray-400">
+          <span className="text-base text-gray-600 dark:text-gray-400">
             See what's happening in the travel community
-          </p>
+          </span>
         </div>
 
         {/* Tab Navigation */}

@@ -277,13 +277,13 @@ export default function ListDetailPage() {
                 )}
               </div>
               {list.description && (
-                <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
+                <span className="text-base text-gray-600 dark:text-gray-400 mb-4">
                   {list.description}
-                </p>
+                </span>
               )}
-              <p className="text-sm text-gray-500 dark:text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-gray-500">
                 {destinations.length} {destinations.length === 1 ? 'place' : 'places'}
-              </p>
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -350,7 +350,7 @@ export default function ListDetailPage() {
         {destinations.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
             <MapPin className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-            <p className="text-xl text-gray-400 mb-6">No places in this list yet</p>
+            <span className="text-xl text-gray-400 mb-6">No places in this list yet</span>
             <button
               onClick={() => setShowAddModal(true)}
               className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
@@ -383,9 +383,9 @@ export default function ListDetailPage() {
                       {destination.name}
                     </h3>
                     <div className="flex items-center gap-1.5">
-                      <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
+                      <span className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">
                         {capitalizeCity(destination.city)}
-                      </p>
+                      </span>
                     </div>
                   </div>
                 </Link>
@@ -535,9 +535,9 @@ export default function ListDetailPage() {
                       <h3 className="font-medium text-sm line-clamp-2 mb-1">
                         {destination.name}
                       </h3>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
                         {capitalizeCity(destination.city)}
-                      </p>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -561,9 +561,9 @@ export default function ListDetailPage() {
               </button>
             </div>
 
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <span className="text-gray-600 dark:text-gray-400 mb-4">
               Anyone with this link can view this list
-            </p>
+            </span>
 
             <div className="flex gap-2">
               <input

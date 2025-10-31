@@ -152,7 +152,7 @@ export default function TripsPage() {
       <div className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-20">
-            <p className="text-gray-500">Loading...</p>
+            <span className="text-gray-500">Loading...</span>
           </div>
         </div>
       </div>
@@ -170,9 +170,9 @@ export default function TripsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold mb-2">My Trips</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <span className="text-gray-600 dark:text-gray-400">
               Plan and organize your adventures
-            </p>
+            </span>
           </div>
           <button
             onClick={() => setShowCreateDialog(true)}
@@ -188,9 +188,9 @@ export default function TripsPage() {
           <div className="text-center py-20">
             <MapPin className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-700 mb-4" />
             <h3 className="text-xl font-medium mb-2">No trips yet</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
+            <span className="text-gray-500 dark:text-gray-400 mb-6">
               Start planning your next adventure
-            </p>
+            </span>
             <button
               onClick={() => setShowCreateDialog(true)}
               className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
@@ -230,9 +230,9 @@ export default function TripsPage() {
                   <h3 className="text-lg font-bold mb-2 line-clamp-2">{trip.title}</h3>
 
                   {trip.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                       {trip.description}
-                    </p>
+                    </span>
                   )}
 
                   <div className="space-y-2 mb-4">

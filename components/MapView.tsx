@@ -136,8 +136,8 @@ export default function MapView({
     return (
       <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-2xl p-8">
         <div className="text-center max-w-md">
-          <p className="text-red-600 dark:text-red-400 mb-2 font-medium">Map Loading Failed</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+          <span className="text-red-600 dark:text-red-400 mb-2 font-medium">Map Loading Failed</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{error}</span>
         </div>
       </div>
     );
@@ -148,7 +148,7 @@ export default function MapView({
       <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-2xl">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-2"></div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Loading map...</p>
+          <span className="text-sm text-gray-600 dark:text-gray-400">Loading map...</span>
         </div>
       </div>
     );

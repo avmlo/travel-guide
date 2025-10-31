@@ -178,10 +178,10 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
     return (
       <div className="text-center py-12">
         <User className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-        <p className="text-gray-500 dark:text-gray-400">No activity yet</p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+        <span className="text-gray-500 dark:text-gray-400">No activity yet</span>
+        <span className="text-sm text-gray-400 dark:text-gray-500 mt-2">
           Start saving and visiting destinations to see activity here
-        </p>
+        </span>
       </div>
     );
   }
@@ -203,9 +203,9 @@ export function ActivityFeed({ userId, followingOnly = false, limit = 20 }: Acti
               {getActivityIcon(activity.type)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-gray-900 dark:text-white">
+              <span className="text-sm text-gray-900 dark:text-white">
                 {formatActivityText(activity)}
-              </p>
+              </span>
               <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
                 <Clock className="h-3 w-3" />
                 <span>{getTimeAgo(activity.created_at)}</span>
