@@ -34,6 +34,10 @@ export default function Account() {
   const [birthday, setBirthday] = useState("");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const isAdmin = (() => {
+    const emails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    return user?.email ? emails.includes(user.email.toLowerCase()) : false;
+  })();
 
   // Check authentication
   useEffect(() => {
@@ -263,9 +267,14 @@ export default function Account() {
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Account</h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                {user.email}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-gray-600 dark:text-gray-400">
+                  {user.email}
+                </p>
+                {isAdmin && (
+                  <Badge variant="secondary">Admin</Badge>
+                )}
+              </div>
             </div>
             <Button onClick={handleSignOut} variant="outline">
               Sign Out
