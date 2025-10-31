@@ -570,6 +570,18 @@ export default function AdminPage() {
     }
   }, [isAdmin, authChecked, listOffset, listSearchQuery]);
 
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (showCreateModal) {
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      document.documentElement.style.overflow = '';
+    };
+  }, [showCreateModal]);
+
   const loadEnrichmentStats = async () => {
     setIsLoadingStats(true);
     try {
