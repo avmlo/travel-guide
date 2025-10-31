@@ -72,11 +72,26 @@ export default function AdminPage() {
   const loadEnrichmentStats = async () => {
     setIsLoadingStats(true);
     try {
+      // Use select with all fields, but only request what exists (some columns might not exist yet)
       const { data, error } = await supabase
         .from('destinations')
-        .select('slug, google_place_id, formatted_address, international_phone_number, website, rating, business_status');
+        .select('slug, google_place_id, formatted_address, international_phone_number, website, rating');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        // If columns don't exist, set empty stats
+        setEnrichmentStats({
+          total: 0,
+          enriched: 0,
+          withAddress: 0,
+          withPhone: 0,
+          withWebsite: 0,
+          withRating: 0,
+          needsEnrichment: 0,
+          percentage: 0,
+        });
+        return;
+      }
       
       const total = data?.length || 0;
       const enriched = data?.filter(d => d.google_place_id).length || 0;
@@ -98,6 +113,17 @@ export default function AdminPage() {
       });
     } catch (e: any) {
       console.error('Error loading stats:', e);
+      // Set empty stats on error
+      setEnrichmentStats({
+        total: 0,
+        enriched: 0,
+        withAddress: 0,
+        withPhone: 0,
+        withWebsite: 0,
+        withRating: 0,
+        needsEnrichment: 0,
+        percentage: 0,
+      });
     } finally {
       setIsLoadingStats(false);
     }
@@ -106,16 +132,22 @@ export default function AdminPage() {
   const loadDestinationList = async () => {
     setIsLoadingList(true);
     try {
+      // Don't query business_status if column doesn't exist yet
       const { data, error } = await supabase
         .from('destinations')
-        .select('slug, name, city, google_place_id, formatted_address, rating, business_status')
+        .select('slug, name, city, google_place_id, formatted_address, rating')
         .order('slug', { ascending: true })
         .range(listOffset, listOffset + 19);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        setDestinationList([]);
+        return;
+      }
       setDestinationList(data || []);
     } catch (e: any) {
       console.error('Error loading destinations:', e);
+      setDestinationList([]);
     } finally {
       setIsLoadingList(false);
     }
@@ -263,7 +295,6 @@ export default function AdminPage() {
                     const isEnriched = !!dest.google_place_id;
                     const hasAddress = !!dest.formatted_address;
                     const hasRating = !!dest.rating;
-                    const status = dest.business_status || 'UNKNOWN';
                     
                     return (
                       <div
@@ -278,9 +309,6 @@ export default function AdminPage() {
                               <Badge variant="default" className="text-xs">Enriched</Badge>
                             ) : (
                               <Badge variant="secondary" className="text-xs">Not Enriched</Badge>
-                            )}
-                            {status !== 'OPERATIONAL' && status !== 'UNKNOWN' && (
-                              <Badge variant="destructive" className="text-xs">{status}</Badge>
                             )}
                           </div>
                           <div className="flex gap-3 mt-1 text-xs text-gray-500">
