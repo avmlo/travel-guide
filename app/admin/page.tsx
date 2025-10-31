@@ -263,76 +263,83 @@ function DestinationForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Name *</label>
-          <div className="flex gap-2">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Basic Information Section */}
+      <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
+        <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Name *</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., The Ritz-Carlton Tokyo"
+              />
+              <Button
+                type="button"
+                onClick={fetchFromGoogle}
+                disabled={fetchingGoogle || !formData.name.trim()}
+                variant="outline"
+                size="sm"
+                className="whitespace-nowrap"
+              >
+                {fetchingGoogle ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                    Fetching...
+                  </>
+                ) : (
+                  '🔍 Fetch from Google'
+                )}
+              </Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Slug *</label>
+              <input
+                type="text"
+                required
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="auto-generated if empty"
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">City *</label>
+              <input
+                type="text"
+                required
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Tokyo"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Category *</label>
             <input
               type="text"
               required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., restaurant, hotel, cafe"
             />
-            <Button
-              type="button"
-              onClick={fetchFromGoogle}
-              disabled={fetchingGoogle || !formData.name.trim()}
-              variant="outline"
-              size="sm"
-              className="whitespace-nowrap"
-            >
-              {fetchingGoogle ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                  Fetching...
-                </>
-              ) : (
-                'Fetch from Google'
-              )}
-            </Button>
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Slug *</label>
-          <input
-            type="text"
-            required
-            value={formData.slug}
-            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            placeholder="auto-generated if empty"
-            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
-          />
-        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">City *</label>
-          <input
-            type="text"
-            required
-            value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Category *</label>
-          <input
-            type="text"
-            required
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Image</label>
-        <div className="space-y-2">
+      {/* Image Section */}
+      <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
+        <h3 className="text-lg font-semibold mb-4">Image</h3>
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
             <label className="flex-1 cursor-pointer">
               <input
@@ -341,8 +348,8 @@ function DestinationForm({
                 onChange={handleImageChange}
                 className="hidden"
               />
-              <span className="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm">
-                {imageFile ? imageFile.name : 'Choose File'}
+              <span className="inline-flex items-center justify-center px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                📁 {imageFile ? imageFile.name : 'Choose File'}
               </span>
             </label>
             {imageFile && (
@@ -358,6 +365,7 @@ function DestinationForm({
               </button>
             )}
           </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">or</div>
           <input
             type="url"
             value={formData.image}
@@ -367,15 +375,15 @@ function DestinationForm({
                 setImagePreview(e.target.value || null);
               }
             }}
-            placeholder="Or enter image URL"
-            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+            placeholder="Enter image URL"
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
           />
           {imagePreview && (
-            <div className="mt-2">
+            <div className="mt-3">
               <img
                 src={imagePreview}
                 alt="Preview"
-                className="w-full h-48 object-cover rounded border border-gray-200 dark:border-gray-700"
+                className="w-full h-64 object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
                 onError={() => setImagePreview(null)}
               />
             </div>
@@ -389,20 +397,20 @@ function DestinationForm({
         </div>
       </div>
 
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium">Description</label>
+      {/* Content Section */}
+      <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Content</h3>
           <Button
             type="button"
             onClick={fetchGeminiRecommendations}
             disabled={fetchingGemini || !formData.name.trim()}
             variant="outline"
             size="sm"
-            className="text-xs"
           >
             {fetchingGemini ? (
               <>
-                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
                 Getting AI...
               </>
             ) : (
@@ -410,60 +418,82 @@ function DestinationForm({
             )}
           </Button>
         </div>
-        <textarea
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          rows={2}
-          className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
-          placeholder="Short description (auto-filled by AI or Google)"
-        />
-        {geminiSuggestions && (
-          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400 italic">
-            💡 {geminiSuggestions}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Content</label>
-        <textarea
-          value={formData.content}
-          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-          rows={6}
-          className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
-          placeholder="Longer content/description (auto-filled by AI or Google)"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Michelin Stars</label>
-          <input
-            type="number"
-            min="0"
-            max="3"
-            value={formData.michelin_stars || ''}
-            onChange={(e) => setFormData({ ...formData, michelin_stars: e.target.value ? Number(e.target.value) : null })}
-            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
-          />
-        </div>
-        <div className="flex items-center gap-2 pt-6">
-          <input
-            type="checkbox"
-            checked={formData.crown}
-            onChange={(e) => setFormData({ ...formData, crown: e.target.checked })}
-            className="w-4 h-4"
-          />
-          <label className="text-sm font-medium">Crown (Featured)</label>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Short Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              placeholder="A brief, punchy description (1-2 sentences)"
+            />
+            {geminiSuggestions && (
+              <p className="mt-2 text-xs text-blue-600 dark:text-blue-400 italic bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                💡 {geminiSuggestions}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Full Content</label>
+            <textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              rows={8}
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              placeholder="A detailed description of the destination, what makes it special, atmosphere, best time to visit, etc."
+            />
+          </div>
         </div>
       </div>
 
-      <div className="flex justify-end gap-2 pt-4">
+      {/* Additional Details */}
+      <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
+        <h3 className="text-lg font-semibold mb-4">Additional Details</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Michelin Stars</label>
+            <input
+              type="number"
+              min="0"
+              max="3"
+              value={formData.michelin_stars || ''}
+              onChange={(e) => setFormData({ ...formData, michelin_stars: e.target.value ? Number(e.target.value) : null })}
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="0-3"
+            />
+          </div>
+          <div className="flex items-center gap-3 pt-6">
+            <input
+              type="checkbox"
+              id="crown-checkbox"
+              checked={formData.crown}
+              onChange={(e) => setFormData({ ...formData, crown: e.target.checked })}
+              className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-2 focus:ring-blue-500"
+            />
+            <label htmlFor="crown-checkbox" className="text-sm font-medium cursor-pointer">
+              ⭐ Crown (Featured)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end gap-3 pt-2">
         <Button type="button" onClick={onCancel} variant="outline" disabled={isSaving}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? 'Saving...' : destination ? 'Update' : 'Create'}
+        <Button type="submit" disabled={isSaving} className="min-w-[100px]">
+          {isSaving ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Saving...
+            </>
+          ) : destination ? (
+            'Update Place'
+          ) : (
+            'Create Place'
+          )}
         </Button>
       </div>
     </form>
