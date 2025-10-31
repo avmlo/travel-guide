@@ -306,6 +306,14 @@ export default function ListDetailPage() {
                     <span>Edit</span>
                   </button>
                   <button
+                    onClick={updateList}
+                    className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity"
+                    disabled={!editName.trim()}
+                    title="Save changes"
+                  >
+                    <span>Save</span>
+                  </button>
+                  <button
                     onClick={deleteList}
                     className="flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
                   >
@@ -349,7 +357,7 @@ export default function ListDetailPage() {
               <div key={destination.slug} className={`${CARD_WRAPPER}`}>
                 <Link href={`/destination/${destination.slug}`}>
                   <div className={`${CARD_MEDIA} mb-2 hover-lift`}>
-                    {destination.image && (
+                    {destination.image ? (
                       <Image
                         src={destination.image}
                         alt={destination.name}
@@ -357,6 +365,10 @@ export default function ListDetailPage() {
                         className="object-cover"
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                       />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700">
+                        <MapPin className="h-8 w-8 opacity-20" />
+                      </div>
                     )}
                   </div>
                   <div className="space-y-0.5">
