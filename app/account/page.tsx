@@ -35,7 +35,11 @@ export default function Account() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const isAdmin = (() => {
-    const emails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const raw = (process.env.NEXT_PUBLIC_ADMIN_EMAILS
+      || process.env.NEXT_PUBLIC_ADMIN_EMAIL
+      || process.env.NEXT_PUBLIC_admin_email
+      || '').toString();
+    const emails = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
     return user?.email ? emails.includes(user.email.toLowerCase()) : false;
   })();
 
