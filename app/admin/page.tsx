@@ -24,6 +24,11 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [enrichmentStats, setEnrichmentStats] = useState<any>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [destinationList, setDestinationList] = useState<any[]>([]);
+  const [isLoadingList, setIsLoadingList] = useState(false);
+  const [listOffset, setListOffset] = useState(0);
 
   // Check authentication
   useEffect(() => {
@@ -55,6 +60,66 @@ export default function AdminPage() {
 
     checkAuth();
   }, [router]);
+
+  // Load enrichment statistics
+  useEffect(() => {
+    if (isAdmin && authChecked) {
+      loadEnrichmentStats();
+      loadDestinationList();
+    }
+  }, [isAdmin, authChecked, listOffset]);
+
+  const loadEnrichmentStats = async () => {
+    setIsLoadingStats(true);
+    try {
+      const { data, error } = await supabase
+        .from('destinations')
+        .select('slug, google_place_id, formatted_address, international_phone_number, website, rating, business_status');
+      
+      if (error) throw error;
+      
+      const total = data?.length || 0;
+      const enriched = data?.filter(d => d.google_place_id).length || 0;
+      const withAddress = data?.filter(d => d.formatted_address).length || 0;
+      const withPhone = data?.filter(d => d.international_phone_number).length || 0;
+      const withWebsite = data?.filter(d => d.website).length || 0;
+      const withRating = data?.filter(d => d.rating).length || 0;
+      const needsEnrichment = data?.filter(d => !d.google_place_id || !d.formatted_address || !d.international_phone_number || !d.website).length || 0;
+      
+      setEnrichmentStats({
+        total,
+        enriched,
+        withAddress,
+        withPhone,
+        withWebsite,
+        withRating,
+        needsEnrichment,
+        percentage: total > 0 ? Math.round((enriched / total) * 100) : 0,
+      });
+    } catch (e: any) {
+      console.error('Error loading stats:', e);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  const loadDestinationList = async () => {
+    setIsLoadingList(true);
+    try {
+      const { data, error } = await supabase
+        .from('destinations')
+        .select('slug, name, city, google_place_id, formatted_address, rating, business_status')
+        .order('slug', { ascending: true })
+        .range(listOffset, listOffset + 19);
+      
+      if (error) throw error;
+      setDestinationList(data || []);
+    } catch (e: any) {
+      console.error('Error loading destinations:', e);
+    } finally {
+      setIsLoadingList(false);
+    }
+  };
 
   const handleSearchDestinations = async () => {
     if (!searchQuery.trim()) return;
@@ -111,6 +176,136 @@ export default function AdminPage() {
               Back to Account
             </Button>
           </div>
+
+          {/* Enrichment Statistics */}
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Enrichment Status</CardTitle>
+                <Button 
+                  onClick={loadEnrichmentStats} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={isLoadingStats}
+                >
+                  {isLoadingStats ? 'Loading...' : 'Refresh'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {enrichmentStats ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="text-2xl font-bold">{enrichmentStats.enriched}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Enriched</div>
+                    <div className="text-xs text-gray-500 mt-1">{enrichmentStats.percentage}% of {enrichmentStats.total}</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="text-2xl font-bold">{enrichmentStats.needsEnrichment}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Needs Enrichment</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="text-2xl font-bold">{enrichmentStats.withAddress}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Have Address</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="text-2xl font-bold">{enrichmentStats.withRating}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Have Rating</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Destination List with Enrichment Status */}
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Destinations</CardTitle>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => {
+                      setListOffset(Math.max(0, listOffset - 20));
+                    }}
+                    variant="outline"
+                    size="sm"
+                    disabled={listOffset === 0 || isLoadingList}
+                  >
+                    Previous
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setListOffset(listOffset + 20);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoadingList || destinationList.length < 20}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingList ? (
+                <div className="text-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+                </div>
+              ) : destinationList.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">No destinations found</div>
+              ) : (
+                <div className="space-y-2">
+                  {destinationList.map((dest: any) => {
+                    const isEnriched = !!dest.google_place_id;
+                    const hasAddress = !!dest.formatted_address;
+                    const hasRating = !!dest.rating;
+                    const status = dest.business_status || 'UNKNOWN';
+                    
+                    return (
+                      <div
+                        key={dest.slug}
+                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{dest.name}</span>
+                            <span className="text-xs text-gray-500">{dest.city}</span>
+                            {isEnriched ? (
+                              <Badge variant="default" className="text-xs">Enriched</Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-xs">Not Enriched</Badge>
+                            )}
+                            {status !== 'OPERATIONAL' && status !== 'UNKNOWN' && (
+                              <Badge variant="destructive" className="text-xs">{status}</Badge>
+                            )}
+                          </div>
+                          <div className="flex gap-3 mt-1 text-xs text-gray-500">
+                            {hasAddress && <span className="text-green-600 dark:text-green-400">✓ Address</span>}
+                            {hasRating && <span className="text-green-600 dark:text-green-400">✓ Rating: {dest.rating}</span>}
+                            <span className="text-xs">Slug: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{dest.slug}</code></span>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            setEnrichSlug(dest.slug);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Enrich
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Google Enrichment Tools */}
           <Card className="mb-6">
