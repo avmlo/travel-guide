@@ -13,6 +13,7 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const isHome = pathname === '/';
 
   // Initialize dark mode from localStorage or system preference
@@ -30,6 +31,28 @@ export function Header() {
       document.documentElement.classList.remove('dark');
     }
   }, []);
+
+  // Check admin status
+  useEffect(() => {
+    async function checkAdmin() {
+      if (!user?.email) {
+        setIsAdmin(false);
+        return;
+      }
+      try {
+        const res = await fetch('/api/is-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: user.email })
+        });
+        const j = await res.json();
+        setIsAdmin(!!j.isAdmin);
+      } catch {
+        setIsAdmin(false);
+      }
+    }
+    checkAdmin();
+  }, [user]);
 
   // (Removed time display)
 
@@ -100,6 +123,9 @@ export function Header() {
               {user ? (
                 <>
                   <button onClick={() => { navigate('/account'); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Account</button>
+                  {isAdmin && (
+                    <button onClick={() => { navigate('/admin'); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 font-medium">Admin</button>
+                  )}
                   <button onClick={async () => { await signOut(); setIsMenuOpen(false); navigate('/'); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Sign Out</button>
                 </>
               ) : (
