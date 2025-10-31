@@ -22,6 +22,7 @@ declare global {
 export function AppleMap({ places, className, onSelectPlace }: AppleMapProps) {
   const ref = useRef<HTMLDivElement | null>(null)
   const [ready, setReady] = useState(false)
+  const [failed, setFailed] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -47,15 +48,25 @@ export function AppleMap({ places, className, onSelectPlace }: AppleMapProps) {
         window.mapkit.init({
           authorizationCallback: function (done: (token: string) => void) {
             fetch('/api/mapkit-token')
-              .then(r => r.text())
-              .then(token => done(token))
-              .catch(() => done(''))
+              .then(r => {
+                if (!r.ok) throw new Error('Bad token response')
+                return r.text()
+              })
+              .then(token => {
+                if (!token) throw new Error('Empty token')
+                done(token)
+              })
+              .catch((e) => {
+                setFailed('token')
+                done('')
+              })
           },
         })
 
         setReady(true)
-      } catch {
+      } catch (e) {
         setReady(false)
+        setFailed('init')
       }
     }
 
@@ -68,11 +79,17 @@ export function AppleMap({ places, className, onSelectPlace }: AppleMapProps) {
   useEffect(() => {
     if (!ready || !ref.current || !window.mapkit) return
 
-    const map = new window.mapkit.Map(ref.current, {
-      showsUserLocationControl: false,
-      showsCompass: window.mapkit.FeatureVisibility.Hidden,
-      showsZoomControl: true,
-    })
+    let map: any
+    try {
+      map = new window.mapkit.Map(ref.current, {
+        showsUserLocationControl: false,
+        showsCompass: window.mapkit.FeatureVisibility.Hidden,
+        showsZoomControl: true,
+      })
+    } catch (e) {
+      setFailed('map')
+      return
+    }
 
     const geocoder = new window.mapkit.Geocoder({ language: 'en' })
     const annotations: any[] = []
@@ -89,7 +106,7 @@ export function AppleMap({ places, className, onSelectPlace }: AppleMapProps) {
     }
 
     // Geocode each place
-    const lookups = places.map((p, idx) => {
+    const lookups = (places || []).map((p, idx) => {
       const q = [p.name, p.city].filter(Boolean).join(' ')
       return new Promise<void>((resolve) => {
         geocoder.lookup(q, (err: any, data: any) => {
@@ -119,6 +136,22 @@ export function AppleMap({ places, className, onSelectPlace }: AppleMapProps) {
       } catch {}
     }
   }, [ready, places, onSelectPlace])
+
+  if (failed) {
+    const q = places && places[0] ? [places[0].name, places[0].city].filter(Boolean).join(' ') : 'Places'
+    return (
+      <div className={`flex items-center justify-center ${className || ''}`}>
+        <a
+          href={`https://maps.apple.com/?q=${encodeURIComponent(q)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-90 transition-opacity"
+        >
+          Open in Apple Maps
+        </a>
+      </div>
+    )
+  }
 
   return <div ref={ref} className={className} />
 }
