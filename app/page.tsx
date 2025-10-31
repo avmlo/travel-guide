@@ -209,12 +209,20 @@ export default function Home() {
 
   const fetchDestinations = async () => {
     try {
+      // Select only essential columns to avoid issues with missing columns
       const { data, error } = await supabase
         .from('destinations')
-        .select('*')
+        .select('slug, name, city, category, description, content, image, michelin_stars, crown')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching destinations:', error);
+        setDestinations([]);
+        setCategories([]);
+        setLoading(false);
+        return;
+      }
+
       setDestinations(data || []);
 
       // Extract unique categories from actual data
@@ -229,6 +237,8 @@ export default function Home() {
       setCategories(uniqueCategories as string[]);
     } catch (error) {
       console.error('Error fetching destinations:', error);
+      setDestinations([]);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
