@@ -40,6 +40,8 @@ function DestinationForm({
   const [fetchingGoogle, setFetchingGoogle] = useState(false);
   const [fetchingGemini, setFetchingGemini] = useState(false);
   const [geminiSuggestions, setGeminiSuggestions] = useState<string | null>(null);
+  const [placeRecommendations, setPlaceRecommendations] = useState<any[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   // Update form when destination changes
   useEffect(() => {
@@ -399,25 +401,7 @@ function DestinationForm({
 
       {/* Content Section */}
       <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Content</h3>
-          <Button
-            type="button"
-            onClick={fetchGeminiRecommendations}
-            disabled={fetchingGemini || !formData.name.trim()}
-            variant="outline"
-            size="sm"
-          >
-            {fetchingGemini ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                Getting AI...
-              </>
-            ) : (
-              '✨ Get AI Recommendations'
-            )}
-          </Button>
-        </div>
+        <h3 className="text-lg font-semibold mb-4">Content</h3>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1.5">Short Description</label>
