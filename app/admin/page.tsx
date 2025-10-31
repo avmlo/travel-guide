@@ -35,6 +35,35 @@ function DestinationForm({
     crown: destination?.crown || false,
   });
 
+  // Update form when destination changes
+  useEffect(() => {
+    if (destination) {
+      setFormData({
+        slug: destination.slug || '',
+        name: destination.name || '',
+        city: destination.city || '',
+        category: destination.category || '',
+        description: destination.description || '',
+        content: destination.content || '',
+        image: destination.image || '',
+        michelin_stars: destination.michelin_stars || null,
+        crown: destination.crown || false,
+      });
+    } else {
+      setFormData({
+        slug: '',
+        name: '',
+        city: '',
+        category: '',
+        description: '',
+        content: '',
+        image: '',
+        michelin_stars: null,
+        crown: false,
+      });
+    }
+  }, [destination]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const data: any = {
