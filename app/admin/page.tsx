@@ -34,6 +34,9 @@ function DestinationForm({
     michelin_stars: destination?.michelin_stars || null,
     crown: destination?.crown || false,
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Update form when destination changes
   useEffect(() => {
@@ -49,6 +52,8 @@ function DestinationForm({
         michelin_stars: destination.michelin_stars || null,
         crown: destination.crown || false,
       });
+      setImagePreview(destination.image || null);
+      setImageFile(null);
     } else {
       setFormData({
         slug: '',
@@ -61,13 +66,80 @@ function DestinationForm({
         michelin_stars: null,
         crown: false,
       });
+      setImagePreview(null);
+      setImageFile(null);
     }
   }, [destination]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return null;
+
+    setUploadingImage(true);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', imageFile);
+      formDataToSend.append('slug', formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.email) {
+        throw new Error('Not authenticated');
+      }
+
+      const res = await fetch('/api/upload-image', {
+        method: 'POST',
+        headers: {
+          'x-admin-email': session.user.email,
+        },
+        body: formDataToSend,
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Upload failed');
+      }
+
+      const data = await res.json();
+      return data.url;
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      alert(`Image upload failed: ${error.message}`);
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Upload image if file selected
+    let imageUrl = formData.image;
+    if (imageFile) {
+      const uploadedUrl = await uploadImage();
+      if (uploadedUrl) {
+        imageUrl = uploadedUrl;
+      } else {
+        // Don't submit if upload failed
+        return;
+      }
+    }
+
     const data: any = {
       ...formData,
+      image: imageUrl,
       michelin_stars: formData.michelin_stars ? Number(formData.michelin_stars) : null,
     };
     await onSave(data);
@@ -123,13 +195,62 @@ function DestinationForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Image URL</label>
-        <input
-          type="url"
-          value={formData.image}
-          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-          className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
-        />
+        <label className="block text-sm font-medium mb-1">Image</label>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <label className="flex-1 cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              <span className="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm">
+                {imageFile ? imageFile.name : 'Choose File'}
+              </span>
+            </label>
+            {imageFile && (
+              <button
+                type="button"
+                onClick={() => {
+                  setImageFile(null);
+                  setImagePreview(formData.image || null);
+                }}
+                className="px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <input
+            type="url"
+            value={formData.image}
+            onChange={(e) => {
+              setFormData({ ...formData, image: e.target.value });
+              if (!imageFile) {
+                setImagePreview(e.target.value || null);
+              }
+            }}
+            placeholder="Or enter image URL"
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+          />
+          {imagePreview && (
+            <div className="mt-2">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-48 object-cover rounded border border-gray-200 dark:border-gray-700"
+                onError={() => setImagePreview(null)}
+              />
+            </div>
+          )}
+          {uploadingImage && (
+            <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Uploading image...
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
