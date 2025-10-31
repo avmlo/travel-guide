@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     remotePatterns: (() => {
       const patterns: { protocol: 'https'; hostname: string }[] = []
       try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
         if (supabaseUrl) {
           const { hostname } = new URL(supabaseUrl)
           patterns.push({ protocol: 'https', hostname })
