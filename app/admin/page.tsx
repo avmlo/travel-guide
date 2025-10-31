@@ -238,6 +238,8 @@ export default function AdminPage() {
                           }
                           
                           let processed = 0;
+                          let failed = 0;
+                          const failures: Array<{ slug: string; reason: string }> = [];
                           const batchSize = 10; // Process 10 at a time
                           
                           for (let i = 0; i < needsEnrichment.length; i += batchSize) {
@@ -254,11 +256,17 @@ export default function AdminPage() {
                                   const result = await res.json();
                                   if (result.results?.[0]?.ok) {
                                     processed++;
+                                  } else {
+                                    failed++;
+                                    const reason = result.results?.[0]?.reason || result.results?.[0]?.error || 'unknown';
+                                    failures.push({ slug: dest.slug, reason });
                                   }
-                                } catch (e) {
+                                } catch (e: any) {
+                                  failed++;
+                                  failures.push({ slug: dest.slug, reason: e?.message || 'network_error' });
                                   console.error(`Error enriching ${dest.slug}:`, e);
                                 }
-                                setBulkProgress({ current: processed, total: needsEnrichment.length });
+                                setBulkProgress({ current: processed + failed, total: needsEnrichment.length });
                               })
                             );
                             
@@ -268,7 +276,35 @@ export default function AdminPage() {
                             }
                           }
                           
-                          alert(`Bulk enrichment complete! ${processed}/${needsEnrichment.length} destinations enriched.`);
+                          // Show detailed results
+                          const reasonCounts: Record<string, number> = {};
+                          failures.forEach(f => {
+                            reasonCounts[f.reason] = (reasonCounts[f.reason] || 0) + 1;
+                          });
+                          
+                          const reasonSummary = Object.entries(reasonCounts)
+                            .map(([reason, count]) => `  • ${reason}: ${count}`)
+                            .join('\n');
+                          
+                          const message = `Bulk enrichment complete!\n\n` +
+                            `✅ Enriched: ${processed}\n` +
+                            `❌ Failed: ${failed}\n\n` +
+                            `Failure reasons:\n${reasonSummary || '  (none)'}\n\n` +
+                            `Most common issue: ${Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'}`;
+                          
+                          alert(message);
+                          
+                          // Log detailed failures to console
+                          if (failures.length > 0) {
+                            console.group('Failed Enrichments');
+                            failures.slice(0, 50).forEach(f => {
+                              console.log(`${f.slug}: ${f.reason}`);
+                            });
+                            if (failures.length > 50) {
+                              console.log(`... and ${failures.length - 50} more`);
+                            }
+                            console.groupEnd();
+                          }
                           // Refresh stats
                           await loadEnrichmentStats();
                           await loadDestinationList();
