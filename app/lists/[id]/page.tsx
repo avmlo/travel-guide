@@ -336,6 +336,13 @@ export default function ListDetailPage() {
               <Plus className="h-4 w-4" />
               <span>Add Place</span>
             </button>
+            <button
+              onClick={updateList}
+              className="ml-3 inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-black dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              title="Save list changes"
+            >
+              Save
+            </button>
           </div>
         )}
 
