@@ -69,15 +69,28 @@ export async function POST(req: Request) {
     // Select targets
     let rows: any[] = []
     if (slug) {
-      const { data } = await supabase.from('destinations').select('slug,name,city,google_place_id').eq('slug', slug).limit(1)
+      const { data, error } = await supabase.from('destinations').select('slug,name,city,google_place_id').eq('slug', slug).limit(1)
+      if (error) {
+        return NextResponse.json({ error: `Database error: ${error.message}`, slug }, { status: 500 })
+      }
       rows = data || []
+      if (rows.length === 0) {
+        return NextResponse.json({ 
+          error: `Destination not found`, 
+          slug,
+          message: 'No destination found with this slug. Check the slug in your database.' 
+        }, { status: 404 })
+      }
     } else {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('destinations')
         .select('slug,name,city,google_place_id')
         .or('google_place_id.is.null,formatted_address.is.null,international_phone_number.is.null,website.is.null')
         .order('slug', { ascending: true })
         .range(offset, Math.max(offset + limit - 1, offset))
+      if (error) {
+        return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 })
+      }
       rows = data || []
     }
 
