@@ -579,14 +579,15 @@ export default function Home() {
             </button>
           </div>
         ) : viewMode === 'map' ? (
-          <div className="h-[600px] rounded-2xl overflow-hidden">
-            <MapView
-              destinations={filteredDestinations}
-              onMarkerClick={(dest) => {
-                setSelectedDestination(dest);
-                setIsDrawerOpen(true);
-              }}
-            />
+          <div className="h-[600px] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <a
+              href={`https://maps.apple.com/?q=${encodeURIComponent((filteredDestinations[0]?.name ? filteredDestinations[0]?.name + ' ' : '') + (selectedCity || '') || 'Places')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Open in Apple Maps
+            </a>
           </div>
         ) : (
           <>
