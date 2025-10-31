@@ -130,4 +130,15 @@ export async function POST(req: Request) {
   }
 }
 
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    message: 'Use POST with JSON to run enrichment.',
+    example: {
+      headers: { 'Content-Type': 'application/json', 'x-admin-email': 'you@example.com' },
+      body: { limit: 100, offset: 0 },
+    },
+  });
+}
+
 
