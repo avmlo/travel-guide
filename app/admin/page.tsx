@@ -1004,26 +1004,42 @@ export default function AdminPage() {
             </CardContent>
           </Card>
 
-          {/* Create/Edit Modal */}
+          {/* Create/Edit Drawer */}
           {showCreateModal && (
-            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold">
-                      {editingDestination ? 'Edit Destination' : 'Create New Destination'}
-                    </h2>
-                    <button
-                      onClick={() => {
-                        setShowCreateModal(false);
-                        setEditingDestination(null);
-                      }}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setEditingDestination(null);
+                }}
+              />
+              
+              {/* Drawer */}
+              <div
+                className={`fixed right-0 top-0 h-full w-full sm:w-[600px] lg:w-[700px] bg-white dark:bg-gray-950 z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+                  showCreateModal ? 'translate-x-0' : 'translate-x-full'
+                } overflow-y-auto`}
+              >
+                {/* Header */}
+                <div className="sticky top-0 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex items-center justify-between z-10">
+                  <h2 className="text-xl font-bold">
+                    {editingDestination ? 'Edit Destination' : 'Create New Destination'}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setEditingDestination(null);
+                    }}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
 
+                {/* Content */}
+                <div className="p-6">
                   <DestinationForm
                     destination={editingDestination}
                     onSave={async (data) => {
@@ -1070,7 +1086,7 @@ export default function AdminPage() {
                   />
                 </div>
               </div>
-            </div>
+            </>
           )}
 
           {/* Google Enrichment Tools */}
