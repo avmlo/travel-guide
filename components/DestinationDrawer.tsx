@@ -912,6 +912,34 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             </div>
           )}
 
+          {/* Reviews */}
+          {enrichedData?.reviews && Array.isArray(enrichedData.reviews) && enrichedData.reviews.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-sm font-bold uppercase mb-4 text-gray-500 dark:text-gray-400">Reviews</h3>
+              <div className="space-y-4">
+                {enrichedData.reviews.slice(0, 3).map((review: any, idx: number) => (
+                  <div key={idx} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-sm">{review.author_name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-yellow-500">⭐</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{review.rating}</span>
+                          {review.relative_time_description && (
+                            <span className="text-xs text-gray-500 dark:text-gray-500">· {review.relative_time_description}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {review.text && (
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 line-clamp-3">{review.text}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Divider */}
           <div className="border-t border-gray-200 dark:border-gray-800 my-8" />
 
