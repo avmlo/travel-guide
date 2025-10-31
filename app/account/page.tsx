@@ -35,11 +35,6 @@ export default function Account() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [enrichLimit, setEnrichLimit] = useState(100);
-  const [enrichOffset, setEnrichOffset] = useState(0);
-  const [enrichSlug, setEnrichSlug] = useState('');
-  const [enrichRunning, setEnrichRunning] = useState(false);
-  const [enrichResult, setEnrichResult] = useState<any>(null);
 
   // Check authentication
   useEffect(() => {
@@ -285,7 +280,12 @@ export default function Account() {
                   {user.email}
                 </p>
                 {isAdmin && (
-                  <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs">Admin</Badge>
+                  <>
+                    <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs">Admin</Badge>
+                    <Button onClick={() => router.push('/admin')} variant="outline" size="sm">
+                      Admin Dashboard
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
