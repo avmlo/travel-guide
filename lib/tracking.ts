@@ -1,5 +1,11 @@
 import { supabase } from './supabase';
 
+function trackingDisabled(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  return !url || !key || url.includes('placeholder.supabase.co') || key === 'placeholder-key';
+}
+
 // Generate or retrieve session ID from localStorage
 export function getSessionId(): string {
   if (typeof window === 'undefined') return '';
@@ -14,6 +20,7 @@ export function getSessionId(): string {
 
 // Get user context for tracking
 export async function getUserContext() {
+  if (trackingDisabled()) return { userId: undefined, sessionId: getSessionId(), timestamp: new Date().toISOString(), deviceType: getDeviceType(), timeOfDay: getTimeOfDay() };
   const { data: { user } } = await supabase.auth.getUser();
 
   return {
@@ -60,6 +67,7 @@ export async function trackInteraction(params: {
   metadata?: Record<string, any>;
 }) {
   try {
+    if (trackingDisabled()) return;
     const context = await getUserContext();
 
     const { error } = await supabase
@@ -183,6 +191,7 @@ export async function trackScrollDepth(params: {
 
 // Initialize session tracking
 export async function initializeSession() {
+  if (trackingDisabled()) return;
   const context = await getUserContext();
 
   // Create or update session record
@@ -206,6 +215,7 @@ export async function initializeSession() {
 
 // End session tracking
 export async function endSession() {
+  if (trackingDisabled()) return;
   const sessionId = getSessionId();
 
   const { error } = await supabase

@@ -780,7 +780,22 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
           {/* Divider */}
           <div className="border-t border-gray-200 dark:border-gray-800 my-8" />
 
-          {/* Map Section temporarily disabled */}
+          {/* Map Section (Google Maps) */}
+          <div className="mb-8">
+            <h3 className="text-sm font-bold uppercase mb-4 text-gray-500 dark:text-gray-400">Location</h3>
+            <div className="w-full h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''}&q=${encodeURIComponent(destination.name + ', ' + destination.city)}&zoom=15`}
+                title={`Map showing location of ${destination.name}`}
+              />
+            </div>
+          </div>
 
           {/* Directions Button */}
           <div className="mb-6">

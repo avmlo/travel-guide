@@ -9,7 +9,7 @@ import { CARD_WRAPPER, CARD_MEDIA, CARD_TITLE, CARD_META } from '@/components/Ca
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 import { useAuth } from '@/contexts/AuthContext';
 import dynamic from 'next/dynamic';
-import { AppleMap } from '@/components/AppleMap';
+import { useRouter } from 'next/navigation';
 import {
   initializeSession,
   trackPageView,
@@ -141,6 +141,7 @@ function capitalizeCity(city: string): string {
 }
 
 export default function Home() {
+  const router = useRouter();
   const { user } = useAuth();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [filteredDestinations, setFilteredDestinations] = useState<Destination[]>([]);
@@ -372,71 +373,34 @@ export default function Home() {
             searchQuery={searchTerm}
             onSearchChange={setSearchTerm}
             onOpenFilters={() => setIsFiltersOpen(true)}
-            userName={(user?.user_metadata as any)?.name || (user?.email ? user.email.split('@')[0] : undefined)}
+            userName={(function () {
+              const raw = ((user?.user_metadata as any)?.name || (user?.email ? user.email.split('@')[0] : undefined)) as string | undefined;
+              if (!raw) return undefined;
+              return raw
+                .split(/[\s._-]+/)
+                .filter(Boolean)
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(' ');
+            })()}
           />
         </div>
         {/* Old search and standalone filters removed (now inside GreetingHero) */}
 
-        {/* Filters Drawer */}
+        {/* Filters Popup (like nav) */}
         {isFiltersOpen && (
           <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 bg-black/50 z-40"
-              onClick={() => setIsFiltersOpen(false)}
-            />
-
-            {/* Drawer */}
-            <div className="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-white dark:bg-gray-950 z-50 shadow-2xl overflow-y-auto">
-              <div className="p-6">
-      {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold">Filters</h2>
-                  <button
-                    onClick={() => setIsFiltersOpen(false)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                  >
-                    <X className="h-5 w-5" />
+            <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setIsFiltersOpen(false)} />
+            <div className="fixed right-4 top-16 z-50 w-80 sm:w-96 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-bold uppercase">Filters</h2>
+                  <button onClick={() => setIsFiltersOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
 
-                {/* View Mode Toggle */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold mb-3">View</h3>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setViewMode('grid');
-                        trackFilterChange({ filterType: 'viewMode', value: 'grid' });
-                      }}
-                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                        viewMode === 'grid'
-                          ? 'bg-black dark:bg-white text-white dark:text-black'
-                          : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <Grid3x3 className="h-4 w-4" />
-                      <span>Grid</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setViewMode('map');
-                        trackFilterChange({ filterType: 'viewMode', value: 'map' });
-                      }}
-                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                        viewMode === 'map'
-                          ? 'bg-black dark:bg-white text-white dark:text-black'
-                          : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <Map className="h-4 w-4" />
-                      <span>Map</span>
-                    </button>
-                  </div>
-                </div>
-
                 {/* Open Now Toggle */}
-                <div className="mb-6">
+                <div className="mb-4">
                   <label className="flex items-center justify-between cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
@@ -463,16 +427,15 @@ export default function Home() {
 
                 {/* Categories */}
                 {categories.length > 0 && (
-            <div>
-                    <h3 className="text-sm font-semibold mb-3">Categories</h3>
+                  <div className="mb-2">
+                    <h3 className="text-sm font-semibold mb-2">Categories</h3>
                     <div className="flex flex-wrap gap-2">
-                      {/* All button */}
                       <button
                         onClick={() => {
                           setSelectedCategory('');
                           trackFilterChange({ filterType: 'category', value: 'all' });
                         }}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
+                        className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium transition-all ${
                           selectedCategory === ''
                             ? "bg-black dark:bg-white text-white dark:text-black"
                             : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -481,8 +444,6 @@ export default function Home() {
                         <span>🌍</span>
                         <span>All</span>
                       </button>
-
-                      {/* Dynamic categories from database */}
                       {categories.map((category) => (
                         <button
                           key={category}
@@ -490,9 +451,9 @@ export default function Home() {
                             setSelectedCategory(category);
                             trackFilterChange({ filterType: 'category', value: category });
                           }}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
+                          className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium transition-all ${
                             selectedCategory === category
-                              ? "bg-black dark:bg-white text-white dark:text-black"
+                              ? "bg-black dark:bg.white text-white dark:text-black"
                               : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                           }`}
                         >
@@ -579,19 +540,6 @@ export default function Home() {
             >
               Clear filters
             </button>
-          </div>
-        ) : viewMode === 'map' ? (
-          <div className="h-[600px] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
-            <AppleMap
-              places={filteredDestinations.map(d => ({ name: d.name, city: d.city }))}
-              className="w-full h-full"
-              onSelectPlace={(idx) => {
-                const dest = filteredDestinations[idx]
-                if (!dest) return
-                setSelectedDestination(dest)
-                setIsDrawerOpen(true)
-              }}
-            />
           </div>
         ) : (
           <>
