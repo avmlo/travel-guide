@@ -51,19 +51,19 @@ export function Header() {
     <header className="border-b border-gray-200 dark:border-gray-800">
       {/* Top Bar */}
       <div className="px-6 md:px-10 py-4">
-        <div className={`max-w-[1920px] mx-auto ${isHome ? 'relative' : ''}`}>
+        <div className={`max-w-[1920px] mx-auto relative`}>
           {/* Logo */}
-          <div className={`${isHome ? 'flex justify-center' : ''}`}>
+          <div className={`flex justify-center`}>
             <button
               onClick={() => navigate("/")}
               className="font-bold uppercase leading-none tracking-tight hover:opacity-60 transition-opacity"
-              style={{ fontSize: isHome ? 'clamp(20px, 4vw, 36px)' : 'clamp(24px, 5vw, 48px)' }}
+              style={{ fontSize: 'clamp(20px, 4vw, 36px)' }}
             >
               The Urban Manual
             </button>
           </div>
           {/* Theme + Burger on right */}
-          <div className={`${isHome ? 'absolute right-0 top-1/2 -translate-y-1/2' : 'hidden md:block float-right'}`}>
+          <div className={`absolute right-0 top-1/2 -translate-y-1/2`}>
             <div className="flex items-center gap-2">
               {mounted && (
                 <button onClick={toggleDark} className="p-2 hover:opacity-60 transition-opacity" aria-label="Toggle theme">
@@ -82,58 +82,7 @@ export function Header() {
         </div>
       </div>
 
-      {/* Full Nav Bar (hidden on home) */}
-      {!isHome && (
-        <div className="px-6 md:px-10 border-t border-gray-200 dark:border-gray-800">
-          <div className="max-w-[1920px] mx-auto flex items-center justify-between h-12">
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-6">
-              <button onClick={() => navigate("/")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Catalogue</button>
-              <button onClick={() => navigate("/cities")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Cities</button>
-              <button onClick={() => navigate("/explore")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Explore</button>
-              <button onClick={() => navigate("/lists")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Lists</button>
-              <button onClick={() => navigate("/feed")} className="text-xs font-bold uppercase hover:opacity-60 transition-opacity">Feed</button>
-            </div>
-
-            {/* Right Side (desktop) */}
-            <div className="flex items-center gap-4">
-              {mounted && (
-                <button onClick={toggleDark} className="p-2 hover:opacity-60 transition-opacity" aria-label="Toggle theme">
-                  {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                </button>
-              )}
-              <div className="hidden md:flex items-center gap-4">
-                {user ? (
-                  <>
-                    <button
-                      onClick={() => navigate('/account')}
-                      className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-                    >
-                      Account
-                    </button>
-                    <button
-                      onClick={async () => {
-                        await signOut();
-                        navigate('/');
-                      }}
-                      className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-                    >
-                      Sign Out
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => navigate('/auth/login')}
-                    className="text-xs font-bold uppercase hover:opacity-60 transition-opacity"
-                  >
-                    Sign In
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* No full nav bar; all navigation via burger menu */}
 
       {/* Burger Menu Dropdown (all breakpoints) */}
       {isMenuOpen && (
