@@ -1,70 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { Destination } from '@/types/destination'
-import { AppleMap } from '@/components/AppleMap'
-import { DestinationDrawer } from '@/components/DestinationDrawer'
-
 export default function MapPage() {
-  const [destinations, setDestinations] = useState<Destination[]>([])
-  const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function fetchAll() {
-      try {
-        const { data, error } = await supabase
-          .from('destinations')
-          .select('*')
-          .order('name')
-        if (error) throw error
-        setDestinations(data || [])
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchAll()
-  }, [])
-
-  if (loading) {
-    return (
-      <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
-        <div className="max-w-[1920px] mx-auto">
-          <div className="flex items-center justify-center min-h-[60vh] text-gray-500">Loading map…</div>
-        </div>
-      </main>
-    )
-  }
-
   return (
-    <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
+    <main className="px-4 md:px-6 lg:px-10 py-16 dark:text-white min-h-screen">
       <div className="max-w-[1920px] mx-auto">
-        <div className="h-[70vh] md:h-[75vh] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
-          <AppleMap
-            places={destinations.map(d => ({ name: d.name, city: d.city }))}
-            className="w-full h-full"
-            onSelectPlace={(idx) => {
-              const dest = destinations[idx]
-              if (!dest) return
-              setSelectedDestination(dest)
-              setIsDrawerOpen(true)
-            }}
-          />
+        <div className="mx-auto max-w-md text-center">
+          <h1 className="text-3xl font-bold mb-3">Map – Coming Soon</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
+            We’re working on a beautiful, interactive map experience. Check back soon!
+          </p>
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-90 transition-opacity font-medium"
+          >
+            Back to Home
+          </a>
         </div>
       </div>
-
-      <DestinationDrawer
-        destination={selectedDestination}
-        isOpen={isDrawerOpen}
-        onClose={() => {
-          setIsDrawerOpen(false)
-          setTimeout(() => setSelectedDestination(null), 300)
-        }}
-      />
     </main>
-  )
+  );
 }
 
 
