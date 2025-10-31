@@ -13,15 +13,55 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL!, SUPABASE_KEY!)
 
-async function findPlaceId(query: string): Promise<string | null> {
-  const url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json')
+async function findPlaceId(query: string, name?: string, city?: string): Promise<string | null> {
+  // Try multiple search strategies for better matching
+  
+  // Strategy 1: Try exact query first (name + city)
+  let url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json')
   url.searchParams.set('input', query)
   url.searchParams.set('inputtype', 'textquery')
   url.searchParams.set('fields', 'place_id')
   url.searchParams.set('key', GOOGLE_API_KEY!)
-  const r = await fetch(url.toString())
-  const j = await r.json()
-  return j?.candidates?.[0]?.place_id || null
+  let r = await fetch(url.toString())
+  let j = await r.json()
+  if (j?.candidates?.[0]?.place_id) {
+    return j.candidates[0].place_id
+  }
+  
+  // Strategy 2: If we have name and city separately, try just name with city as location bias
+  if (name && city) {
+    url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json')
+    url.searchParams.set('input', name)
+    url.searchParams.set('inputtype', 'textquery')
+    url.searchParams.set('fields', 'place_id')
+    url.searchParams.set('key', GOOGLE_API_KEY!)
+    r = await fetch(url.toString())
+    j = await r.json()
+    if (j?.candidates?.[0]?.place_id) {
+      return j.candidates[0].place_id
+    }
+    
+    // Strategy 3: Try with just the name (remove common prefixes/suffixes)
+    const cleanedName = name
+      .replace(/^(the|a|an)\s+/i, '') // Remove "The", "A", "An" prefix
+      .replace(/\s+(hotel|restaurant|cafe|bar|shop|store|mall|plaza|center|centre)$/i, '') // Remove common suffixes
+      .trim()
+    
+    if (cleanedName !== name) {
+      url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json')
+      url.searchParams.set('input', `${cleanedName} ${city}`)
+      url.searchParams.set('inputtype', 'textquery')
+      url.searchParams.set('fields', 'place_id')
+      url.searchParams.set('key', GOOGLE_API_KEY!)
+      r = await fetch(url.toString())
+      j = await r.json()
+      if (j?.candidates?.[0]?.place_id) {
+        return j.candidates[0].place_id
+      }
+    }
+  }
+  
+  return null
 }
 
 async function getPlaceDetails(placeId: string) {
@@ -111,8 +151,8 @@ export async function POST(req: Request) {
     for (const row of rows) {
       const query = `${row.name} ${row.city}`
       let placeId = row.google_place_id as string | null
-      if (!placeId) placeId = await findPlaceId(query)
-      if (!placeId) { results.push({ slug: row.slug, ok: false, reason: 'no_place_id' }); continue }
+      if (!placeId) placeId = await findPlaceId(query, row.name, row.city)
+      if (!placeId) { results.push({ slug: row.slug, ok: false, reason: 'no_place_id', name: row.name, city: row.city }); continue }
 
       const details = await getPlaceDetails(placeId)
       if (!details) { results.push({ slug: row.slug, ok: false, reason: 'no_details' }); continue }
