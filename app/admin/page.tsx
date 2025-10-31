@@ -3,13 +3,160 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Edit, Search, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
+
+// Destination Form Component
+function DestinationForm({ 
+  destination, 
+  onSave, 
+  onCancel, 
+  isSaving 
+}: { 
+  destination?: any; 
+  onSave: (data: any) => Promise<void>; 
+  onCancel: () => void; 
+  isSaving: boolean;
+}) {
+  const [formData, setFormData] = useState({
+    slug: destination?.slug || '',
+    name: destination?.name || '',
+    city: destination?.city || '',
+    category: destination?.category || '',
+    description: destination?.description || '',
+    content: destination?.content || '',
+    image: destination?.image || '',
+    michelin_stars: destination?.michelin_stars || null,
+    crown: destination?.crown || false,
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const data: any = {
+      ...formData,
+      michelin_stars: formData.michelin_stars ? Number(formData.michelin_stars) : null,
+    };
+    await onSave(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Name *</label>
+          <input
+            type="text"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Slug *</label>
+          <input
+            type="text"
+            required
+            value={formData.slug}
+            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+            placeholder="auto-generated if empty"
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">City *</label>
+          <input
+            type="text"
+            required
+            value={formData.city}
+            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Category *</label>
+          <input
+            type="text"
+            required
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Image URL</label>
+        <input
+          type="url"
+          value={formData.image}
+          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+          className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={2}
+          className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Content</label>
+        <textarea
+          value={formData.content}
+          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+          rows={6}
+          className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Michelin Stars</label>
+          <input
+            type="number"
+            min="0"
+            max="3"
+            value={formData.michelin_stars || ''}
+            onChange={(e) => setFormData({ ...formData, michelin_stars: e.target.value ? Number(e.target.value) : null })}
+            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+          />
+        </div>
+        <div className="flex items-center gap-2 pt-6">
+          <input
+            type="checkbox"
+            checked={formData.crown}
+            onChange={(e) => setFormData({ ...formData, crown: e.target.checked })}
+            className="w-4 h-4"
+          />
+          <label className="text-sm font-medium">Crown (Featured)</label>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button type="button" onClick={onCancel} variant="outline" disabled={isSaving}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSaving}>
+          {isSaving ? 'Saving...' : destination ? 'Update' : 'Create'}
+        </Button>
+      </div>
+    </form>
+  );
+}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -31,6 +178,10 @@ export default function AdminPage() {
   const [listOffset, setListOffset] = useState(0);
   const [bulkEnriching, setBulkEnriching] = useState(false);
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
+  const [listSearchQuery, setListSearchQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingDestination, setEditingDestination] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -67,9 +218,15 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAdmin && authChecked) {
       loadEnrichmentStats();
+    }
+  }, [isAdmin, authChecked]);
+
+  // Load destination list when search or offset changes
+  useEffect(() => {
+    if (isAdmin && authChecked) {
       loadDestinationList();
     }
-  }, [isAdmin, authChecked, listOffset]);
+  }, [isAdmin, authChecked, listOffset, listSearchQuery]);
 
   const loadEnrichmentStats = async () => {
     setIsLoadingStats(true);
@@ -134,12 +291,17 @@ export default function AdminPage() {
   const loadDestinationList = async () => {
     setIsLoadingList(true);
     try {
-      // Don't query business_status if column doesn't exist yet
-      const { data, error } = await supabase
+      let query = supabase
         .from('destinations')
-        .select('slug, name, city, google_place_id, formatted_address, rating')
-        .order('slug', { ascending: true })
-        .range(listOffset, listOffset + 19);
+        .select('slug, name, city, category, description, content, image, google_place_id, formatted_address, rating')
+        .order('slug', { ascending: true });
+      
+      // Apply search filter if present
+      if (listSearchQuery.trim()) {
+        query = query.or(`name.ilike.%${listSearchQuery}%,city.ilike.%${listSearchQuery}%,slug.ilike.%${listSearchQuery}%,category.ilike.%${listSearchQuery}%`);
+      }
+      
+      const { data, error } = await query.range(listOffset, listOffset + 19);
       
       if (error) {
         console.error('Supabase error:', error);
@@ -372,8 +534,43 @@ export default function AdminPage() {
           {/* Destination List with Enrichment Status */}
           <Card className="mb-6">
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <CardTitle>Destinations</CardTitle>
+                <Button
+                  onClick={() => {
+                    setEditingDestination(null);
+                    setShowCreateModal(true);
+                  }}
+                  variant="default"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Place
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={listSearchQuery}
+                    onChange={(e) => {
+                      setListSearchQuery(e.target.value);
+                      setListOffset(0); // Reset to first page when searching
+                    }}
+                    placeholder="Search by name, city, slug, or category..."
+                    className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+                  />
+                  {listSearchQuery && (
+                    <button
+                      onClick={() => setListSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={() => {
@@ -433,16 +630,30 @@ export default function AdminPage() {
                             <span className="text-xs">Slug: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{dest.slug}</code></span>
                           </div>
                         </div>
-                        <Button
-                          onClick={() => {
-                            setEnrichSlug(dest.slug);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          variant="outline"
-                          size="sm"
-                        >
-                          Enrich
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => {
+                              setEditingDestination(dest);
+                              setShowCreateModal(true);
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                          >
+                            <Edit className="h-3 w-3" />
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setEnrichSlug(dest.slug);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            variant="outline"
+                            size="sm"
+                          >
+                            Enrich
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -450,6 +661,75 @@ export default function AdminPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Create/Edit Modal */}
+          {showCreateModal && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold">
+                      {editingDestination ? 'Edit Destination' : 'Create New Destination'}
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setShowCreateModal(false);
+                        setEditingDestination(null);
+                      }}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <DestinationForm
+                    destination={editingDestination}
+                    onSave={async (data) => {
+                      setIsSaving(true);
+                      try {
+                        if (editingDestination) {
+                          // Update existing
+                          const { error } = await supabase
+                            .from('destinations')
+                            .update(data)
+                            .eq('slug', editingDestination.slug);
+                          
+                          if (error) throw error;
+                        } else {
+                          // Create new - generate slug if not provided
+                          if (!data.slug && data.name) {
+                            data.slug = data.name.toLowerCase()
+                              .replace(/[^a-z0-9]+/g, '-')
+                              .replace(/(^-|-$)/g, '');
+                          }
+                          
+                          const { error } = await supabase
+                            .from('destinations')
+                            .insert([data]);
+                          
+                          if (error) throw error;
+                        }
+                        
+                        setShowCreateModal(false);
+                        setEditingDestination(null);
+                        await loadDestinationList();
+                        await loadEnrichmentStats();
+                      } catch (e: any) {
+                        alert(`Error: ${e.message}`);
+                      } finally {
+                        setIsSaving(false);
+                      }
+                    }}
+                    onCancel={() => {
+                      setShowCreateModal(false);
+                      setEditingDestination(null);
+                    }}
+                    isSaving={isSaving}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Google Enrichment Tools */}
           <Card className="mb-6">
