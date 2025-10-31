@@ -21,6 +21,9 @@ export default function AdminPage() {
   const [enrichSlug, setEnrichSlug] = useState('');
   const [enrichRunning, setEnrichRunning] = useState(false);
   const [enrichResult, setEnrichResult] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -52,6 +55,25 @@ export default function AdminPage() {
 
     checkAuth();
   }, [router]);
+
+  const handleSearchDestinations = async () => {
+    if (!searchQuery.trim()) return;
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('destinations')
+        .select('slug, name, city')
+        .or(`name.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,slug.ilike.%${searchQuery}%`)
+        .limit(10);
+      if (error) throw error;
+      setSearchResults(data || []);
+    } catch (e: any) {
+      setSearchResults([]);
+      console.error('Search error:', e);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   // Show loading state
   if (!authChecked) {
@@ -129,6 +151,51 @@ export default function AdminPage() {
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                 <strong>Batch mode:</strong> Finds destinations missing any enrichment data (google_place_id, formatted_address, phone, or website). 
                 If you get 0 results, try enriching a specific destination by slug.
+              </div>
+
+              {/* Search for slugs */}
+              <div className="border-t border-gray-200 dark:border-gray-800 pt-4 mt-4">
+                <p className="text-sm font-medium mb-2">Find Destination Slug</p>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearchDestinations();
+                      }
+                    }}
+                    placeholder="Search by name or city (e.g., 'tokyo', 'central park')"
+                    className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+                  />
+                  <Button
+                    onClick={handleSearchDestinations}
+                    disabled={isSearching || !searchQuery.trim()}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {isSearching ? 'Searching...' : 'Search'}
+                  </Button>
+                </div>
+                {searchResults.length > 0 && (
+                  <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                    {searchResults.map((d: any) => (
+                      <button
+                        key={d.slug}
+                        onClick={() => {
+                          setEnrichSlug(d.slug);
+                          setSearchResults([]);
+                          setSearchQuery('');
+                        }}
+                        className="block w-full text-left px-3 py-1.5 text-xs bg-gray-50 dark:bg-gray-900 rounded hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800"
+                      >
+                        <div className="font-medium">{d.name}</div>
+                        <div className="text-gray-500">Slug: <code className="text-xs">{d.slug}</code> | City: {d.city}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <Button
