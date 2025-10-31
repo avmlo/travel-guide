@@ -9,6 +9,7 @@ import { CARD_WRAPPER, CARD_MEDIA, CARD_TITLE, CARD_META } from '@/components/Ca
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 import { useAuth } from '@/contexts/AuthContext';
 import dynamic from 'next/dynamic';
+import { AppleMap } from '@/components/AppleMap';
 import {
   initializeSession,
   trackPageView,
@@ -579,15 +580,17 @@ export default function Home() {
             </button>
           </div>
         ) : viewMode === 'map' ? (
-          <div className="h-[600px] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-            <a
-              href={`https://maps.apple.com/?q=${encodeURIComponent((filteredDestinations[0]?.name ? filteredDestinations[0]?.name + ' ' : '') + (selectedCity || '') || 'Places')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Open in Apple Maps
-            </a>
+          <div className="h-[600px] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
+            <AppleMap
+              places={filteredDestinations.map(d => ({ name: d.name, city: d.city }))}
+              className="w-full h-full"
+              onSelectPlace={(idx) => {
+                const dest = filteredDestinations[idx]
+                if (!dest) return
+                setSelectedDestination(dest)
+                setIsDrawerOpen(true)
+              }}
+            />
           </div>
         ) : (
           <>

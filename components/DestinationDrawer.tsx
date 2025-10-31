@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { X, MapPin, Tag, Heart, Check, Share2, Navigation, Sparkles, ChevronDown, Plus, Loader2, Clock } from 'lucide-react';
+import { AppleMap } from '@/components/AppleMap';
 import { Destination } from '@/types/destination';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -782,16 +783,10 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
           {/* Map Section */}
           <div className="mb-8">
             <h3 className="text-sm font-bold uppercase mb-4 text-gray-500 dark:text-gray-400">Location</h3>
-            <div className="w-full h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <a
-                href={`https://maps.apple.com/?q=${encodeURIComponent(destination.name + ' ' + destination.city)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-90 transition-opacity"
-              >
-                <span>Open in Apple Maps</span>
-              </a>
-            </div>
+            <AppleMap
+              places={[{ name: destination.name, city: destination.city }]}
+              className="w-full h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800"
+            />
           </div>
 
           {/* Directions Button */}
