@@ -170,7 +170,8 @@ export async function POST(req: Request) {
         language: r.language,
       })) : []
 
-      const update = {
+      // Build update object with only basic fields first (these should always exist)
+      const update: any = {
         google_place_id: placeId,
         formatted_address: details.formatted_address || null,
         international_phone_number: details.international_phone_number || null,
@@ -179,13 +180,18 @@ export async function POST(req: Request) {
         rating: details.rating ?? null,
         user_ratings_total: details.user_ratings_total ?? null,
         opening_hours_json: details.opening_hours ? JSON.stringify(details.opening_hours) : null,
-        current_opening_hours_json: details.current_opening_hours ? JSON.stringify(details.current_opening_hours) : null,
-        secondary_opening_hours_json: details.secondary_opening_hours ? JSON.stringify(details.secondary_opening_hours) : null,
         plus_code: details.plus_code?.global_code || null,
         latitude: lat ?? null,
         longitude: lng ?? null,
         timezone_id,
         reviews_json: reviews.length ? JSON.stringify(reviews) : null,
+      }
+
+      // Try to add extended fields, but don't fail if columns don't exist
+      // These fields require the extended migration to be run
+      const extendedFields: any = {
+        current_opening_hours_json: details.current_opening_hours ? JSON.stringify(details.current_opening_hours) : null,
+        secondary_opening_hours_json: details.secondary_opening_hours ? JSON.stringify(details.secondary_opening_hours) : null,
         business_status: details.business_status || null,
         editorial_summary: details.editorial_summary?.overview || null,
         google_name: details.name || null,
@@ -199,8 +205,22 @@ export async function POST(req: Request) {
         icon_mask_base_uri: details.icon_mask_base_uri || null,
       }
 
-      const { error: upErr } = await supabase.from('destinations').update(update as any).eq('slug', row.slug)
-      results.push({ slug: row.slug, ok: !upErr, error: upErr?.message })
+      // Try updating with extended fields first, if it fails, fall back to basic fields
+      const { error: upErr } = await supabase.from('destinations').update({ ...update, ...extendedFields } as any).eq('slug', row.slug)
+      
+      if (upErr && upErr.message?.includes('column') && upErr.message?.includes('schema cache')) {
+        // If extended columns don't exist, try with just basic fields
+        const { error: basicErr } = await supabase.from('destinations').update(update as any).eq('slug', row.slug)
+        if (basicErr) {
+          results.push({ slug: row.slug, ok: false, error: basicErr.message, reason: 'update_failed' })
+        } else {
+          results.push({ slug: row.slug, ok: true, note: 'enriched_with_basic_fields_only' })
+        }
+      } else if (upErr) {
+        results.push({ slug: row.slug, ok: false, error: upErr.message, reason: 'update_failed' })
+      } else {
+        results.push({ slug: row.slug, ok: true })
+      }
     }
 
     return NextResponse.json({ count: results.length, results, nextOffset: offset + results.length })
