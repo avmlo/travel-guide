@@ -2,27 +2,33 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const checks = {
-      postgres_url: !!process.env.POSTGRES_URL,
-      payload_secret: !!process.env.PAYLOAD_SECRET,
-      postgres_url_length: process.env.POSTGRES_URL?.length || 0,
-      payload_secret_length: process.env.PAYLOAD_SECRET?.length || 0,
-    }
+    const hasPostgres = Boolean(process.env.POSTGRES_URL)
+    const hasPayloadSecret = Boolean(process.env.PAYLOAD_SECRET)
+    const isPayloadSecretStrong = (process.env.PAYLOAD_SECRET?.length || 0) >= 32
 
-    return NextResponse.json({
-      status: 'checking',
-      environment: {
-        ...checks,
-        node_env: process.env.NODE_ENV,
+    const healthy = hasPostgres && hasPayloadSecret && isPayloadSecretStrong
+
+    return NextResponse.json(
+      {
+        status: healthy ? 'healthy' : 'unhealthy',
+        message: healthy
+          ? 'Environment configuration looks healthy.'
+          : 'Environment configuration is incomplete. Review server logs for details.',
       },
-      message: checks.postgres_url && checks.payload_secret && checks.payload_secret_length >= 32
-        ? 'Environment variables configured correctly'
-        : 'Missing or invalid environment variables',
-    })
-  } catch (error: any) {
-    return NextResponse.json({
-      status: 'error',
-      error: error.message,
-    }, { status: 500 })
+      {
+        status: healthy ? 200 : 503,
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      },
+    )
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: 'error',
+        message: 'Health check failed. See server logs for details.',
+      },
+      { status: 500 },
+    )
   }
 }
