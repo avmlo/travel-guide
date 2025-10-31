@@ -10,6 +10,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
     || 'https://theurbanmanual.com';
 
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, '') || baseUrl;
+
   const currentDate = new Date().toISOString();
 
   let destinationData: Destination[] = [];
@@ -25,9 +27,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (error) {
       console.warn('Sitemap: Could not fetch destinations from Supabase:', error.message);
     } else {
-      destinationData = (destinations || []) as Destination[];
-      // Get unique cities
-      cities = Array.from(new Set(destinationData.map(d => d.city)));
+      destinationData = (destinations || [])
+        .filter((dest): dest is Destination => Boolean(dest.slug && typeof dest.slug === 'string' && dest.slug.trim().length > 0))
+        .map(dest => ({
+          ...dest,
+          slug: dest.slug.trim(),
+          city: typeof dest.city === 'string' ? dest.city.trim() : dest.city,
+        }));
+
+      cities = Array.from(
+        new Set(
+          destinationData
+            .map(d => (typeof d.city === 'string' ? d.city.trim() : ''))
+            .filter((city): city is string => city.length > 0)
+        )
+      );
     }
   } catch (error) {
     console.warn('Sitemap: Could not fetch destinations from Supabase:', error);
@@ -37,19 +51,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Main pages - highest priority
   const mainPages: MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
+      url: normalizedBaseUrl,
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/explore`,
+      url: `${normalizedBaseUrl}/explore`,
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 0.95,
     },
     {
-      url: `${baseUrl}/cities`,
+      url: `${normalizedBaseUrl}/cities`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
@@ -59,19 +73,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Feature pages
   const featurePages: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}/lists`,
+      url: `${normalizedBaseUrl}/lists`,
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/feed`,
+      url: `${normalizedBaseUrl}/feed`,
       lastModified: currentDate,
       changeFrequency: 'hourly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/trips`,
+      url: `${normalizedBaseUrl}/trips`,
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 0.7,
@@ -80,7 +94,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // City pages - important for discovery
   const cityPages: MetadataRoute.Sitemap = cities.map(city => ({
-    url: `${baseUrl}/city/${encodeURIComponent(city)}`,
+    url: `${normalizedBaseUrl}/city/${encodeURIComponent(city)}`,
     lastModified: currentDate,
     changeFrequency: 'weekly',
     priority: 0.85,
@@ -92,7 +106,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const isPrimaryCategory = ['restaurant', 'cafe', 'bar', 'hotel'].includes(dest.category?.toLowerCase() || '');
 
     return {
-      url: `${baseUrl}/destination/${dest.slug}`,
+      url: `${normalizedBaseUrl}/destination/${dest.slug}`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
       priority: isPrimaryCategory ? 0.75 : 0.65,
@@ -102,7 +116,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Legal/static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}/privacy`,
+      url: `${normalizedBaseUrl}/privacy`,
       lastModified: currentDate,
       changeFrequency: 'yearly',
       priority: 0.3,
