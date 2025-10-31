@@ -131,6 +131,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [heartAnimating, setHeartAnimating] = useState(false);
   const [checkAnimating, setCheckAnimating] = useState(false);
+  const [enrichedData, setEnrichedData] = useState<any>(null);
 
   // List management state
   const [showListsModal, setShowListsModal] = useState(false);
@@ -167,10 +168,90 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Load saved and visited status
+  // Load enriched data and saved/visited status
   useEffect(() => {
-    async function checkSavedAndVisited() {
-      if (!user || !destination) {
+    async function loadDestinationData() {
+      if (!destination) {
+        setEnrichedData(null);
+        setIsSaved(false);
+        setIsVisited(false);
+        return;
+      }
+
+      // Fetch enriched data from database
+      try {
+        const { data, error } = await supabase
+          .from('destinations')
+          .select(`
+            formatted_address,
+            international_phone_number,
+            website,
+            rating,
+            user_ratings_total,
+            price_level,
+            opening_hours_json,
+            current_opening_hours_json,
+            secondary_opening_hours_json,
+            business_status,
+            editorial_summary,
+            google_name,
+            place_types_json,
+            utc_offset,
+            vicinity,
+            reviews_json,
+            timezone_id,
+            latitude,
+            longitude
+          `)
+          .eq('slug', destination.slug)
+          .single();
+        
+        if (!error && data) {
+          // Parse JSON fields
+          const enriched: any = { ...data };
+          if (data.opening_hours_json) {
+            try {
+              enriched.opening_hours = typeof data.opening_hours_json === 'string' 
+                ? JSON.parse(data.opening_hours_json) 
+                : data.opening_hours_json;
+            } catch {}
+          }
+          if (data.current_opening_hours_json) {
+            try {
+              enriched.current_opening_hours = typeof data.current_opening_hours_json === 'string'
+                ? JSON.parse(data.current_opening_hours_json)
+                : data.current_opening_hours_json;
+            } catch {}
+          }
+          if (data.secondary_opening_hours_json) {
+            try {
+              enriched.secondary_opening_hours = typeof data.secondary_opening_hours_json === 'string'
+                ? JSON.parse(data.secondary_opening_hours_json)
+                : data.secondary_opening_hours_json;
+            } catch {}
+          }
+          if (data.place_types_json) {
+            try {
+              enriched.place_types = typeof data.place_types_json === 'string'
+                ? JSON.parse(data.place_types_json)
+                : data.place_types_json;
+            } catch {}
+          }
+          if (data.reviews_json) {
+            try {
+              enriched.reviews = typeof data.reviews_json === 'string'
+                ? JSON.parse(data.reviews_json)
+                : data.reviews_json;
+            } catch {}
+          }
+          setEnrichedData(enriched);
+        }
+      } catch (error) {
+        console.error('Error loading enriched data:', error);
+      }
+
+      // Load saved and visited status
+      if (!user) {
         setIsSaved(false);
         setIsVisited(false);
         return;
@@ -195,7 +276,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
       setIsVisited(!!visitedData);
     }
 
-    checkSavedAndVisited();
+    loadDestinationData();
   }, [user, destination]);
 
   const handleSave = async () => {
@@ -538,19 +619,21 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             )}
 
             {/* Rating & Price Level */}
-            {(destination.rating || destination.price_level) && (
+            {((enrichedData?.rating || enrichedData?.price_level) || (destination.rating || destination.price_level)) && (
               <div className="mt-4 flex items-center gap-4 text-sm">
-                {destination.rating && (
+                {(enrichedData?.rating || destination.rating) && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-yellow-500">⭐</span>
-                    <span className="font-semibold">{destination.rating.toFixed(1)}</span>
-                    <span className="text-gray-500 dark:text-gray-400">Google Rating</span>
+                    <span className="font-semibold">{(enrichedData?.rating || destination.rating).toFixed(1)}</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Google Rating{enrichedData?.user_ratings_total ? ` (${enrichedData.user_ratings_total.toLocaleString()} reviews)` : ''}
+                    </span>
                   </div>
                 )}
-                {destination.price_level && (
+                {(enrichedData?.price_level || destination.price_level) && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-green-600 dark:text-green-400 font-semibold">
-                      {'$'.repeat(destination.price_level)}
+                      {'$'.repeat(enrichedData?.price_level || destination.price_level)}
                     </span>
                     <span className="text-gray-500 dark:text-gray-400">Price Level</span>
                   </div>
@@ -558,9 +641,62 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
               </div>
             )}
 
+            {/* Business Status */}
+            {enrichedData?.business_status && enrichedData.business_status !== 'OPERATIONAL' && (
+              <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <strong>Status:</strong> {enrichedData.business_status.replace(/_/g, ' ')}
+                </p>
+              </div>
+            )}
+
+            {/* Editorial Summary */}
+            {enrichedData?.editorial_summary && (
+              <div className="mt-4">
+                <h3 className="text-sm font-bold uppercase mb-2 text-gray-500 dark:text-gray-400">From Google</h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {enrichedData.editorial_summary}
+                </p>
+              </div>
+            )}
+
+            {/* Formatted Address */}
+            {enrichedData?.formatted_address && (
+              <div className="mt-4">
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Address</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{enrichedData.formatted_address}</p>
+                    {enrichedData.vicinity && enrichedData.vicinity !== enrichedData.formatted_address && (
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{enrichedData.vicinity}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Place Types */}
+            {enrichedData?.place_types && Array.isArray(enrichedData.place_types) && enrichedData.place_types.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Types</p>
+                <div className="flex flex-wrap gap-2">
+                  {enrichedData.place_types.slice(0, 5).map((type: string, idx: number) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs rounded-full"
+                    >
+                      {type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Opening Hours */}
-            {destination.opening_hours && (() => {
-              const openStatus = getOpenStatus(destination.opening_hours, destination.city);
+            {((enrichedData?.opening_hours || enrichedData?.current_opening_hours) || destination.opening_hours) && (() => {
+              const hours = enrichedData?.current_opening_hours || enrichedData?.opening_hours || destination.opening_hours;
+              const openStatus = getOpenStatus(hours, destination.city);
               return (
                 <div className="mt-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -576,14 +712,14 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                       </span>
                     )}
                   </div>
-                  {destination.opening_hours.weekday_text && (
+                  {hours.weekday_text && (
                     <details className="text-sm">
                       <summary className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
                         View all hours
                       </summary>
                       <div className="mt-2 space-y-1 pl-6">
-                        {destination.opening_hours.weekday_text.map((day: string, index: number) => {
-                          const [dayName, hours] = day.split(': ');
+                        {hours.weekday_text.map((day: string, index: number) => {
+                          const [dayName, hoursText] = day.split(': ');
                           const timezone = CITY_TIMEZONES[destination.city] || 'UTC';
                           const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
                           const dayOfWeek = now.getDay();
@@ -593,7 +729,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                           return (
                             <div key={index} className={`flex justify-between ${isToday ? 'font-semibold text-black dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                               <span>{dayName}</span>
-                              <span>{hours}</span>
+                              <span>{hoursText}</span>
                             </div>
                           );
                         })}
@@ -698,8 +834,8 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             </div>
           )}
 
-          {/* Links Section */}
-          {(destination.website || destination.phone_number || destination.instagram_url || destination.google_maps_url) && (
+          {/* Contact & Links Section */}
+          {(enrichedData?.website || enrichedData?.international_phone_number || destination.website || destination.phone_number || destination.instagram_url || destination.google_maps_url) && (
             <div className="mb-8">
               <style jsx>{`
                 .pill-button {
@@ -738,9 +874,9 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                     <span>Google Maps</span>
                   </a>
                 )}
-                {destination.website && (
+                {(enrichedData?.website || destination.website) && (
                   <a
-                    href={destination.website.startsWith('http') ? destination.website : `https://${destination.website}`}
+                    href={(enrichedData?.website || destination.website).startsWith('http') ? (enrichedData?.website || destination.website) : `https://${enrichedData?.website || destination.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="pill-button"
@@ -750,14 +886,14 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                     <span>Website</span>
                   </a>
                 )}
-                {destination.phone_number && (
+                {(enrichedData?.international_phone_number || destination.phone_number) && (
                   <a
-                    href={`tel:${destination.phone_number}`}
+                    href={`tel:${enrichedData?.international_phone_number || destination.phone_number}`}
                     className="pill-button"
                   >
                     <span>📞</span>
                     <span className="pill-separator">•</span>
-                    <span>Call</span>
+                    <span>{enrichedData?.international_phone_number || destination.phone_number}</span>
                   </a>
                 )}
                 {destination.instagram_url && (
