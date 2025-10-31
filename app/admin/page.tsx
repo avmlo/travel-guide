@@ -37,6 +37,7 @@ function DestinationForm({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [fetchingGoogle, setFetchingGoogle] = useState(false);
 
   // Update form when destination changes
   useEffect(() => {
@@ -122,6 +123,64 @@ function DestinationForm({
     }
   };
 
+  const fetchFromGoogle = async () => {
+    if (!formData.name.trim()) {
+      alert('Please enter a name first');
+      return;
+    }
+
+    setFetchingGoogle(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.email) {
+        throw new Error('Not authenticated');
+      }
+
+      const res = await fetch('/api/fetch-google-place', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-email': session.user.email,
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          city: formData.city,
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to fetch from Google');
+      }
+
+      const data = await res.json();
+
+      // Auto-fill form with fetched data
+      setFormData(prev => ({
+        ...prev,
+        name: data.name || prev.name,
+        city: data.city || prev.city,
+        category: data.category || prev.category,
+        description: data.description || prev.description,
+        content: data.content || prev.content,
+        image: data.image || prev.image,
+      }));
+
+      // Update image preview if we got an image
+      if (data.image) {
+        setImagePreview(data.image);
+      }
+
+      // Show success message
+      alert(`✅ Fetched data from Google Places!\n\nName: ${data.name}\nCity: ${data.city}\nCategory: ${data.category || 'Not found'}`);
+    } catch (error: any) {
+      console.error('Fetch Google error:', error);
+      alert(`Failed to fetch from Google: ${error.message}`);
+    } finally {
+      setFetchingGoogle(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -150,13 +209,32 @@ function DestinationForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Name *</label>
-          <input
-            type="text"
-            required
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
+            />
+            <Button
+              type="button"
+              onClick={fetchFromGoogle}
+              disabled={fetchingGoogle || !formData.name.trim()}
+              variant="outline"
+              size="sm"
+              className="whitespace-nowrap"
+            >
+              {fetchingGoogle ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  Fetching...
+                </>
+              ) : (
+                'Fetch from Google'
+              )}
+            </Button>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Slug *</label>
