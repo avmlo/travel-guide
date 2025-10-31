@@ -282,7 +282,7 @@ export default function Home() {
         // Fallback to basic search
         filterDestinations();
       }
-    } catch (error) {
+  } catch (error) {
       console.error('AI search error, falling back to basic:', error);
       filterDestinations();
     } finally {
@@ -372,6 +372,7 @@ export default function Home() {
             searchQuery={searchTerm}
             onSearchChange={setSearchTerm}
             onOpenFilters={() => setIsFiltersOpen(true)}
+            userName={(user?.user_metadata as any)?.name || (user?.email ? user.email.split('@')[0] : undefined)}
           />
         </div>
         {/* Old search and standalone filters removed (now inside GreetingHero) */}
@@ -388,7 +389,7 @@ export default function Home() {
             {/* Drawer */}
             <div className="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-white dark:bg-gray-950 z-50 shadow-2xl overflow-y-auto">
               <div className="p-6">
-                {/* Header */}
+      {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold">Filters</h2>
                   <button
@@ -462,7 +463,7 @@ export default function Home() {
 
                 {/* Categories */}
                 {categories.length > 0 && (
-                  <div>
+            <div>
                     <h3 className="text-sm font-semibold mb-3">Categories</h3>
                     <div className="flex flex-wrap gap-2">
                       {/* All button */}
@@ -546,7 +547,7 @@ export default function Home() {
                 <button
                   onClick={() => setShowAllCities(!showAllCities)}
                     className="font-medium text-black/30 dark:text-gray-500 hover:text-black/60 dark:hover:text-gray-300 transition-colors"
-                >
+            >
                   {showAllCities ? '- Show Less' : '+ Show More'}
                 </button>
               )}
@@ -661,7 +662,7 @@ export default function Home() {
                         </p>
                       </>
                     )}
-                  </div>
+                    </div>
                 </div>
               </button>
             );

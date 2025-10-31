@@ -4,12 +4,14 @@ interface GreetingHeroProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
   onOpenFilters: () => void;
+  userName?: string;
 }
 
 export default function GreetingHero({
   searchQuery,
   onSearchChange,
   onOpenFilters,
+  userName,
 }: GreetingHeroProps) {
   // Get current time for greeting
   const now = new Date();
@@ -40,7 +42,7 @@ export default function GreetingHero({
         {/* Greeting */}
         <div className="text-center mb-3">
           <h1 className="font-['Inter:Regular',sans-serif] text-[12px] text-[#6b7280] uppercase tracking-[2px] mb-1 font-medium">
-            {greeting}
+            {greeting}{userName ? `, ${userName}` : ''}
           </h1>
           <p className="font-['Inter:Regular',sans-serif] text-[12px] text-[#6b7280]">
             Today is {dateStr}, {timeStr}
