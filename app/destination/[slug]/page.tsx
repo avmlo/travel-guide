@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
 import { MapPin, Star, ArrowLeft, Tag } from 'lucide-react';
+import { stripHtmlTags } from '@/lib/stripHtmlTags';
 
 export default function DestinationPage() {
   const router = useRouter();
@@ -124,7 +125,7 @@ export default function DestinationPage() {
       {destination.content && (
         <div className="prose dark:prose-invert max-w-none mb-8">
           <div className="text-lg leading-relaxed whitespace-pre-wrap">
-            {destination.content}
+            {stripHtmlTags(destination.content)}
           </div>
         </div>
       )}

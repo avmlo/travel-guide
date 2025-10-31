@@ -5,6 +5,7 @@ import { X, MapPin, Tag, Heart, Check, Share2, Navigation, Sparkles, ChevronDown
 import { Destination } from '@/types/destination';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { stripHtmlTags } from '@/lib/stripHtmlTags';
 
 interface List {
   id: string;
@@ -829,7 +830,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             <div className="mb-8">
               <h3 className="text-sm font-bold uppercase mb-3 text-gray-500 dark:text-gray-400">About</h3>
               <div className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                {destination.content}
+                {stripHtmlTags(destination.content)}
               </div>
             </div>
           )}
