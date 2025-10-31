@@ -38,8 +38,6 @@ function DestinationForm({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [fetchingGoogle, setFetchingGoogle] = useState(false);
-  const [fetchingGemini, setFetchingGemini] = useState(false);
-  const [geminiSuggestions, setGeminiSuggestions] = useState<string | null>(null);
   const [placeRecommendations, setPlaceRecommendations] = useState<any[]>([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
@@ -185,61 +183,6 @@ function DestinationForm({
     }
   };
 
-  const fetchGeminiRecommendations = async () => {
-    if (!formData.name.trim()) {
-      alert('Please enter a name first');
-      return;
-    }
-
-    setFetchingGemini(true);
-    setGeminiSuggestions(null);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.email) {
-        throw new Error('Not authenticated');
-      }
-
-      const res = await fetch('/api/gemini-recommendations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-email': session.user.email,
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          city: formData.city,
-          category: formData.category,
-          description: formData.description,
-        }),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || 'Failed to get Gemini recommendations');
-      }
-
-      const data = await res.json();
-
-      // Auto-fill form with AI recommendations
-      setFormData(prev => ({
-        ...prev,
-        category: data.category || prev.category,
-        description: data.description || prev.description,
-        content: data.content || prev.content,
-      }));
-
-      // Store suggestions
-      setGeminiSuggestions(data.suggestions || null);
-
-      // Show success message
-      alert(`✅ Got AI recommendations!\n\nCategory: ${data.category || 'Unchanged'}\nTags: ${data.tags?.join(', ') || 'None'}\n\n${data.suggestions ? `Suggestions: ${data.suggestions}` : ''}`);
-    } catch (error: any) {
-      console.error('Fetch Gemini error:', error);
-      alert(`Failed to get AI recommendations: ${error.message}`);
-    } finally {
-      setFetchingGemini(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -412,11 +355,6 @@ function DestinationForm({
               className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               placeholder="A brief, punchy description (1-2 sentences)"
             />
-            {geminiSuggestions && (
-              <p className="mt-2 text-xs text-blue-600 dark:text-blue-400 italic bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                💡 {geminiSuggestions}
-              </p>
-            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Full Content</label>
