@@ -184,15 +184,11 @@ export default function Home() {
     }
   }, [user]);
 
-  // Pure AI Chat search - NO filter dependencies, works exactly like chat component
-  // Accept ANY query length (like chat component), let API handle validation
+  // CHAT MODE: Don't auto-trigger on typing - only trigger on explicit submit (Enter key)
+  // This matches chat component behavior exactly
+  // Clear state when search term is cleared
   useEffect(() => {
-    if (searchTerm.trim().length > 0) {
-      const timer = setTimeout(() => {
-        performAISearch(searchTerm);
-      }, 500); // 500ms debounce
-      return () => clearTimeout(timer);
-    } else {
+    if (searchTerm.trim().length === 0) {
       // Clear everything when search is empty
       setFilteredDestinations([]);
       setChatResponse('');
@@ -200,10 +196,9 @@ export default function Home() {
       setSearching(false);
       // Show all destinations when no search (with filters if set)
       filterDestinations();
+      setDisplayedCount(24);
     }
-    // Reset displayed count when search changes
-    setDisplayedCount(24);
-  }, [searchTerm]); // ONLY depend on searchTerm - filters don't affect AI chat
+  }, [searchTerm]); // ONLY depend on searchTerm
 
   // Separate useEffect for filters (only when NO search term)
   useEffect(() => {

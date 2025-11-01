@@ -7,6 +7,7 @@ interface GreetingHeroProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
   onOpenFilters: () => void;
+  onSubmit?: (query: string) => void; // CHAT MODE: Explicit submit handler
   userName?: string;
   isAIEnabled?: boolean;
   isSearching?: boolean;
@@ -16,6 +17,7 @@ export default function GreetingHero({
   searchQuery,
   onSearchChange,
   onOpenFilters,
+  onSubmit,
   userName,
   isAIEnabled = false,
   isSearching = false,
@@ -136,10 +138,12 @@ export default function GreetingHero({
                 }}
                 onKeyDown={(e) => {
                   handleKeyDown(e);
-                  // Submit on Enter
+                  // CHAT MODE: Submit on Enter key (exactly like chat component)
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    // Trigger search by blurring (the parent will handle it via onSearchChange)
+                    if (onSubmit && searchQuery.trim()) {
+                      onSubmit(searchQuery.trim());
+                    }
                   }
                 }}
                 onFocus={() => {
