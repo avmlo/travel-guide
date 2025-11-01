@@ -52,11 +52,35 @@ export function ChatGPTStyleAI() {
     setIsLoading(true);
 
     try {
-      const response = await getAIResponse(userMessage);
+      // Build conversation history from messages
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      // Call the same /api/ai-chat endpoint as homepage
+      const response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: userMessage.trim(),
+          userId: user?.id,
+          conversationHistory: conversationHistory,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('AI chat failed');
+      }
+
+      const data = await response.json();
+
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: response.content,
-        destinations: response.destinations
+        content: data.content || '',
+        destinations: data.destinations
       }]);
     } catch (error) {
       console.error("AI error:", error);
@@ -69,238 +93,6 @@ export function ChatGPTStyleAI() {
     }
   };
 
-  const getAIResponse = async (query: string): Promise<{content: string; destinations?: Destination[]}> => {
-    const lowerQuery = query.toLowerCase();
-
-    // 🎯 PROACTIVE: Check for upcoming trips
-    if (user && (lowerQuery.includes('recommend') || lowerQuery.includes('suggest') || lowerQuery.includes('help'))) {
-      const { data: trips } = await supabase
-        .from('trips')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('start_date', new Date().toISOString().split('T')[0])
-        .order('start_date', { ascending: true })
-        .limit(1);
-
-      if (trips && trips.length > 0) {
-        const trip = trips[0];
-        const city = trip.destination || '';
-        if (city) {
-          const { data } = await supabase
-            .from('destinations')
-            .select('*')
-            .ilike('city', `%${city}%`)
-            .order('michelin_stars', { ascending: false })
-            .limit(5);
-
-          if (data && data.length > 0) {
-            const list = data.map(d => {
-              const stars = d.michelin_stars ? ' ' + '⭐'.repeat(d.michelin_stars) : '';
-              return `• **${d.name}**${stars} - ${d.category}`;
-            }).join('\n');
-            return { content: `I see you're visiting **${city}** soon! 🎉 Here are 5 must-visit places:\n\n${list}\n\nWould you like me to create an itinerary?` };
-          }
-        }
-      }
-    }
-
-    // 🎯 TIME-BASED MICRO ITINERARIES (like "I'm in Shibuya for 3 hours")
-    const timeMatch = lowerQuery.match(/(\d+)\s*(hour|hr|hours|hrs|h)/i);
-    const areaMatch = lowerQuery.match(/(?:in|at)\s+([a-z\s-]+?)(?:\s+for|\s*$)/i);
-
-    if (timeMatch && areaMatch) {
-      const hours = parseInt(timeMatch[1]);
-      const area = areaMatch[1].trim().replace(/\s+/g, '-');
-
-      const { data } = await supabase
-        .from('destinations')
-        .select('*')
-        .or(`city.ilike.%${area}%,name.ilike.%${area}%`)
-        .limit(15);
-
-      if (data && data.length > 0) {
-        const cafes = data.filter(d => d.category?.toLowerCase().includes('cafe'));
-        const restaurants = data.filter(d => d.category?.toLowerCase().includes('restaurant') || d.category?.toLowerCase().includes('dining'));
-        const culture = data.filter(d => d.category?.toLowerCase().includes('culture'));
-        const bars = data.filter(d => d.category?.toLowerCase().includes('bar'));
-
-        let route = `Perfect! Here's a ${hours}-hour route for **${area}**:\n\n`;
-        let timeUsed = 0;
-        let step = 1;
-
-        if (hours >= 1 && cafes.length > 0) {
-          route += `${step}. **${cafes[0].name}** (15 min) ☕\n`;
-          timeUsed += 0.25;
-          step++;
-        }
-
-        if (hours >= 1.5 && culture.length > 0) {
-          route += `${step}. Walk to **${culture[0].name}** (10 min)\n`;
-          timeUsed += 0.17;
-          step++;
-        }
-
-        if (hours >= 2 && restaurants.length > 0) {
-          route += `${step}. Lunch at **${restaurants[0].name}** (45 min) 🍜\n`;
-          timeUsed += 0.75;
-          step++;
-        }
-
-        if (hours >= 2.5 && data.length > 3) {
-          route += `${step}. Browse at **${data[3].name}** (30 min) 📚\n`;
-          timeUsed += 0.5;
-          step++;
-        }
-
-        if (hours >= 3 && restaurants.length > 1) {
-          route += `${step}. Dessert or drink at **${restaurants[1].name || bars[0]?.name}** (20 min) 🍰\n`;
-          timeUsed += 0.33;
-          step++;
-        }
-
-        const timeLeft = hours - timeUsed;
-        if (timeLeft > 0.5) {
-          route += `\n💡 You'll have about ${Math.round(timeLeft * 60)} minutes of buffer time for photos and exploring!`;
-        }
-
-        return { content: route };
-      }
-    }
-
-    // 🎯 ITINERARY GENERATION (full day/multi-day)
-    if (lowerQuery.includes('itinerary') || lowerQuery.includes('plan') || lowerQuery.includes('schedule')) {
-      const cityMatch = lowerQuery.match(/(?:for|in|to)\s+([a-z\s-]+)/i);
-      const city = cityMatch ? cityMatch[1].trim().replace(/\s+/g, '-') : null;
-
-      if (city) {
-        const { data } = await supabase
-          .from('destinations')
-          .select('*')
-          .ilike('city', `%${city}%`)
-          .limit(10);
-
-        if (data && data.length > 0) {
-          // Group by category for balanced itinerary
-          const restaurants = data.filter(d => d.category?.toLowerCase().includes('restaurant') || d.category?.toLowerCase().includes('dining'));
-          const cafes = data.filter(d => d.category?.toLowerCase().includes('cafe'));
-          const culture = data.filter(d => d.category?.toLowerCase().includes('culture'));
-
-          let itinerary = `Here's a suggested itinerary for **${city}**:\n\n`;
-          itinerary += `**Morning:**\n• Start with breakfast at **${cafes[0]?.name || restaurants[0]?.name}**\n\n`;
-          itinerary += `**Afternoon:**\n• Explore **${culture[0]?.name || data[0]?.name}**\n• Lunch at **${restaurants[0]?.name}**\n\n`;
-          itinerary += `**Evening:**\n• Dinner at **${restaurants[1]?.name || restaurants[0]?.name}**${restaurants[1]?.michelin_stars ? ' ⭐'.repeat(restaurants[1].michelin_stars) : ''}\n\n`;
-          itinerary += `Would you like me to save this to your trips?`;
-
-          return { content: itinerary };
-        }
-      }
-      return { content: `I can create a custom itinerary! Try:\n• "I'm in Shibuya for 3 hours"\n• "Plan a day in Paris"\n• "Create an itinerary for Tokyo"` };
-    }
-
-    // 🎯 CONTEXTUAL: Based on saved places
-    if (user && (lowerQuery.includes('like') || lowerQuery.includes('similar') || lowerQuery.includes('more'))) {
-      const { data: savedPlaces } = await supabase
-        .from('saved_places')
-        .select('destination_slug')
-        .eq('user_id', user.id)
-        .limit(1);
-
-      if (savedPlaces && savedPlaces.length > 0) {
-        const { data: savedDest } = await supabase
-          .from('destinations')
-          .select('*')
-          .eq('slug', savedPlaces[0].destination_slug)
-          .single();
-
-        if (savedDest) {
-          // Find similar destinations (same category or city)
-          const { data: similar } = await supabase
-            .from('destinations')
-            .select('*')
-            .or(`category.eq.${savedDest.category},city.eq.${savedDest.city}`)
-            .neq('slug', savedDest.slug)
-            .limit(5);
-
-          if (similar && similar.length > 0) {
-            const list = similar.map(d => `• **${d.name}** - ${d.city.replace(/-/g, ' ')}`).join('\n');
-            return { content: `Based on your interest in **${savedDest.name}**, you might like:\n\n${list}` };
-          }
-        }
-      }
-    }
-
-    // Check for city queries
-    const cityMatch = lowerQuery.match(/(?:in|at|near)\s+([a-z\s-]+)/i);
-    if (cityMatch) {
-      const city = cityMatch[1].trim().replace(/\s+/g, '-');
-      const { data } = await supabase
-        .from('destinations')
-        .select('*')
-        .ilike('city', `%${city}%`)
-        .limit(6);
-
-      if (data && data.length > 0) {
-        return {
-          content: `I found these places in ${city}:`,
-          destinations: data
-        };
-      }
-    }
-
-    // Check for category queries (cozy cafe, etc.)
-    const categories = ['dining', 'restaurant', 'cafe', 'hotel', 'bar', 'bakery', 'culture'];
-    const foundCategory = categories.find(cat => lowerQuery.includes(cat));
-    if (foundCategory) {
-      // Check for city in query too
-      const cityInQuery = lowerQuery.match(/(?:in|at)\s+([a-z\s-]+)/i);
-      let query = supabase
-        .from('destinations')
-        .select('*')
-        .ilike('category', `%${foundCategory}%`);
-
-      if (cityInQuery) {
-        const city = cityInQuery[1].trim().replace(/\s+/g, '-');
-        query = query.ilike('city', `%${city}%`);
-      }
-
-      const { data } = await query.limit(6);
-
-      if (data && data.length > 0) {
-        const location = cityInQuery ? ` in ${cityInQuery[1]}` : '';
-        return {
-          content: `Here are some great ${foundCategory}s${location}:`,
-          destinations: data
-        };
-      }
-    }
-
-    // Check for Michelin queries
-    if (lowerQuery.includes('michelin') || lowerQuery.includes('star')) {
-      const { data } = await supabase
-        .from('destinations')
-        .select('*')
-        .gt('michelin_stars', 0)
-        .order('michelin_stars', { ascending: false })
-        .limit(6);
-
-      if (data && data.length > 0) {
-        return {
-          content: `Here are our top Michelin-starred restaurants:`,
-          destinations: data
-        };
-      }
-    }
-
-    // Default greeting with personalization
-    const greetings = ['hi', 'hello', 'hey'];
-    if (greetings.some(g => lowerQuery.includes(g))) {
-      const userName = user ? 'there' : 'there';
-      return { content: `Hello ${userName}! 👋 I can help you:\n\n• Find places in specific cities\n• Discover restaurants, cafes, or hotels\n• Create custom itineraries\n• Get personalized recommendations\n\nWhat would you like to explore?` };
-    }
-
-    // Fallback
-    return { content: `I can help you:\n\n• Find destinations in any city\n• Search by type (restaurant, cafe, hotel)\n• Create custom itineraries\n• Get recommendations based on your preferences\n\nTry asking: "Find me a cozy cafe in Paris" or "Plan an itinerary for Tokyo"` };
-  };
 
   if (!isOpen) {
     return (

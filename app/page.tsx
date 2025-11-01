@@ -268,383 +268,9 @@ export default function Home() {
     }
   };
 
-  // AI-powered search using the chat function with conversation context
+  // AI-powered search using the chat API endpoint
   const [chatResponse, setChatResponse] = useState<string>('');
   const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string, destinations?: Destination[]}>>([]);
-
-  // Exact copy of getAIResponse from ChatGPTStyleAI
-  const getAIResponse = async (query: string): Promise<{content: string; destinations?: Destination[]}> => {
-    const lowerQuery = query.toLowerCase();
-
-    // 🎯 PROACTIVE: Check for upcoming trips
-    if (user && (lowerQuery.includes('recommend') || lowerQuery.includes('suggest') || lowerQuery.includes('help'))) {
-      const { data: trips } = await supabase
-        .from('trips')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('start_date', new Date().toISOString().split('T')[0])
-        .order('start_date', { ascending: true })
-        .limit(1);
-
-      if (trips && trips.length > 0) {
-        const trip = trips[0];
-        const city = trip.destination || '';
-        if (city) {
-          const { data } = await supabase
-            .from('destinations')
-            .select('*')
-            .ilike('city', `%${city}%`)
-            .order('michelin_stars', { ascending: false })
-            .limit(5);
-
-          if (data && data.length > 0) {
-            const list = data.map(d => {
-              const stars = d.michelin_stars ? ' ' + '⭐'.repeat(d.michelin_stars) : '';
-              return `• **${d.name}**${stars} - ${d.category}`;
-            }).join('\n');
-            return { content: `I see you're visiting **${city}** soon! 🎉 Here are 5 must-visit places:\n\n${list}\n\nWould you like me to create an itinerary?` };
-          }
-        }
-      }
-    }
-
-    // 🎯 TIME-BASED MICRO ITINERARIES (like "I'm in Shibuya for 3 hours")
-    const timeMatch = lowerQuery.match(/(\d+)\s*(hour|hr|hours|hrs|h)/i);
-    const areaMatch = lowerQuery.match(/(?:in|at)\s+([a-z\s-]+?)(?:\s+for|\s*$)/i);
-
-    if (timeMatch && areaMatch) {
-      const hours = parseInt(timeMatch[1]);
-      const area = areaMatch[1].trim().replace(/\s+/g, '-');
-
-      const { data } = await supabase
-        .from('destinations')
-        .select('*, place_types_json, editorial_summary')
-        .or(`city.ilike.%${area}%,name.ilike.%${area}%`)
-        .limit(15);
-
-      if (data && data.length > 0) {
-        const cafes = data.filter(d => d.category?.toLowerCase().includes('cafe'));
-        const restaurants = data.filter(d => d.category?.toLowerCase().includes('restaurant') || d.category?.toLowerCase().includes('dining'));
-        const culture = data.filter(d => d.category?.toLowerCase().includes('culture'));
-        const bars = data.filter(d => d.category?.toLowerCase().includes('bar'));
-
-        let route = `Perfect! Here's a ${hours}-hour route for **${area}**:\n\n`;
-        let timeUsed = 0;
-        let step = 1;
-
-        if (hours >= 1 && cafes.length > 0) {
-          route += `${step}. **${cafes[0].name}** (15 min) ☕\n`;
-          timeUsed += 0.25;
-          step++;
-        }
-
-        if (hours >= 1.5 && culture.length > 0) {
-          route += `${step}. Walk to **${culture[0].name}** (10 min)\n`;
-          timeUsed += 0.17;
-          step++;
-        }
-
-        if (hours >= 2 && restaurants.length > 0) {
-          route += `${step}. Lunch at **${restaurants[0].name}** (45 min) 🍜\n`;
-          timeUsed += 0.75;
-          step++;
-        }
-
-        if (hours >= 2.5 && data.length > 3) {
-          route += `${step}. Browse at **${data[3].name}** (30 min) 📚\n`;
-          timeUsed += 0.5;
-          step++;
-        }
-
-        if (hours >= 3 && restaurants.length > 1) {
-          route += `${step}. Dessert or drink at **${restaurants[1].name || bars[0]?.name}** (20 min) 🍰\n`;
-          timeUsed += 0.33;
-          step++;
-        }
-
-        const timeLeft = hours - timeUsed;
-        if (timeLeft > 0.5) {
-          route += `\n💡 You'll have about ${Math.round(timeLeft * 60)} minutes of buffer time for photos and exploring!`;
-        }
-
-        return { content: route };
-      }
-    }
-
-    // 🎯 ITINERARY GENERATION (full day/multi-day)
-    if (lowerQuery.includes('itinerary') || lowerQuery.includes('plan') || lowerQuery.includes('schedule')) {
-      const cityMatch = lowerQuery.match(/(?:for|in|to)\s+([a-z\s-]+)/i);
-      const city = cityMatch ? cityMatch[1].trim().replace(/\s+/g, '-') : null;
-
-      if (city) {
-        const { data } = await supabase
-          .from('destinations')
-          .select('*, place_types_json, editorial_summary')
-          .ilike('city', `%${city}%`)
-          .limit(10);
-
-        if (data && data.length > 0) {
-          // Group by category for balanced itinerary
-          const restaurants = data.filter(d => d.category?.toLowerCase().includes('restaurant') || d.category?.toLowerCase().includes('dining'));
-          const cafes = data.filter(d => d.category?.toLowerCase().includes('cafe'));
-          const culture = data.filter(d => d.category?.toLowerCase().includes('culture'));
-
-          let itinerary = `Here's a suggested itinerary for **${city}**:\n\n`;
-          itinerary += `**Morning:**\n• Start with breakfast at **${cafes[0]?.name || restaurants[0]?.name}**\n\n`;
-          itinerary += `**Afternoon:**\n• Explore **${culture[0]?.name || data[0]?.name}**\n• Lunch at **${restaurants[0]?.name}**\n\n`;
-          itinerary += `**Evening:**\n• Dinner at **${restaurants[1]?.name || restaurants[0]?.name}**${restaurants[1]?.michelin_stars ? ' ⭐'.repeat(restaurants[1].michelin_stars) : ''}\n\n`;
-          itinerary += `Would you like me to save this to your trips?`;
-
-          return { content: itinerary };
-        }
-      }
-      return { content: `I can create a custom itinerary! Try:\n• "I'm in Shibuya for 3 hours"\n• "Plan a day in Paris"\n• "Create an itinerary for Tokyo"` };
-    }
-
-    // 🎯 CONTEXTUAL: Based on saved places
-    if (user && (lowerQuery.includes('like') || lowerQuery.includes('similar') || lowerQuery.includes('more'))) {
-      const { data: savedPlaces } = await supabase
-        .from('saved_places')
-        .select('destination_slug')
-        .eq('user_id', user.id)
-        .limit(1);
-
-      if (savedPlaces && savedPlaces.length > 0) {
-        const { data: savedDest } = await supabase
-          .from('destinations')
-          .select('*')
-          .eq('slug', savedPlaces[0].destination_slug)
-          .single();
-
-        if (savedDest) {
-          // Find similar destinations (same category or city)
-          const { data: similar } = await supabase
-            .from('destinations')
-            .select('*')
-            .or(`category.eq.${savedDest.category},city.eq.${savedDest.city}`)
-            .neq('slug', savedDest.slug)
-            .limit(5);
-
-          if (similar && similar.length > 0) {
-            const list = similar.map(d => `• **${d.name}** - ${d.city.replace(/-/g, ' ')}`).join('\n');
-            return { content: `Based on your interest in **${savedDest.name}**, you might like:\n\n${list}` };
-          }
-        }
-      }
-    }
-
-    // Check for city queries
-    const cityMatch = lowerQuery.match(/(?:in|at|near)\s+([a-z\s-]+)/i);
-    if (cityMatch) {
-      const city = cityMatch[1].trim().replace(/\s+/g, '-');
-      const { data } = await supabase
-        .from('destinations')
-        .select('*, place_types_json, editorial_summary')
-        .ilike('city', `%${city}%`)
-        .limit(6);
-
-      if (data && data.length > 0) {
-        return {
-          content: `I found these places in ${city}:`,
-          destinations: data
-        };
-      }
-    }
-
-    // Check for category queries (cozy cafe, etc.)
-    const categories = ['dining', 'restaurant', 'cafe', 'hotel', 'bar', 'bakery', 'culture'];
-    const foundCategory = categories.find(cat => lowerQuery.includes(cat));
-    if (foundCategory) {
-      // Extract descriptive keywords (romantic, cozy, best, etc.)
-      const descriptiveKeywords = ['romantic', 'cozy', 'best', 'fancy', 'cheap', 'expensive', 'luxury', 'casual', 'fine', 'popular', 'trendy', 'hidden', 'local', 'authentic', 'traditional', 'modern', 'classic', 'unique', 'famous', 'top', 'amazing', 'incredible'];
-      const foundKeywords: string[] = [];
-      for (const keyword of descriptiveKeywords) {
-        if (lowerQuery.includes(keyword)) {
-          foundKeywords.push(keyword);
-        }
-      }
-      
-      // Check for city in query - support both patterns:
-      // 1. "restaurant in bangkok" or "restaurant at bangkok"
-      // 2. "bangkok restaurant" or "tokyo cafe"
-      let cityInQuery = lowerQuery.match(/(?:in|at|near)\s+([a-z\s-]+)/i);
-      let city: string | null = null;
-      
-      if (cityInQuery) {
-        // Pattern 1: category in/at city
-        city = cityInQuery[1].trim().replace(/\s+/g, '-');
-      } else {
-        // Pattern 2: city category (check if city name appears before category)
-        const categoryIndex = lowerQuery.indexOf(foundCategory);
-        if (categoryIndex > 0) {
-          const beforeCategory = lowerQuery.substring(0, categoryIndex).trim();
-          // Check if it's a known city name
-          const cityNames = ['tokyo', 'new york', 'paris', 'london', 'los angeles', 'singapore', 'hong kong', 'sydney', 'dubai', 'bangkok', 'berlin', 'amsterdam', 'rome', 'barcelona', 'lisbon', 'madrid', 'vienna', 'prague', 'stockholm', 'oslo', 'copenhagen', 'helsinki', 'seoul', 'mumbai', 'delhi', 'bangalore', 'jakarta', 'manila', 'ho chi minh', 'hanoi'];
-          for (const cityName of cityNames) {
-            const cityLower = cityName.toLowerCase();
-            // Check if the city name appears in the text before the category
-            if (beforeCategory.includes(cityLower) || lowerQuery.includes(`${cityLower} ${foundCategory}`) || lowerQuery.includes(`${cityLower.replace(' ', '-')} ${foundCategory}`)) {
-              city = cityName.replace(/\s+/g, '-');
-              break;
-            }
-          }
-        }
-      }
-      
-      // Map our categories to Google place types
-      const googleTypeMap: Record<string, string[]> = {
-        'restaurant': ['restaurant', 'food', 'meal_takeaway', 'meal_delivery'],
-        'dining': ['restaurant', 'food', 'meal_takeaway'],
-        'cafe': ['cafe', 'bakery', 'store'],
-        'bar': ['bar', 'night_club'],
-        'hotel': ['lodging'],
-        'bakery': ['bakery', 'store'],
-        'culture': ['museum', 'art_gallery', 'library', 'tourist_attraction']
-      };
-      
-      const googleTypes = googleTypeMap[foundCategory] || [foundCategory];
-      
-      // Fetch with enriched data (try to get place_types_json and editorial_summary if available)
-      let query = supabase
-        .from('destinations')
-        .select('*')
-        .or(`category.ilike.%${foundCategory}%,name.ilike.%${foundCategory}%,description.ilike.%${foundCategory}%,content.ilike.%${foundCategory}%`);
-
-      if (city) {
-        query = query.ilike('city', `%${city}%`);
-      }
-
-      const { data } = await query.limit(30); // Fetch more to filter and rank
-
-      if (data && data.length > 0) {
-        // Filter by Google place types if available
-        let filtered = data.filter((d: any) => {
-          // First check our category
-          const matchesCategory = !d.category || d.category.toLowerCase().includes(foundCategory);
-          
-          // If category matches, return it
-          if (matchesCategory) {
-            return true;
-          }
-          
-          // Then check Google place types if available (as additional filter, not replacement)
-          if (d.place_types_json) {
-            try {
-              const types = typeof d.place_types_json === 'string' 
-                ? JSON.parse(d.place_types_json) 
-                : d.place_types_json;
-              if (Array.isArray(types)) {
-                const typeLower = types.map((t: string) => t.toLowerCase());
-                const matchesGoogleType = googleTypes.some(gt => 
-                  typeLower.some((tl: string) => tl.includes(gt.toLowerCase()))
-                );
-                // If Google type matches, include it even if category doesn't match
-                return matchesGoogleType;
-              }
-            } catch (e) {
-              // Ignore JSON parse errors
-            }
-          }
-          
-          // Default: return false if nothing matches
-          return false;
-        });
-
-        // Rank results based on descriptive keywords
-        if (foundKeywords.length > 0) {
-          filtered = filtered.map((d: any) => {
-            let score = 0;
-            const searchText = `${d.name || ''} ${d.description || ''} ${d.content || ''} ${d.editorial_summary || ''}`.toLowerCase();
-            
-            // Check if descriptive keywords appear in name (highest priority)
-            foundKeywords.forEach(keyword => {
-              if (d.name?.toLowerCase().includes(keyword)) {
-                score += 10;
-              }
-              // Check in description/content
-              if (searchText.includes(keyword)) {
-                score += 5;
-              }
-            });
-            
-            // Boost if keyword appears early in query (before category)
-            const categoryIndex = lowerQuery.indexOf(foundCategory);
-            foundKeywords.forEach(keyword => {
-              const keywordIndex = lowerQuery.indexOf(keyword);
-              if (keywordIndex >= 0 && keywordIndex < categoryIndex) {
-                // Keyword appears before category = more important
-                score += 3;
-              }
-            });
-            
-            return { ...d, _searchScore: score };
-          }).sort((a, b) => {
-            // Sort by score (descending), then by rating if available
-            if (b._searchScore !== a._searchScore) {
-              return b._searchScore - a._searchScore;
-            }
-            // Fallback to rating if scores are equal
-            const ratingA = a.rating || 0;
-            const ratingB = b.rating || 0;
-            return ratingB - ratingA;
-          });
-        }
-
-        // Limit to top 6 results
-        filtered = filtered.slice(0, 6);
-
-        if (filtered.length > 0) {
-          const location = city ? ` in ${city.replace(/-/g, ' ')}` : '';
-          const keywordText = foundKeywords.length > 0 ? `${foundKeywords.join(', ')} ` : '';
-          return {
-            content: `Here are some ${keywordText}${foundCategory}s${location}:`,
-            destinations: filtered
-          };
-        } else {
-          // No results found
-          const location = city ? ` in ${city.replace(/-/g, ' ')}` : '';
-          return {
-            content: `Sorry, I couldn't find any ${foundCategory}s${location}. Try searching for a different category or city!`,
-            destinations: []
-          };
-        }
-      } else {
-        // No data from query
-        const location = city ? ` in ${city.replace(/-/g, ' ')}` : '';
-        return {
-          content: `I couldn't find any ${foundCategory}s${location}. Try a different search!`,
-          destinations: []
-        };
-      }
-    }
-
-    // Check for Michelin queries
-    if (lowerQuery.includes('michelin') || lowerQuery.includes('star')) {
-      const { data } = await supabase
-        .from('destinations')
-        .select('*, place_types_json, editorial_summary')
-        .gt('michelin_stars', 0)
-        .order('michelin_stars', { ascending: false })
-        .limit(6);
-
-      if (data && data.length > 0) {
-        return {
-          content: `Here are our top Michelin-starred restaurants:`,
-          destinations: data
-        };
-      }
-    }
-
-    // Default greeting with personalization
-    const greetings = ['hi', 'hello', 'hey'];
-    if (greetings.some(g => lowerQuery.includes(g))) {
-      const userName = user ? 'there' : 'there';
-      return { content: `Hello ${userName}! 👋 I can help you:\n\n• Find places in specific cities\n• Discover restaurants, cafes, or hotels\n• Create custom itineraries\n• Get personalized recommendations\n\nWhat would you like to explore?` };
-    }
-
-    // Fallback
-    return { content: `I can help you:\n\n• Find destinations in any city\n• Search by type (restaurant, cafe, hotel)\n• Create custom itineraries\n• Get recommendations based on your preferences\n\nTry asking: "Find me a cozy cafe in Paris" or "Plan an itinerary for Tokyo"` };
-  };
 
   const performAISearch = async (query: string) => {
     setSearching(true);
@@ -653,24 +279,41 @@ export default function Home() {
     setSearchSuggestions([]);
 
     try {
-      const response = await getAIResponse(query);
+      // Call the /api/ai-chat endpoint (same as chat component)
+      const response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query.trim(),
+          userId: user?.id,
+          conversationHistory: conversationHistory,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('AI search failed');
+      }
+
+      const data = await response.json();
 
       // Update conversation history
       const newHistory = [
         ...conversationHistory,
         { role: 'user' as const, content: query },
-        { role: 'assistant' as const, content: response.content || '', destinations: response.destinations }
+        { role: 'assistant' as const, content: data.content || '', destinations: data.destinations }
       ];
       setConversationHistory(newHistory.slice(-10)); // Keep last 10 messages
 
-      if (response.destinations && response.destinations.length > 0) {
-        setFilteredDestinations(response.destinations);
-        setChatResponse(response.content || '');
+      if (data.destinations && data.destinations.length > 0) {
+        setFilteredDestinations(data.destinations);
+        setChatResponse(data.content || '');
         setSearchTier('ai-enhanced');
-      } else if (response.content) {
+      } else if (data.content) {
         // No destinations but has a response
         setFilteredDestinations([]);
-        setChatResponse(response.content);
+        setChatResponse(data.content);
         setSearchTier('ai-enhanced');
       } else {
         // Fallback to basic search
