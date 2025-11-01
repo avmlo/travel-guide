@@ -16,29 +16,43 @@ function stripHtmlTags(text: string | null | undefined): string {
 async function findPlaceId(query: string, name?: string, city?: string): Promise<string | null> {
   if (!GOOGLE_API_KEY) return null;
   
-  // Strategy 1: Try exact query first (name + city)
-  let url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json');
-  url.searchParams.set('input', query);
-  url.searchParams.set('inputtype', 'textquery');
-  url.searchParams.set('fields', 'place_id');
-  url.searchParams.set('key', GOOGLE_API_KEY);
-  let r = await fetch(url.toString());
-  let j = await r.json();
-  if (j?.candidates?.[0]?.place_id) {
-    return j.candidates[0].place_id;
-  }
+  // Use Places API (New) - Text Search
+  const searchQueries = [];
   
-  // Strategy 2: Try just name
-  if (name) {
-    url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json');
-    url.searchParams.set('input', name);
-    url.searchParams.set('inputtype', 'textquery');
-    url.searchParams.set('fields', 'place_id');
-    url.searchParams.set('key', GOOGLE_API_KEY);
-    r = await fetch(url.toString());
-    j = await r.json();
-    if (j?.candidates?.[0]?.place_id) {
-      return j.candidates[0].place_id;
+  // Strategy 1: Try exact query first (name + city)
+  searchQueries.push(query);
+  
+  // Strategy 2: If we have name and city separately, try just name
+  if (name && city && `${name} ${city}` !== query) {
+    searchQueries.push(`${name} ${city}`);
+    searchQueries.push(name);
+  }
+
+  // Try each search query
+  for (const searchQuery of searchQueries) {
+    try {
+      const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': GOOGLE_API_KEY,
+          'X-Goog-FieldMask': 'places.id',
+        },
+        body: JSON.stringify({
+          textQuery: searchQuery,
+          maxResultCount: 1,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.places && data.places.length > 0 && data.places[0].id) {
+          return data.places[0].id;
+        }
+      }
+    } catch (error) {
+      console.error(`Error searching for "${searchQuery}":`, error);
+      continue;
     }
   }
   

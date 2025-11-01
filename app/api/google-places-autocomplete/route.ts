@@ -19,61 +19,71 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Google API key not configured' }, { status: 500 });
     }
 
-    // Build Google Places Autocomplete API URL
-    const url = new URL('https://maps.googleapis.com/maps/api/place/autocomplete/json');
-    url.searchParams.set('input', query);
-    url.searchParams.set('key', GOOGLE_API_KEY);
-    
-    // Optional parameters for better results
-    if (types && types !== 'all') {
-      url.searchParams.set('types', types);
-    }
-    
+    // Use Places API (New) - Autocomplete
+    const requestBody: any = {
+      input: query,
+      languageCode: 'en',
+    };
+
+    // Add location bias if provided
     if (location) {
-      url.searchParams.set('location', location);
-      if (radius) {
-        url.searchParams.set('radius', radius);
+      const [lat, lng] = location.split(',').map(Number);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        requestBody.locationBias = {
+          circle: {
+            center: { latitude: lat, longitude: lng },
+            radius: radius ? parseFloat(radius.toString()) : 2000.0, // Default 2km
+          },
+        };
       }
     }
-    
-    // Add session token if provided (helps with billing)
-    if (sessionToken) {
-      url.searchParams.set('sessiontoken', sessionToken);
+
+    // Add included types if specified
+    if (types && types !== 'all') {
+      requestBody.includedPrimaryTypes = [types];
     }
 
-    // Add language and region bias
-    url.searchParams.set('language', 'en');
-    
-    const response = await fetch(url.toString());
+    // Add session token if provided (helps with billing)
+    if (sessionToken) {
+      requestBody.sessionToken = sessionToken;
+    }
+
+    const response = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': GOOGLE_API_KEY,
+        'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types,suggestions.placePrediction.matchedSubstrings',
+      },
+      body: JSON.stringify(requestBody),
+    });
     
     if (!response.ok) {
-      throw new Error(`Google Places API error: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Google Places API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
 
-    if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      console.error('Google Places Autocomplete error:', data.status, data.error_message);
-      return NextResponse.json({ 
-        error: data.error_message || `API error: ${data.status}`,
-        predictions: []
-      }, { status: 500 });
-    }
-
     // Transform Google's response to our format
-    const predictions = (data.predictions || []).map((pred: any) => ({
-      place_id: pred.place_id,
-      description: pred.description,
-      structured_formatting: pred.structured_formatting || {},
-      main_text: pred.structured_formatting?.main_text || pred.description.split(',')[0],
-      secondary_text: pred.structured_formatting?.secondary_text || pred.description.split(',').slice(1).join(','),
-      types: pred.types || [],
-      matched_substrings: pred.matched_substrings || [],
-    }));
+    const predictions = (data.suggestions || [])
+      .filter((suggestion: any) => suggestion.placePrediction) // Only include place predictions
+      .map((suggestion: any) => {
+        const pred = suggestion.placePrediction;
+        return {
+          place_id: pred.placeId,
+          description: pred.text?.text || '',
+          structured_formatting: pred.structuredFormat || {},
+          main_text: pred.structuredFormat?.mainText?.text || pred.text?.text?.split(',')[0] || '',
+          secondary_text: pred.structuredFormat?.secondaryText?.text || pred.text?.text?.split(',').slice(1).join(',') || '',
+          types: pred.types || [],
+          matched_substrings: pred.matchedSubstrings || [],
+        };
+      });
 
     return NextResponse.json({
       predictions,
-      sessionToken: data.sessiontoken || sessionToken,
+      sessionToken: data.sessionToken || sessionToken,
     });
 
   } catch (error: any) {
