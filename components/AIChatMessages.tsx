@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, MapPin } from 'lucide-react';
+import { Sparkles, MapPin, Star } from 'lucide-react';
 import { Destination } from '@/types/destination';
 import { CARD_WRAPPER, CARD_MEDIA, CARD_TITLE, CARD_META } from '@/components/CardStyles';
 

@@ -196,6 +196,7 @@ export default function Home() {
       // Clear everything when search is empty
       setFilteredDestinations([]);
       setChatResponse('');
+      setChatMessages([]);
       setConversationHistory([]);
       setSearching(false);
       // Show all destinations when no search (with filters if set)
@@ -421,6 +422,7 @@ export default function Home() {
               // Clear conversation history only if search is cleared
               if (!value.trim()) {
                 setConversationHistory([]);
+                setChatMessages([]);
                 setSearchSuggestions([]);
                 setSearchIntent(null);
                 setSearchTier(null);
