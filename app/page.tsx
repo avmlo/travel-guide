@@ -268,13 +268,13 @@ export default function Home() {
     }
   };
 
-  // AI-powered search using the chat function
+  // AI-powered search using the chat function with conversation context
   const [chatResponse, setChatResponse] = useState<string>('');
+  const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string, destinations?: Destination[]}>>([]);
 
   const performAISearch = async (query: string) => {
     setSearching(true);
     setSearchTier(null);
-    setChatResponse('');
     setSearchIntent(null);
     setSearchSuggestions([]);
 
@@ -285,10 +285,19 @@ export default function Home() {
         body: JSON.stringify({
           query,
           userId: user?.id,
+          conversationHistory: conversationHistory.slice(-4), // Send last 4 messages for context
         }),
       });
 
       const data = await response.json();
+
+      // Update conversation history
+      const newHistory = [
+        ...conversationHistory,
+        { role: 'user' as const, content: query },
+        { role: 'assistant' as const, content: data.content || '', destinations: data.destinations }
+      ];
+      setConversationHistory(newHistory.slice(-10)); // Keep last 10 messages
 
       if (data.destinations && data.destinations.length > 0) {
         setFilteredDestinations(data.destinations);
@@ -393,10 +402,14 @@ export default function Home() {
             searchQuery={searchTerm}
             onSearchChange={(value) => {
               setSearchTerm(value);
-              setSearchSuggestions([]);
-              setSearchIntent(null);
-              setSearchTier(null);
-              setChatResponse('');
+              // Clear conversation history only if search is cleared
+              if (!value.trim()) {
+                setConversationHistory([]);
+                setSearchSuggestions([]);
+                setSearchIntent(null);
+                setSearchTier(null);
+                setChatResponse('');
+              }
             }}
             onOpenFilters={() => setIsFiltersOpen(true)}
             userName={(function () {
