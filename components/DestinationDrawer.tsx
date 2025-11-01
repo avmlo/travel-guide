@@ -768,12 +768,11 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
 
             {/* Opening Hours */}
             {(() => {
-              const hours = enrichedData?.current_opening_hours || enrichedData?.opening_hours || destination.opening_hours;
+              const hours = enrichedData?.opening_hours || destination.opening_hours;
               
               // Debug logging
               if (!hours) {
                 console.log('No opening hours data found:', {
-                  hasCurrent: !!enrichedData?.current_opening_hours,
                   hasRegular: !!enrichedData?.opening_hours,
                   hasDestination: !!destination.opening_hours,
                   enrichedData: enrichedData
