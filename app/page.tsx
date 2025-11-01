@@ -418,6 +418,12 @@ export default function Home() {
                 setFilteredDestinations([]);
               }
             }}
+            onSubmit={(query) => {
+              // CHAT MODE: Explicit submit on Enter key (like chat component)
+              if (query.trim() && !searching) {
+                performAISearch(query);
+              }
+            }}
             onOpenFilters={() => setIsFiltersOpen(true)}
             userName={(function () {
               const raw = ((user?.user_metadata as any)?.name || (user?.email ? user.email.split('@')[0] : undefined)) as string | undefined;
