@@ -497,8 +497,8 @@ export default function Home() {
           </>
         )}
 
-        {/* City Filter - Hidden during search */}
-        {!searchTerm && (
+        {/* City Filter - Hidden during search, replaced by search results summary */}
+        {!searchTerm ? (
           <div className="mb-8 text-center">
             <div className="max-w-[680px] mx-auto px-[24px]">
               <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs">
