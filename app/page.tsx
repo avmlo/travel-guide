@@ -266,8 +266,9 @@ export default function Home() {
     }
   };
 
-  // AI-powered search using the chat API endpoint
+  // AI-powered chat using the chat API endpoint - only website content
   const [chatResponse, setChatResponse] = useState<string>('');
+  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string, destinations?: Destination[]}>>([]);
   const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string, destinations?: Destination[]}>>([]);
 
   // AI Chat-only search - EXACTLY like chat component
@@ -310,13 +311,18 @@ export default function Home() {
 
       const data = await response.json();
 
-      // Update conversation history FIRST (like chat component updates messages)
-      // Chat component adds user message to messages, then gets response, then adds assistant
-      // We do the same: add user message to history, then add assistant response
+      // Update conversation history and chat messages (for display)
+      const userMessage = { role: 'user' as const, content: query };
+      const assistantMessage = { role: 'assistant' as const, content: data.content || '', destinations: data.destinations };
+      
+      // Update chat messages for display
+      setChatMessages(prev => [...prev, userMessage, assistantMessage].slice(-20)); // Keep last 20 messages
+      
+      // Update conversation history for context (API usage)
       const newHistory = [
         ...conversationHistory,
-        { role: 'user' as const, content: query },
-        { role: 'assistant' as const, content: data.content || '', destinations: data.destinations }
+        userMessage,
+        assistantMessage
       ];
       setConversationHistory(newHistory.slice(-10)); // Keep last 10 messages
 
