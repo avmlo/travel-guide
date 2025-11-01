@@ -39,6 +39,7 @@ function DestinationForm({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [fetchingGoogle, setFetchingGoogle] = useState(false);
   const [placeRecommendations, setPlaceRecommendations] = useState<any[]>([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
@@ -306,6 +307,66 @@ function DestinationForm({
       <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
         <h3 className="text-lg font-semibold mb-4">Image</h3>
         <div className="space-y-3">
+          {/* Drag and Drop Zone */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
+              isDragging
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'
+            }`}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+              id="image-upload-input"
+            />
+            <label
+              htmlFor="image-upload-input"
+              className="flex flex-col items-center justify-center cursor-pointer"
+            >
+              {imagePreview ? (
+                <div className="relative w-full">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-48 object-cover rounded-lg mb-3"
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setImageFile(null);
+                      setImagePreview(null);
+                      const input = document.getElementById('image-upload-input') as HTMLInputElement;
+                      if (input) input.value = '';
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                    title="Remove image"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="text-4xl mb-2">📷</div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Drag & drop an image here
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    or click to browse
+                  </span>
+                </>
+              )}
+            </label>
+          </div>
+          
+          {/* Alternative: File Input Button */}
           <div className="flex items-center gap-2">
             <label className="flex-1 cursor-pointer">
               <input
@@ -313,9 +374,10 @@ function DestinationForm({
                 accept="image/*"
                 onChange={handleImageChange}
                 className="hidden"
+                id="image-upload-button"
               />
-              <span className="inline-flex items-center justify-center px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
-                📁 {imageFile ? imageFile.name : 'Choose File'}
+              <span className="inline-flex items-center justify-center w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                📁 {imageFile ? 'Change Image' : 'Choose File'}
               </span>
             </label>
             {imageFile && (
