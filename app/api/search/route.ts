@@ -227,13 +227,15 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabaseQuery;
 
     if (error) {
-      console.error('Supabase search error:', error);
+      console.error('[Search API] Supabase search error:', error);
       return NextResponse.json({ 
         results: [], 
         searchTier: 'basic',
         error: error.message 
       });
     }
+
+    console.log('[Search API] Raw results count:', data?.length || 0);
 
     // Filter by "open now" if requested (requires opening hours data)
     let results = data || [];
@@ -243,22 +245,50 @@ export async function POST(request: NextRequest) {
     }
 
     // Rank results by relevance
+    const lowerQuery = query.toLowerCase();
+    const queryWords = lowerQuery.split(/\s+/);
     const rankedResults = results
       .map((dest: any) => {
         let score = 0;
         const lowerName = (dest.name || '').toLowerCase();
         const lowerDesc = (dest.description || '').toLowerCase();
-        const lowerQuery = query.toLowerCase();
+        const lowerContent = (dest.content || '').toLowerCase();
+        const lowerCategory = (dest.category || '').toLowerCase();
 
-        // Boost score for exact matches
-        if (lowerName.includes(lowerQuery)) score += 10;
-        if (lowerDesc.includes(lowerQuery)) score += 5;
+        // Boost score for exact query match
+        if (lowerName.includes(lowerQuery)) score += 15;
+        if (lowerDesc.includes(lowerQuery)) score += 10;
+        if (lowerContent.includes(lowerQuery)) score += 5;
 
-        // Boost for keywords
-        intent.keywords?.forEach((keyword: string) => {
-          if (lowerName.includes(keyword.toLowerCase())) score += 3;
-          if (lowerDesc.includes(keyword.toLowerCase())) score += 1;
-        });
+        // Boost for individual keywords matching
+        if (intent.keywords && intent.keywords.length > 0) {
+          intent.keywords.forEach((keyword: string) => {
+            const lowerKeyword = keyword.toLowerCase();
+            // Higher score if multiple keywords match
+            if (lowerName.includes(lowerKeyword)) score += 5;
+            if (lowerDesc.includes(lowerKeyword)) score += 3;
+            if (lowerContent.includes(lowerKeyword)) score += 1;
+            if (lowerCategory.includes(lowerKeyword)) score += 4;
+          });
+        } else {
+          // Fallback: boost for any query word
+          queryWords.forEach((word: string) => {
+            if (word.length > 2) {
+              if (lowerName.includes(word)) score += 3;
+              if (lowerDesc.includes(word)) score += 1;
+            }
+          });
+        }
+
+        // Boost for category match if intent suggests one
+        if (intent.category && lowerCategory.includes(intent.category.toLowerCase())) {
+          score += 8;
+        }
+
+        // Boost for city match
+        if (intent.city && dest.city && dest.city.toLowerCase().includes(intent.city.toLowerCase())) {
+          score += 6;
+        }
 
         // Boost for Michelin stars
         if (dest.michelin_stars) score += dest.michelin_stars * 2;
@@ -269,6 +299,7 @@ export async function POST(request: NextRequest) {
         return { ...dest, _score: score };
       })
       .sort((a: any, b: any) => b._score - a._score)
+      .filter((dest: any) => dest._score > 0) // Only return results with some relevance
       .map(({ _score, ...rest }: any) => rest);
 
     // Generate suggestions based on intent
