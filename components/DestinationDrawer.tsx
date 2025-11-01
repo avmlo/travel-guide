@@ -39,7 +39,7 @@ function capitalizeCity(city: string): string {
     .join(' ');
 }
 
-// City timezone mapping
+// City timezone mapping (fallback if timezone_id not available)
 const CITY_TIMEZONES: Record<string, string> = {
   'tokyo': 'Asia/Tokyo',
   'new-york': 'America/New_York',
@@ -54,14 +54,31 @@ const CITY_TIMEZONES: Record<string, string> = {
   // Add more as needed
 };
 
-function getOpenStatus(openingHours: any, city: string): { isOpen: boolean; currentDay?: string; todayHours?: string } {
+function getOpenStatus(openingHours: any, city: string, timezoneId?: string | null, utcOffset?: number | null): { isOpen: boolean; currentDay?: string; todayHours?: string } {
   if (!openingHours || !openingHours.weekday_text) {
     return { isOpen: false };
   }
 
   try {
-    const timezone = CITY_TIMEZONES[city] || 'UTC';
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+    // Use timezone_id from Google Places API if available (handles DST automatically)
+    // Otherwise fallback to city mapping, then UTC offset calculation, then UTC
+    let now: Date;
+    
+    if (timezoneId) {
+      // Best: Use timezone_id - automatically handles DST
+      now = new Date(new Date().toLocaleString('en-US', { timeZone: timezoneId }));
+    } else if (CITY_TIMEZONES[city]) {
+      // Good: Use city timezone mapping
+      now = new Date(new Date().toLocaleString('en-US', { timeZone: CITY_TIMEZONES[city] }));
+    } else if (utcOffset !== null && utcOffset !== undefined) {
+      // Okay: Use UTC offset (static, doesn't handle DST)
+      const utcNow = new Date();
+      now = new Date(utcNow.getTime() + (utcOffset * 60 * 1000));
+    } else {
+      // Fallback: UTC
+      now = new Date();
+    }
+    
     const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
 
     // Google Places API weekday_text starts with Monday (index 0)
@@ -770,7 +787,26 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             {/* Opening Hours */}
             {((enrichedData?.opening_hours || enrichedData?.current_opening_hours) || destination.opening_hours) && (() => {
               const hours = enrichedData?.current_opening_hours || enrichedData?.opening_hours || destination.opening_hours;
-              const openStatus = getOpenStatus(hours, destination.city);
+              const openStatus = getOpenStatus(
+                hours, 
+                destination.city, 
+                enrichedData?.timezone_id, 
+                enrichedData?.utc_offset
+              );
+              
+              // Calculate timezone for "today" highlighting using same logic as getOpenStatus
+              let now: Date;
+              if (enrichedData?.timezone_id) {
+                now = new Date(new Date().toLocaleString('en-US', { timeZone: enrichedData.timezone_id }));
+              } else if (CITY_TIMEZONES[destination.city]) {
+                now = new Date(new Date().toLocaleString('en-US', { timeZone: CITY_TIMEZONES[destination.city] }));
+              } else if (enrichedData?.utc_offset !== null && enrichedData?.utc_offset !== undefined) {
+                const utcNow = new Date();
+                now = new Date(utcNow.getTime() + (enrichedData.utc_offset * 60 * 1000));
+              } else {
+                now = new Date();
+              }
+              
               return (
                 <div className="mt-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -785,6 +821,11 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                         · {openStatus.todayHours}
                       </span>
                     )}
+                    {enrichedData?.timezone_id && (
+                      <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">
+                        ({enrichedData.timezone_id.replace('_', ' ')})
+                      </span>
+                    )}
                   </div>
                   {hours.weekday_text && (
                     <details className="text-sm">
@@ -794,8 +835,6 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                       <div className="mt-2 space-y-1 pl-6">
                         {hours.weekday_text.map((day: string, index: number) => {
                           const [dayName, hoursText] = day.split(': ');
-                          const timezone = CITY_TIMEZONES[destination.city] || 'UTC';
-                          const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
                           const dayOfWeek = now.getDay();
                           const googleDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
                           const isToday = index === googleDayIndex;
