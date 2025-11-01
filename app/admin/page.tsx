@@ -1278,11 +1278,11 @@ export default function AdminPage() {
           </div>
 
           {/* Regenerate Content with AI */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Regenerate Content with AI</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-lg font-semibold">Regenerate Content with AI</h2>
+            </div>
+            <div className="p-6 space-y-4">
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Regenerate the "About" section for destinations using AI (Gemini) and all available Google Places API data.
                 The AI will create engaging, informative descriptions using ratings, reviews, opening hours, and other enriched data.
