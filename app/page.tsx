@@ -354,24 +354,19 @@ export default function Home() {
   const filterDestinations = () => {
     let filtered = destinations;
 
-    if (selectedCity) {
-      filtered = filtered.filter(d => d.city === selectedCity);
-    }
+    // Apply filters only when there's NO search term (AI chat handles all search)
+    if (!searchTerm) {
+      if (selectedCity) {
+        filtered = filtered.filter(d => d.city === selectedCity);
+      }
 
-    if (selectedCategory) {
-      filtered = filtered.filter(d =>
-        d.category && d.category.toLowerCase().trim() === selectedCategory.toLowerCase().trim()
-      );
+      if (selectedCategory) {
+        filtered = filtered.filter(d =>
+          d.category && d.category.toLowerCase().trim() === selectedCategory.toLowerCase().trim()
+        );
+      }
     }
-
-    if (searchTerm) {
-      filtered = filtered.filter(d =>
-        d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (d.category && d.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (d.content && d.content.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
+    // When searchTerm exists, AI chat handles all filtering - don't apply text search here
 
     // Pinterest-style recommendation sorting
     // Only apply smart sorting when no search term (natural discovery)
