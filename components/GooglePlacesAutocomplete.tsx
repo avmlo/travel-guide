@@ -19,6 +19,10 @@ interface PlacePrediction {
   main_text: string;
   secondary_text: string;
   types: string[];
+  matched_substrings?: Array<{
+    offset: number;
+    length: number;
+  }>;
 }
 
 export default function GooglePlacesAutocomplete({
