@@ -14,6 +14,7 @@ export function Header() {
   const [isDark, setIsDark] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [buildVersion, setBuildVersion] = useState<string | null>(null);
   const isHome = pathname === '/';
 
   // Initialize dark mode from localStorage or system preference
@@ -32,7 +33,7 @@ export function Header() {
     }
   }, []);
 
-  // Check admin status
+  // Check admin status and fetch build version
   useEffect(() => {
     async function checkAdmin() {
       if (!user?.email) {
@@ -47,6 +48,17 @@ export function Header() {
         });
         const j = await res.json();
         setIsAdmin(!!j.isAdmin);
+        
+        // Fetch build version if admin
+        if (j.isAdmin) {
+          try {
+            const versionRes = await fetch('/api/build-version');
+            const versionData = await versionRes.json();
+            setBuildVersion(versionData.version || null);
+          } catch {
+            // Ignore version fetch errors
+          }
+        }
       } catch {
         setIsAdmin(false);
       }
@@ -88,6 +100,11 @@ export function Header() {
           {/* Theme + Burger on right */}
           <div className={`absolute right-0 top-1/2 -translate-y-1/2`}>
             <div className="flex items-center gap-2">
+              {isAdmin && buildVersion && (
+                <span className="text-[10px] text-gray-400 dark:text-gray-600 font-mono px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded" title="Build version">
+                  {buildVersion}
+                </span>
+              )}
               {mounted && (
                 <button onClick={toggleDark} className="p-2 hover:opacity-60 transition-opacity" aria-label="Toggle theme">
                   {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
