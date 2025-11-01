@@ -14,88 +14,160 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 const supabase = createClient(SUPABASE_URL!, SUPABASE_KEY!)
 
 async function findPlaceId(query: string, name?: string, city?: string): Promise<string | null> {
-  // Try multiple search strategies for better matching
+  // Use Places API (New) - Text Search
+  const searchQueries = [];
   
   // Strategy 1: Try exact query first (name + city)
-  let url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json')
-  url.searchParams.set('input', query)
-  url.searchParams.set('inputtype', 'textquery')
-  url.searchParams.set('fields', 'place_id')
-  url.searchParams.set('key', GOOGLE_API_KEY!)
-  let r = await fetch(url.toString())
-  let j = await r.json()
-  if (j?.candidates?.[0]?.place_id) {
-    return j.candidates[0].place_id
-  }
+  searchQueries.push(query);
   
-  // Strategy 2: If we have name and city separately, try just name with city as location bias
-  if (name && city) {
-    url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json')
-    url.searchParams.set('input', name)
-    url.searchParams.set('inputtype', 'textquery')
-    url.searchParams.set('fields', 'place_id')
-    url.searchParams.set('key', GOOGLE_API_KEY!)
-    r = await fetch(url.toString())
-    j = await r.json()
-    if (j?.candidates?.[0]?.place_id) {
-      return j.candidates[0].place_id
-    }
+  // Strategy 2: If we have name and city separately, try just name
+  if (name && city && `${name} ${city}` !== query) {
+    searchQueries.push(`${name} ${city}`);
+    searchQueries.push(name);
     
-    // Strategy 3: Try with just the name (remove common prefixes/suffixes)
+    // Strategy 3: Try with cleaned name (remove common prefixes/suffixes)
     const cleanedName = name
       .replace(/^(the|a|an)\s+/i, '') // Remove "The", "A", "An" prefix
       .replace(/\s+(hotel|restaurant|cafe|bar|shop|store|mall|plaza|center|centre)$/i, '') // Remove common suffixes
-      .trim()
+      .trim();
     
     if (cleanedName !== name) {
-      url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json')
-      url.searchParams.set('input', `${cleanedName} ${city}`)
-      url.searchParams.set('inputtype', 'textquery')
-      url.searchParams.set('fields', 'place_id')
-      url.searchParams.set('key', GOOGLE_API_KEY!)
-      r = await fetch(url.toString())
-      j = await r.json()
-      if (j?.candidates?.[0]?.place_id) {
-        return j.candidates[0].place_id
+      searchQueries.push(`${cleanedName} ${city}`);
+    }
+  }
+
+  // Try each search query
+  for (const searchQuery of searchQueries) {
+    try {
+      const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': GOOGLE_API_KEY!,
+          'X-Goog-FieldMask': 'places.id',
+        },
+        body: JSON.stringify({
+          textQuery: searchQuery,
+          maxResultCount: 1,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.places && data.places.length > 0 && data.places[0].id) {
+          return data.places[0].id;
+        }
       }
+    } catch (error) {
+      console.error(`Error searching for "${searchQuery}":`, error);
+      continue;
     }
   }
   
-  return null
+  return null;
 }
 
 async function getPlaceDetails(placeId: string) {
-  const url = new URL('https://maps.googleapis.com/maps/api/place/details/json')
-  url.searchParams.set('place_id', placeId)
-  url.searchParams.set('fields', [
-    'formatted_address',
-    'international_phone_number',
-    'website',
-    'price_level',
-    'rating',
-    'user_ratings_total',
-    'opening_hours',
-    'current_opening_hours',
-    'secondary_opening_hours',
-    'plus_code',
-    'geometry',
-    'review',
-    'business_status',
-    'editorial_summary',
-    'name',
-    'types',
-    'utc_offset',
-    'vicinity',
-    'adr_address',
-    'address_components',
-    'icon',
-    'icon_background_color',
-    'icon_mask_base_uri',
-  ].join(','))
-  url.searchParams.set('key', GOOGLE_API_KEY!)
-  const r = await fetch(url.toString())
-  const j = await r.json()
-  return j?.result || null
+  // Use Places API (New) - Place Details
+  const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': GOOGLE_API_KEY!,
+      'X-Goog-FieldMask': [
+        'formattedAddress',
+        'internationalPhoneNumber',
+        'websiteUri',
+        'priceLevel',
+        'rating',
+        'userRatingCount',
+        'regularOpeningHours',
+        'currentOpeningHours',
+        'secondaryOpeningHours',
+        'plusCode',
+        'location',
+        'reviews',
+        'businessStatus',
+        'editorialSummary',
+        'displayName',
+        'types',
+        'utcOffset',
+        'shortFormattedAddress',
+        'adrFormatAddress',
+        'addressComponents',
+        'iconMaskBaseUri',
+        'iconBackgroundColor',
+      ].join(','),
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`Places API (New) error: ${response.status}`, errorText);
+    return null;
+  }
+
+  const place = await response.json();
+  
+  // Transform new API format to old format for compatibility
+  return {
+    formatted_address: place.formattedAddress || '',
+    international_phone_number: place.internationalPhoneNumber || '',
+    website: place.websiteUri || '',
+    price_level: place.priceLevel ? priceLevelToNumber(place.priceLevel) : null,
+    rating: place.rating ?? null,
+    user_ratings_total: place.userRatingCount ?? null,
+    opening_hours: place.regularOpeningHours ? transformOpeningHours(place.regularOpeningHours) : null,
+    current_opening_hours: place.currentOpeningHours ? transformOpeningHours(place.currentOpeningHours) : null,
+    secondary_opening_hours: place.secondaryOpeningHours ? transformOpeningHours(place.secondaryOpeningHours) : null,
+    plus_code: place.plusCode?.globalCode || null,
+    geometry: place.location ? {
+      location: {
+        lat: place.location.latitude,
+        lng: place.location.longitude,
+      },
+    } : null,
+    reviews: place.reviews ? place.reviews.slice(0, 5).map((r: any) => ({
+      author_name: r.authorDisplayName || '',
+      rating: r.rating || null,
+      text: r.text?.text || '',
+      time: r.publishTime ? new Date(r.publishTime).getTime() / 1000 : null,
+    })) : null,
+    business_status: place.businessStatus || null,
+    editorial_summary: place.editorialSummary ? {
+      overview: place.editorialSummary.overview || '',
+    } : null,
+    name: place.displayName?.text || '',
+    types: place.types || [],
+    utc_offset: place.utcOffset ? place.utcOffset.totalSeconds / 60 : null,
+    vicinity: place.shortFormattedAddress || '',
+    adr_address: place.adrFormatAddress || '',
+    address_components: place.addressComponents || null,
+    icon: place.iconMaskBaseUri || null,
+    icon_background_color: place.iconBackgroundColor || null,
+    icon_mask_base_uri: place.iconMaskBaseUri || null,
+  };
+}
+
+// Helper to convert price level from enum to number
+function priceLevelToNumber(priceLevel: string): number | null {
+  const mapping: Record<string, number> = {
+    'PRICE_LEVEL_FREE': 0,
+    'PRICE_LEVEL_INEXPENSIVE': 1,
+    'PRICE_LEVEL_MODERATE': 2,
+    'PRICE_LEVEL_EXPENSIVE': 3,
+    'PRICE_LEVEL_VERY_EXPENSIVE': 4,
+  };
+  return mapping[priceLevel] ?? null;
+}
+
+// Helper to transform opening hours format
+function transformOpeningHours(hours: any): any {
+  return {
+    open_now: hours.openNow || false,
+    weekday_text: hours.weekdayDescriptions || [],
+    periods: hours.periods || [],
+  };
 }
 
 async function getTimeZone(lat: number, lng: number) {
