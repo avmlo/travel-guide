@@ -138,7 +138,7 @@ export default function GreetingHero({
                 }}
                 onKeyDown={(e) => {
                   handleKeyDown(e);
-                  // CHAT MODE: Submit on Enter key (exactly like chat component)
+                  // CHAT MODE: Submit on Enter key (instant, bypasses debounce)
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     if (onSubmit && searchQuery.trim()) {

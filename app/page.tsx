@@ -184,11 +184,15 @@ export default function Home() {
     }
   }, [user]);
 
-  // CHAT MODE: Don't auto-trigger on typing - only trigger on explicit submit (Enter key)
-  // This matches chat component behavior exactly
-  // Clear state when search term is cleared
+  // CHAT MODE with auto-trigger: Auto-trigger on typing (debounced) + explicit Enter submit
+  // Works like chat but with convenience of auto-trigger
   useEffect(() => {
-    if (searchTerm.trim().length === 0) {
+    if (searchTerm.trim().length > 0) {
+      const timer = setTimeout(() => {
+        performAISearch(searchTerm);
+      }, 500); // 500ms debounce for auto-trigger
+      return () => clearTimeout(timer);
+    } else {
       // Clear everything when search is empty
       setFilteredDestinations([]);
       setChatResponse('');
