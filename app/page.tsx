@@ -390,7 +390,7 @@ export default function Home() {
     <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
       <div className="max-w-[1920px] mx-auto">
         {/* Greeting Hero above the search bar */}
-        <div className="mb-6 relative">
+        <div className="mb-6 relative" id="greeting-hero-container">
           <GreetingHero
             searchQuery={searchTerm}
             onSearchChange={(value) => {

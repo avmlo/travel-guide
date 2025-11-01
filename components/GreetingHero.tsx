@@ -39,8 +39,8 @@ export default function GreetingHero({
   });
 
   return (
-    <div className="w-full pt-10 pb-6" data-name="Greeting and Filters">
-      <div className="max-w-[680px] mx-auto px-[24px]">
+    <div className="w-full pt-10 pb-6 relative" data-name="Greeting and Filters">
+      <div className="max-w-[680px] mx-auto px-[24px] relative">
         {/* Greeting */}
         <div className="text-center mb-3">
           <h1 className="font-['Inter:Regular',sans-serif] text-[12px] text-[#6b7280] uppercase tracking-[2px] mb-1 font-medium">
