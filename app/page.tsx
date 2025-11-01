@@ -18,7 +18,6 @@ import {
   getSessionId,
 } from '@/lib/tracking';
 import GreetingHero from '@/components/GreetingHero';
-import AIChatMessages from '@/components/AIChatMessages';
 
 // Dynamically import MapView to avoid SSR issues
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
@@ -196,7 +195,6 @@ export default function Home() {
       // Clear everything when search is empty
       setFilteredDestinations([]);
       setChatResponse('');
-      setChatMessages([]);
       setConversationHistory([]);
       setSearching(false);
       // Show all destinations when no search (with filters if set)
@@ -270,7 +268,6 @@ export default function Home() {
 
   // AI-powered chat using the chat API endpoint - only website content
   const [chatResponse, setChatResponse] = useState<string>('');
-  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string, destinations?: Destination[]}>>([]);
   const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string, destinations?: Destination[]}>>([]);
 
   // AI Chat-only search - EXACTLY like chat component
@@ -313,25 +310,21 @@ export default function Home() {
 
       const data = await response.json();
 
-      // Update conversation history and chat messages (for display)
+      // Update conversation history for API context (not displayed)
       const userMessage = { role: 'user' as const, content: query };
       const assistantMessage = { role: 'assistant' as const, content: data.content || '', destinations: data.destinations };
       
-      // Update chat messages for display
-      setChatMessages(prev => [...prev, userMessage, assistantMessage].slice(-20)); // Keep last 20 messages
-      
-      // Update conversation history for context (API usage)
       const newHistory = [
         ...conversationHistory,
         userMessage,
         assistantMessage
       ];
-      setConversationHistory(newHistory.slice(-10)); // Keep last 10 messages
+      setConversationHistory(newHistory.slice(-10)); // Keep last 10 messages for context
 
-      // ALWAYS set the AI response (chat component always shows response, even if no destinations)
+      // ONLY show the latest AI response (simple text)
       setChatResponse(data.content || '');
       
-      // ALWAYS set destinations array (chat component stores destinations even if empty)
+      // ALWAYS set destinations array
       setFilteredDestinations(data.destinations || []);
     } catch (error) {
       console.error('AI chat error:', error);
@@ -422,7 +415,6 @@ export default function Home() {
               // Clear conversation history only if search is cleared
               if (!value.trim()) {
                 setConversationHistory([]);
-                setChatMessages([]);
                 setSearchSuggestions([]);
                 setSearchIntent(null);
                 setSearchTier(null);
@@ -535,7 +527,7 @@ export default function Home() {
           </>
         )}
 
-        {/* City Filter - Hidden during search, replaced by search results summary */}
+        {/* City Filter - Hidden during search, replaced by AI chat response */}
         {!searchTerm ? (
           <div className="mb-8 text-center">
             <div className="max-w-[680px] mx-auto px-[24px]">
@@ -583,31 +575,21 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* AI Chat Messages - shows conversation history with website content only */}
-            {chatMessages.length > 0 && (
-              <AIChatMessages messages={chatMessages} searching={searching} />
-            )}
-            {/* Show loading state when searching and no messages yet */}
-            {searching && chatMessages.length === 0 && (
-              <div className="mb-8 text-center">
-                <div className="max-w-[680px] mx-auto px-[24px]">
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                    <span className="animate-pulse">✨</span>
-                    <span>Thinking...</span>
-                  </div>
+            {/* Simple AI Chat Response - replaces country list */}
+            <div className="mb-8 text-center">
+              <div className="max-w-[680px] mx-auto px-[24px]">
+                <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {searching ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="animate-pulse">✨</span>
+                      <span>Thinking...</span>
+                    </div>
+                  ) : chatResponse ? (
+                    <span className="whitespace-pre-line block">{chatResponse}</span>
+                  ) : null}
                 </div>
               </div>
-            )}
-            {/* Prompt message when no search yet */}
-            {!searching && chatMessages.length === 0 && searchTerm && (
-              <div className="mb-8 text-center">
-                <div className="max-w-[680px] mx-auto px-[24px]">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    Type your question and press Enter to search our places...
-                  </div>
-                </div>
-              </div>
-            )}
+            </div>
           </>
         )}
 
