@@ -271,7 +271,7 @@ export default function Home() {
   const [chatResponse, setChatResponse] = useState<string>('');
   const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string, destinations?: Destination[]}>>([]);
 
-  // AI Chat-only search - NO fallback to basic search
+  // AI Chat-only search - EXACTLY like chat component
   const performAISearch = async (query: string) => {
     if (!query.trim()) {
       return;
@@ -283,6 +283,13 @@ export default function Home() {
     setSearchSuggestions([]);
 
     try {
+      // Build conversation history EXACTLY like chat component does
+      // Map conversationHistory to simple format (chat component maps messages array)
+      const historyForAPI = conversationHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
       // ALL queries go through AI chat - no exceptions
       const response = await fetch('/api/ai-chat', {
         method: 'POST',
@@ -292,21 +299,17 @@ export default function Home() {
         body: JSON.stringify({
           query: query.trim(),
           userId: user?.id,
-          conversationHistory: conversationHistory,
+          conversationHistory: historyForAPI, // Use mapped history
         }),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('AI chat error:', errorText);
-        setChatResponse('Sorry, I encountered an error. Please try again.');
-        setFilteredDestinations([]);
-        return;
+        throw new Error('AI chat failed');
       }
 
       const data = await response.json();
 
-      // Always update conversation history for continuity
+      // Update conversation history EXACTLY like chat component (adds assistant response)
       const newHistory = [
         ...conversationHistory,
         { role: 'user' as const, content: query },
