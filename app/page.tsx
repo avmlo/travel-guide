@@ -583,23 +583,31 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* AI Chat Response - always shown when searching (pure AI chat mode) */}
-            <div className="mb-8 text-center">
-              <div className="max-w-[680px] mx-auto px-[24px]">
-                <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {searching ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="animate-pulse">✨</span>
-                      <span>Thinking...</span>
-                    </div>
-                  ) : chatResponse ? (
-                    <span className="whitespace-pre-line block">{chatResponse}</span>
-                  ) : searchTerm ? (
-                    <span className="text-gray-500 dark:text-gray-400">Type your question and I'll help you find places...</span>
-                  ) : null}
+            {/* AI Chat Messages - shows conversation history with website content only */}
+            {chatMessages.length > 0 && (
+              <AIChatMessages messages={chatMessages} searching={searching} />
+            )}
+            {/* Show loading state when searching and no messages yet */}
+            {searching && chatMessages.length === 0 && (
+              <div className="mb-8 text-center">
+                <div className="max-w-[680px] mx-auto px-[24px]">
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <span className="animate-pulse">✨</span>
+                    <span>Thinking...</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+            {/* Prompt message when no search yet */}
+            {!searching && chatMessages.length === 0 && searchTerm && (
+              <div className="mb-8 text-center">
+                <div className="max-w-[680px] mx-auto px-[24px]">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Type your question and press Enter to search our places...
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
 
