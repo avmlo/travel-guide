@@ -6,7 +6,6 @@ import { Destination } from '@/types/destination';
 import { Search, MapPin, Clock, Map, Grid3x3, SlidersHorizontal, X, Star } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
 import { CARD_WRAPPER, CARD_MEDIA, CARD_TITLE, CARD_META } from '@/components/CardStyles';
-import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
 import { useAuth } from '@/contexts/AuthContext';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
@@ -697,8 +696,6 @@ export default function Home() {
         }}
       />
 
-      {/* AI Chat Assistant */}
-      <ChatGPTStyleAI />
     </main>
   );
 }
