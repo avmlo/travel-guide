@@ -59,8 +59,8 @@ export default function GreetingHero({
                 <Search className="w-full h-full" strokeWidth={1.5} />
               </div>
               {isAIEnabled && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <Sparkles className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={1.5} title="AI Enhanced Search" />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2" title="AI Enhanced Search">
+                  <Sparkles className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={1.5} aria-label="AI Enhanced Search" />
                 </div>
               )}
               <input
