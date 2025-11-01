@@ -770,33 +770,36 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-7xl mx-auto">
-          {/* Page Header */}
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600 dark:text-gray-400">
-                  {user?.email}
-                </span>
-                <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs">Admin</Badge>
-              </div>
+          {/* Header - Vercel style */}
+          <div className="mb-8 pb-6 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+              <button
+                onClick={() => router.push('/account')}
+                className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Back to Account
+              </button>
             </div>
-            <Button onClick={() => router.push('/account')} variant="outline">
-              Back to Account
-            </Button>
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <span>{user?.email}</span>
+              <Badge variant="secondary" className="rounded-full px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                Admin
+              </Badge>
+            </div>
           </div>
 
           {/* Enrichment Statistics */}
-          <Card className="mb-6">
-            <CardHeader>
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg mb-6">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between">
-                <CardTitle>Enrichment Status</CardTitle>
+                <h2 className="text-lg font-semibold">Enrichment Status</h2>
                 <div className="flex gap-2">
                   {enrichmentStats && enrichmentStats.needsEnrichment > 0 && (
-                    <Button
+                    <button
                       onClick={async () => {
                         if (!user?.email || bulkEnriching) return;
                         setBulkEnriching(true);
@@ -894,8 +897,7 @@ export default function AdminPage() {
                           setBulkProgress({ current: 0, total: 0 });
                         }
                       }}
-                      variant="default"
-                      size="sm"
+                      className="px-3 py-1.5 text-sm bg-black dark:bg-white text-white dark:text-black rounded-md hover:opacity-90 transition-opacity disabled:opacity-50"
                       disabled={bulkEnriching || !user?.email}
                     >
                       {bulkEnriching ? (
@@ -905,20 +907,19 @@ export default function AdminPage() {
                       ) : (
                         `Enrich All (${enrichmentStats.needsEnrichment})`
                       )}
-                    </Button>
+                    </button>
                   )}
-                  <Button 
-                    onClick={loadEnrichmentStats} 
-                    variant="outline" 
-                    size="sm"
+                  <button
+                    onClick={loadEnrichmentStats}
+                    className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                     disabled={isLoadingStats}
                   >
                     {isLoadingStats ? 'Loading...' : 'Refresh'}
-                  </Button>
+                  </button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div className="p-6">
               {enrichmentStats ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
@@ -944,26 +945,24 @@ export default function AdminPage() {
                   <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Destination List with Enrichment Status */}
-          <Card className="mb-6">
-            <CardHeader>
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg mb-6">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between mb-4">
-                <CardTitle>Destinations</CardTitle>
-                <Button
+                <h2 className="text-lg font-semibold">Destinations</h2>
+                <button
                   onClick={() => {
                     setEditingDestination(null);
                     setShowCreateModal(true);
                   }}
-                  variant="default"
-                  size="sm"
-                  className="flex items-center gap-2"
+                  className="px-3 py-1.5 text-sm bg-black dark:bg-white text-white dark:text-black rounded-md hover:opacity-90 transition-opacity flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" />
                   Add Place
-                </Button>
+                </button>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
@@ -988,26 +987,24 @@ export default function AdminPage() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button 
+                  <button
                     onClick={() => {
                       setListOffset(Math.max(0, listOffset - 20));
                     }}
-                    variant="outline"
-                    size="sm"
+                    className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                     disabled={listOffset === 0 || isLoadingList}
                   >
                     Previous
-                  </Button>
-                  <Button 
+                  </button>
+                  <button
                     onClick={() => {
                       setListOffset(listOffset + 20);
                     }}
-                    variant="outline"
-                    size="sm"
+                    className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                     disabled={isLoadingList || destinationList.length < 20}
                   >
                     Next
-                  </Button>
+                  </button>
                 </div>
               </div>
             </CardHeader>
@@ -1047,28 +1044,25 @@ export default function AdminPage() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button
+                          <button
                             onClick={() => {
                               setEditingDestination(dest);
                               setShowCreateModal(true);
                             }}
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-1"
+                            className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
                           >
                             <Edit className="h-3 w-3" />
                             Edit
-                          </Button>
-                          <Button
+                          </button>
+                          <button
                             onClick={() => {
                               setEnrichSlug(dest.slug);
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            variant="outline"
-                            size="sm"
+                            className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                           >
                             Enrich
-                          </Button>
+                          </button>
                         </div>
                       </div>
                     );
@@ -1164,11 +1158,11 @@ export default function AdminPage() {
           )}
 
           {/* Google Enrichment Tools */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Google Enrichment</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg mb-6">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-lg font-semibold">Google Enrichment</h2>
+            </div>
+            <div className="p-6 space-y-4">
               <span className="text-sm text-gray-600 dark:text-gray-400 mb-4 block">
                 Enrich destinations with Google Places API data. 
                 <br />
@@ -1220,14 +1214,13 @@ export default function AdminPage() {
                     placeholder="Search by name or city (e.g., 'tokyo', 'central park')"
                     className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 outline-none"
                   />
-                  <Button
+                  <button
                     onClick={handleSearchDestinations}
                     disabled={isSearching || !searchQuery.trim()}
-                    variant="outline"
-                    size="sm"
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                   >
                     {isSearching ? 'Searching...' : 'Search'}
-                  </Button>
+                  </button>
                 </div>
                 {searchResults.length > 0 && (
                   <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
@@ -1249,7 +1242,7 @@ export default function AdminPage() {
                 )}
               </div>
 
-              <Button
+              <button
                 onClick={async () => {
                   if (!user?.email) return;
                   setEnrichRunning(true);
@@ -1269,10 +1262,10 @@ export default function AdminPage() {
                   }
                 }}
                 disabled={enrichRunning || !user?.email}
-                className="w-full sm:w-auto"
+                className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-md hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {enrichRunning ? 'Running...' : 'Run Enrichment'}
-              </Button>
+              </button>
 
               {enrichResult && (
                 <div className="mt-4">
@@ -1338,7 +1331,7 @@ export default function AdminPage() {
                 </>
               )}
 
-              <Button
+              <button
                 onClick={async () => {
                   if (!user?.email) return;
                   setRegenerateRunning(true);
@@ -1369,17 +1362,17 @@ export default function AdminPage() {
                   }
                 }}
                 disabled={regenerateRunning || !user?.email}
-                className="w-full sm:w-auto"
+                className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
               >
                 {regenerateRunning ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Regenerating...
                   </>
                 ) : (
                   `Regenerate Content ${regenerateSlug ? `(${regenerateSlug})` : `(${regenerateLimit} places)`}`
                 )}
-              </Button>
+              </button>
 
               {regenerateResult && (
                 <div className="mt-4">

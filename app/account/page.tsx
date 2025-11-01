@@ -4,12 +4,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
-  MapPin, Heart, CheckCircle2, Map, Loader2, User
+  MapPin, Heart, CheckCircle2, Map, Loader2, User, Settings, LogOut
 } from "lucide-react";
 import VisitedCountriesMap from "@/components/VisitedCountriesMap";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { cityCountryMap } from "@/data/cityCountryMap";
 
@@ -36,6 +33,7 @@ export default function Account() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'saved' | 'visited' | 'profile'>('overview');
 
   // Check authentication
   useEffect(() => {
@@ -43,7 +41,6 @@ export default function Account() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        // Show sign in options if not authenticated
         setAuthChecked(true);
         setIsLoadingData(false);
         return;
@@ -64,7 +61,7 @@ export default function Account() {
         return;
       }
 
-      // Check admin via server env (ADMIN_EMAIL / ADMIN_EMAILS)
+      // Check admin via server env
       try {
         const res = await fetch('/api/is-admin', {
           method: 'POST',
@@ -78,7 +75,6 @@ export default function Account() {
       try {
         setIsLoadingData(true);
 
-        // Load user profile, saved and visited places in parallel
         const [profileResult, savedResult, visitedResult] = await Promise.all([
           supabase
             .from('user_profiles')
@@ -96,13 +92,11 @@ export default function Account() {
             .order('visited_at', { ascending: false })
         ]);
 
-        // Set user profile
         if (profileResult.data) {
           setUserProfile(profileResult.data);
           setBirthday(profileResult.data.birthday || "");
         }
 
-        // Collect all unique slugs
         const allSlugs = new Set<string>();
         if (savedResult.data) {
           savedResult.data.forEach(item => allSlugs.add(item.destination_slug));
@@ -111,7 +105,6 @@ export default function Account() {
           visitedResult.data.forEach(item => allSlugs.add(item.destination_slug));
         }
 
-        // Fetch all destinations in one query
         if (allSlugs.size > 0) {
           const { data: destData } = await supabase
             .from('destinations')
@@ -119,7 +112,6 @@ export default function Account() {
             .in('slug', Array.from(allSlugs));
 
           if (destData) {
-            // Map saved places
             if (savedResult.data) {
               setSavedPlaces(savedResult.data.map((item: any) => {
                 const dest = destData.find((d: any) => d.slug === item.destination_slug);
@@ -135,7 +127,6 @@ export default function Account() {
               }).filter((item: any) => item !== null));
             }
 
-            // Map visited places
             if (visitedResult.data) {
               setVisitedPlaces(visitedResult.data.map((item: any) => {
                 const dest = destData.find((d: any) => d.slug === item.destination_slug);
@@ -199,15 +190,6 @@ export default function Account() {
     router.push("/");
   };
 
-  const handleSignInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
-    });
-  };
-
   // Memoize statistics
   const stats = useMemo(() => {
     const uniqueCities = new Set([
@@ -244,24 +226,18 @@ export default function Account() {
       <div className="min-h-screen bg-white dark:bg-gray-950">
         <main className="px-6 md:px-10 py-12 dark:text-white">
           <div className="max-w-md mx-auto">
-            <Card className="p-8">
-              <CardHeader>
-                <CardTitle className="text-2xl text-center mb-4">Account</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <span className="text-center text-gray-600 dark:text-gray-400 mb-6 block">
-                  User accounts are coming soon. You'll be able to save your favorite places, track visits, and plan trips.
-                </span>
-                <Button
-                  onClick={() => router.push('/')}
-                  className="w-full"
-                  variant="outline"
-                  size="lg"
-                >
-                  Browse Destinations
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-8">
+              <h1 className="text-2xl font-bold text-center mb-4">Account</h1>
+              <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
+                User accounts are coming soon. You'll be able to save your favorite places, track visits, and plan trips.
+              </p>
+              <button
+                onClick={() => router.push('/')}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Browse Destinations
+              </button>
+            </div>
           </div>
         </main>
       </div>
@@ -269,329 +245,339 @@ export default function Account() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       <main className="px-6 md:px-10 py-12 dark:text-white">
         <div className="max-w-7xl mx-auto">
-          {/* Page Header */}
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Account</h1>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600 dark:text-gray-400">
-                  {user.email}
-                </span>
+          {/* Header - Vercel style */}
+          <div className="mb-8 pb-6 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-3xl font-bold">Account</h1>
+              <div className="flex items-center gap-3">
                 {isAdmin && (
-                  <>
-                    <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs">Admin</Badge>
-                    <Button onClick={() => router.push('/admin')} variant="outline" size="sm">
-                      Admin Dashboard
-                    </Button>
-                  </>
+                  <button
+                    onClick={() => router.push('/admin')}
+                    className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    Admin
+                  </button>
                 )}
+                <button
+                  onClick={handleSignOut}
+                  className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </button>
               </div>
             </div>
-            <Button onClick={handleSignOut} variant="outline">
-              Sign Out
-            </Button>
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <span>{user.email}</span>
+              {isAdmin && (
+                <Badge variant="secondary" className="rounded-full px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                  Admin
+                </Badge>
+              )}
+            </div>
           </div>
 
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="saved">Saved</TabsTrigger>
-              <TabsTrigger value="visited">Visited</TabsTrigger>
-            </TabsList>
+          {/* Navigation Tabs - Vercel style */}
+          <div className="mb-8 border-b border-gray-200 dark:border-gray-800">
+            <nav className="flex gap-8">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'overview'
+                    ? 'border-black dark:border-white text-black dark:text-white'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('saved')}
+                className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'saved'
+                    ? 'border-black dark:border-white text-black dark:text-white'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                Saved
+              </button>
+              <button
+                onClick={() => setActiveTab('visited')}
+                className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'visited'
+                    ? 'border-black dark:border-white text-black dark:text-white'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                Visited
+              </button>
+              <button
+                onClick={() => setActiveTab('profile')}
+                className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'profile'
+                    ? 'border-black dark:border-white text-black dark:text-white'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                Profile
+              </button>
+            </nav>
+          </div>
 
-            {/* Overview Tab */}
-            <TabsContent value="overview" className="space-y-6">
+          {/* Content Area */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
               {/* Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Places Visited</CardTitle>
-                    <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{visitedPlaces.length}</div>
-                    <span className="text-xs text-muted-foreground mt-1 block">
-                      Across {stats.uniqueCities.size} cities
-                    </span>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Saved</CardTitle>
-                    <Heart className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{savedPlaces.length}</div>
-                    <span className="text-xs text-muted-foreground mt-1 block">
-                      Wishlist items
-                    </span>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Cities</CardTitle>
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stats.uniqueCities.size}</div>
-                    <span className="text-xs text-muted-foreground mt-1 block">
-                      Explored
-                    </span>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Countries</CardTitle>
-                    <Map className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stats.uniqueCountries.size}</div>
-                    <span className="text-xs text-muted-foreground mt-1 block">
-                      Visited
-                    </span>
-                  </CardContent>
-                </Card>
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+                  <div className="text-2xl font-bold mb-1">{visitedPlaces.length}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Places Visited</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                    Across {stats.uniqueCities.size} cities
+                  </div>
+                </div>
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+                  <div className="text-2xl font-bold mb-1">{savedPlaces.length}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Saved</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">Wishlist items</div>
+                </div>
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+                  <div className="text-2xl font-bold mb-1">{stats.uniqueCities.size}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Cities</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">Explored</div>
+                </div>
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+                  <div className="text-2xl font-bold mb-1">{stats.uniqueCountries.size}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Countries</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">Visited</div>
+                </div>
               </div>
 
               {/* World Map */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Travel Map</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <VisitedCountriesMap 
-                    visitedPlaces={visitedPlaces}
-                    savedPlaces={savedPlaces}
-                  />
-                </CardContent>
-              </Card>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+                <h2 className="text-lg font-semibold mb-4">Travel Map</h2>
+                <VisitedCountriesMap 
+                  visitedPlaces={visitedPlaces}
+                  savedPlaces={savedPlaces}
+                />
+              </div>
 
               {/* Recent Activity */}
               {visitedPlaces.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Visits</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {visitedPlaces.slice(0, 5).map((place) => (
-                        <div
-                          key={place.destination_slug}
-                          className="flex items-center gap-4 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition-colors"
-                          onClick={() => router.push(`/destination/${place.destination_slug}`)}
-                        >
+                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+                    <h2 className="text-lg font-semibold">Recent Visits</h2>
+                  </div>
+                  <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                    {visitedPlaces.slice(0, 10).map((place, index) => (
+                      <div
+                        key={place.destination_slug}
+                        className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                        onClick={() => router.push(`/destination/${place.destination_slug}`)}
+                      >
+                        <div className="flex items-center gap-4">
                           {place.destination.image && (
                             <img
                               src={place.destination.image}
                               alt={place.destination.name}
-                              className="w-16 h-16 object-cover rounded"
+                              className="w-12 h-12 object-cover rounded"
                             />
                           )}
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{place.destination.name}</h3>
-                            <span className="text-sm text-gray-600 dark:text-gray-400 block">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{place.destination.name}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
                               {capitalizeCity(place.destination.city)} • {place.destination.category}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-500 mt-1 block">
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                              {new Date(place.visited_at).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'saved' && (
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+                <h2 className="text-lg font-semibold">Saved Places ({savedPlaces.length})</h2>
+              </div>
+              {savedPlaces.length === 0 ? (
+                <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+                  No saved places yet. Start exploring and save your favorites!
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {savedPlaces.map((place) => (
+                    <div
+                      key={place.destination_slug}
+                      className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                      onClick={() => router.push(`/destination/${place.destination_slug}`)}
+                    >
+                      <div className="flex items-center gap-4">
+                        {place.destination.image && (
+                          <img
+                            src={place.destination.image}
+                            alt={place.destination.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{place.destination.name}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 truncate mt-1">
+                            {capitalizeCity(place.destination.city)}
+                          </div>
+                          <Badge variant="secondary" className="mt-2 text-xs">
+                            {place.destination.category}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'visited' && (
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+                <h2 className="text-lg font-semibold">Visited Places ({visitedPlaces.length})</h2>
+              </div>
+              {visitedPlaces.length === 0 ? (
+                <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+                  No visited places yet. Mark places you've been to!
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {visitedPlaces.map((place) => (
+                    <div
+                      key={place.destination_slug}
+                      className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                      onClick={() => router.push(`/destination/${place.destination_slug}`)}
+                    >
+                      <div className="flex items-center gap-4">
+                        {place.destination.image && (
+                          <img
+                            src={place.destination.image}
+                            alt={place.destination.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{place.destination.name}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 truncate mt-1">
+                            {capitalizeCity(place.destination.city)}
+                          </div>
+                          <div className="flex items-center gap-3 mt-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {place.destination.category}
+                            </Badge>
+                            <span className="text-xs text-gray-500 dark:text-gray-500">
                               {new Date(place.visited_at).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  ))}
+                </div>
               )}
-            </TabsContent>
+            </div>
+          )}
 
-            {/* Profile Tab */}
-            <TabsContent value="profile" className="space-y-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Profile Information</CardTitle>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                      Manage your personal information
-                    </span>
-                  </div>
-                  {!isEditingProfile && (
-                    <Button
-                      onClick={() => setIsEditingProfile(true)}
-                      variant="outline"
-                      size="sm"
+          {activeTab === 'profile' && (
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold">Profile Information</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Manage your personal information
+                  </p>
+                </div>
+                {!isEditingProfile && (
+                  <button
+                    onClick={() => setIsEditingProfile(true)}
+                    className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    Edit Profile
+                  </button>
+                )}
+              </div>
+              <div className="p-6 space-y-6">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium mb-2">
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={user.email || ""}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Email cannot be changed
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="birthday" className="block text-sm font-medium mb-2">
+                    Birthday
+                  </label>
+                  <input
+                    id="birthday"
+                    type="date"
+                    value={birthday}
+                    onChange={(e) => setBirthday(e.target.value)}
+                    disabled={!isEditingProfile}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Your birthday helps us personalize your experience
+                  </p>
+                </div>
+
+                {isEditingProfile && (
+                  <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+                    <button
+                      onClick={handleSaveProfile}
+                      disabled={isSavingProfile}
+                      className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
                     >
-                      Edit Profile
-                    </Button>
-                  )}
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-2">
-                      Email
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={user.email || ""}
-                      disabled
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400"
-                    />
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
-                      Email cannot be changed
-                    </span>
+                      {isSavingProfile ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingProfile(false);
+                        setBirthday(userProfile?.birthday || "");
+                      }}
+                      disabled={isSavingProfile}
+                      className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
                   </div>
-
-                  <div>
-                    <label htmlFor="birthday" className="block text-sm font-medium mb-2">
-                      Birthday
-                    </label>
-                    <input
-                      id="birthday"
-                      type="date"
-                      value={birthday}
-                      onChange={(e) => setBirthday(e.target.value)}
-                      disabled={!isEditingProfile}
-                      max={new Date().toISOString().split('T')[0]}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white disabled:bg-gray-50 dark:disabled:bg-gray-900 disabled:text-gray-500 dark:disabled:text-gray-400"
-                    />
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">
-                      Your birthday helps us personalize your experience
-                    </span>
-                  </div>
-
-                  {isEditingProfile && (
-                    <div className="flex gap-3 pt-4">
-                      <Button
-                        onClick={handleSaveProfile}
-                        disabled={isSavingProfile}
-                        className="flex-1"
-                      >
-                        {isSavingProfile ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Saving...
-                          </>
-                        ) : (
-                          'Save Changes'
-                        )}
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setIsEditingProfile(false);
-                          setBirthday(userProfile?.birthday || "");
-                        }}
-                        variant="outline"
-                        disabled={isSavingProfile}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Saved Tab */}
-            <TabsContent value="saved" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Saved Places ({savedPlaces.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {savedPlaces.length === 0 ? (
-                    <span className="text-center py-8 text-gray-500 dark:text-gray-400 block">
-                      No saved places yet. Start exploring and save your favorites!
-                    </span>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {savedPlaces.map((place) => (
-                        <div
-                          key={place.destination_slug}
-                          className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-black dark:hover:border-white transition-colors cursor-pointer"
-                          onClick={() => router.push(`/destination/${place.destination_slug}`)}
-                        >
-                          {place.destination.image && (
-                            <img
-                              src={place.destination.image}
-                              alt={place.destination.name}
-                              className="w-full h-40 object-cover"
-                            />
-                          )}
-                          <div className="p-4">
-                            <h3 className="font-semibold mb-1">{place.destination.name}</h3>
-                            <span className="text-sm text-gray-600 dark:text-gray-400 block">
-                              {capitalizeCity(place.destination.city)}
-                            </span>
-                            <Badge variant="secondary" className="mt-2">
-                              {place.destination.category}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Visited Tab */}
-            <TabsContent value="visited" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Visited Places ({visitedPlaces.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {visitedPlaces.length === 0 ? (
-                    <span className="text-center py-8 text-gray-500 dark:text-gray-400 block">
-                      No visited places yet. Mark places you've been to!
-                    </span>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {visitedPlaces.map((place) => (
-                        <div
-                          key={place.destination_slug}
-                          className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-black dark:hover:border-white transition-colors cursor-pointer"
-                          onClick={() => router.push(`/destination/${place.destination_slug}`)}
-                        >
-                          {place.destination.image && (
-                            <img
-                              src={place.destination.image}
-                              alt={place.destination.name}
-                              className="w-full h-40 object-cover"
-                            />
-                          )}
-                          <div className="p-4">
-                            <h3 className="font-semibold mb-1">{place.destination.name}</h3>
-                            <span className="text-sm text-gray-600 dark:text-gray-400 block">
-                              {capitalizeCity(place.destination.city)}
-                            </span>
-                            <div className="flex items-center justify-between mt-2">
-                              <Badge variant="secondary">
-                                {place.destination.category}
-                              </Badge>
-                              <span className="text-xs text-gray-500 dark:text-gray-500">
-                                {new Date(place.visited_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </main>
-
     </div>
   );
 }
