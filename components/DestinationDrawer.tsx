@@ -230,7 +230,32 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
           .eq('slug', destination.slug)
           .single();
         
-        if (!error && data) {
+        // Handle errors gracefully - some columns may not exist yet
+        if (error) {
+          // If it's a column error (42703), try with fewer columns
+          if (error.code === '42703' || error.message?.includes('column') || error.message?.includes('does not exist')) {
+            console.log('Some enrichment columns not available, fetching basic fields only');
+            // Try with just basic fields that are more likely to exist
+            const { data: basicData, error: basicError } = await supabase
+              .from('destinations')
+              .select('rating, price_level, website, opening_hours_json')
+              .eq('slug', destination.slug)
+              .single();
+            
+            if (!basicError && basicData) {
+              setEnrichedData(basicData);
+            } else {
+              setEnrichedData(null);
+            }
+            return;
+          }
+          // For other errors (400, etc.), just continue without enriched data
+          console.log('Error fetching enriched data (non-critical):', error.message || error);
+          setEnrichedData(null);
+          return;
+        }
+        
+        if (data) {
           // Parse JSON fields
           const enriched: any = { ...data };
           if (data.opening_hours_json) {
