@@ -268,45 +268,43 @@ export default function Home() {
     }
   };
 
-  // AI-powered search using the new /api/search endpoint
+  // AI-powered search using the chat function
+  const [chatResponse, setChatResponse] = useState<string>('');
+
   const performAISearch = async (query: string) => {
     setSearching(true);
     setSearchTier(null);
+    setChatResponse('');
+    setSearchIntent(null);
+    setSearchSuggestions([]);
 
     try {
-      const filters: any = {};
-      if (selectedCity) filters.city = selectedCity;
-      if (selectedCategory) filters.category = selectedCategory;
-      if (openNowOnly) filters.openNow = true;
-
-      const response = await fetch('/api/search', {
+      const response = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query,
-          pageSize: 50,
-          filters,
           userId: user?.id,
         }),
       });
 
       const data = await response.json();
 
-      if (data.results) {
-        setFilteredDestinations(data.results);
-        setSearchTier(data.searchTier);
-        
-        // Show AI badge and suggestions if available
-        if (data.searchTier === 'ai-enhanced') {
-          setSearchSuggestions(data.suggestions || []);
-          setSearchIntent(data.intent);
-        }
+      if (data.destinations && data.destinations.length > 0) {
+        setFilteredDestinations(data.destinations);
+        setChatResponse(data.content || '');
+        setSearchTier('ai-enhanced');
+      } else if (data.content) {
+        // No destinations but has a response
+        setFilteredDestinations([]);
+        setChatResponse(data.content);
+        setSearchTier('ai-enhanced');
       } else {
         // Fallback to basic search
         filterDestinations();
       }
   } catch (error) {
-      console.error('AI search error, falling back to basic:', error);
+      console.error('AI chat search error, falling back to basic:', error);
       filterDestinations();
     } finally {
       setSearching(false);
@@ -398,6 +396,7 @@ export default function Home() {
               setSearchSuggestions([]);
               setSearchIntent(null);
               setSearchTier(null);
+              setChatResponse('');
             }}
             onOpenFilters={() => setIsFiltersOpen(true)}
             userName={(function () {
@@ -545,28 +544,24 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Search Results Summary - replaces city filter when searching */}
+            {/* Chat Response - replaces city filter when searching */}
             <div className="mb-8 text-center">
-            <div className="max-w-[680px] mx-auto px-[24px]">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {searching ? (
-                  <span>Searching...</span>
-                ) : filteredDestinations.length > 0 ? (
-                  <span>
-                    Found <strong className="text-black dark:text-white">{filteredDestinations.length}</strong> {filteredDestinations.length === 1 ? 'place' : 'places'}
-                    {searchIntent?.city && (
-                      <span> in <strong className="text-black dark:text-white">{capitalizeCity(searchIntent.city)}</strong></span>
-                    )}
-                    {searchIntent?.category && (
-                      <span> • <strong className="text-black dark:text-white">{capitalizeCategory(searchIntent.category)}</strong></span>
-                    )}
-                  </span>
-                ) : (
-                  <span>No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"</span>
-                )}
+              <div className="max-w-[680px] mx-auto px-[24px]">
+                <div className="text-sm text-gray-700 dark:text-gray-300">
+                  {searching ? (
+                    <span>Searching...</span>
+                  ) : chatResponse ? (
+                    <span className="whitespace-pre-line">{chatResponse}</span>
+                  ) : filteredDestinations.length > 0 ? (
+                    <span>
+                      Found <strong className="text-black dark:text-white">{filteredDestinations.length}</strong> {filteredDestinations.length === 1 ? 'place' : 'places'}
+                    </span>
+                  ) : (
+                    <span>No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"</span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
           </>
         )}
 
