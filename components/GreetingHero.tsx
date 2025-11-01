@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 interface GreetingHeroProps {
   searchQuery: string;
@@ -60,7 +60,7 @@ export default function GreetingHero({
               </div>
               {isAIEnabled && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <span className="text-yellow-500 text-lg" title="AI Enhanced Search">✨</span>
+                  <Sparkles className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={1.5} title="AI Enhanced Search" />
                 </div>
               )}
               <input

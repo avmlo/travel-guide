@@ -74,7 +74,24 @@ Return only the JSON, no other text:`;
         console.log('[AI Search] Trying fallback model: gemini-pro');
         const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY!);
         const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-pro' });
-        const result = await fallbackModel.generateContent(prompt);
+        // Reconstruct the prompt for fallback
+        const fallbackPrompt = `Analyze this travel/dining search query and extract structured information. Return ONLY valid JSON with this exact structure:
+{
+  "keywords": ["array", "of", "main", "keywords"],
+  "city": "city name or null",
+  "category": "category like restaurant/cafe/hotel or null",
+  "filters": {
+    "openNow": true/false/null,
+    "priceLevel": 1-4 or null,
+    "rating": 4-5 or null,
+    "michelinStar": 1-3 or null
+  }
+}
+
+Query: "${query}"
+
+Return only the JSON, no other text:`;
+        const result = await fallbackModel.generateContent(fallbackPrompt);
         const response = result.response;
         const text = response.text();
         const jsonMatch = text.match(/\{[\s\S]*\}/);
