@@ -192,10 +192,21 @@ export async function POST(request: NextRequest) {
           searchTier = 'vector-semantic';
           console.log('[Search API] Vector search found', results.length, 'results');
         } else if (vectorError) {
-          console.error('[Search API] Vector search error:', vectorError);
+          // If function doesn't exist or embeddings not ready, silently fall through to next strategy
+          if (vectorError.code === '42883' || vectorError.message?.includes('does not exist') || 
+              vectorError.message?.includes('embedding') || vectorError.code === 'P0001') {
+            console.log('[Search API] Vector search not available (embeddings may not be generated yet), using fallback');
+          } else {
+            console.error('[Search API] Vector search error:', vectorError);
+          }
         }
-      } catch (error) {
-        console.error('[Search API] Vector search exception:', error);
+      } catch (error: any) {
+        // Handle gracefully if vector search isn't ready
+        if (error.message?.includes('match_destinations') || error.message?.includes('embedding')) {
+          console.log('[Search API] Vector search not available, using fallback');
+        } else {
+          console.error('[Search API] Vector search exception:', error);
+        }
       }
     }
 
@@ -207,11 +218,9 @@ export async function POST(request: NextRequest) {
           .select('slug, name, city, category, description, content, image, michelin_stars, crown, rating, price_level')
           .limit(pageSize);
 
-        // Full-text search using PostgreSQL tsvector
-        fullTextQuery = fullTextQuery.textSearch('search_text', query, {
-          type: 'websearch',
-          config: 'english'
-        });
+        // Full-text search - use ILIKE on search_text as fallback (textSearch requires tsvector column)
+        // If search_text column exists but no tsvector, use pattern matching
+        fullTextQuery = fullTextQuery.or(`name.ilike.%${query}%,description.ilike.%${query}%,content.ilike.%${query}%,search_text.ilike.%${query}%`);
 
         // Apply filters
         if (intent.city || filters.city) {
@@ -278,10 +287,20 @@ export async function POST(request: NextRequest) {
             console.log('[Search API] AI field search found', results.length, 'results');
           }
         } else if (aiFieldError) {
-          console.error('[Search API] AI field search error:', aiFieldError);
+          // Handle gracefully if function doesn't exist
+          if (aiFieldError.code === '42883' || aiFieldError.message?.includes('does not exist')) {
+            console.log('[Search API] AI field search function not available, using fallback');
+          } else {
+            console.error('[Search API] AI field search error:', aiFieldError);
+          }
         }
-      } catch (error) {
-        console.error('[Search API] AI field search exception:', error);
+      } catch (error: any) {
+        // Handle gracefully if RPC doesn't exist
+        if (error.message?.includes('search_by_ai_fields') || error.code === '42883') {
+          console.log('[Search API] AI field search not available, using fallback');
+        } else {
+          console.error('[Search API] AI field search exception:', error);
+        }
       }
     }
 
