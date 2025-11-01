@@ -289,6 +289,12 @@ export default function Home() {
       if (data.results) {
         setFilteredDestinations(data.results);
         setSearchTier(data.searchTier);
+        
+        // Show AI badge and suggestions if available
+        if (data.searchTier === 'ai-enhanced') {
+          setSearchSuggestions(data.suggestions || []);
+          setSearchIntent(data.intent);
+        }
       } else {
         // Fallback to basic search
         filterDestinations();
