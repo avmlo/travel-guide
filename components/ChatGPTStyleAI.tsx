@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, X, Minimize2, MapPin } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Destination {
