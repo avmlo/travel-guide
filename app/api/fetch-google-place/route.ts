@@ -48,27 +48,82 @@ async function findPlaceId(query: string, name?: string, city?: string): Promise
 async function getPlaceDetails(placeId: string) {
   if (!GOOGLE_API_KEY) return null;
   
-  const url = new URL('https://maps.googleapis.com/maps/api/place/details/json');
-  url.searchParams.set('place_id', placeId);
-  url.searchParams.set('fields', [
-    'name',
-    'formatted_address',
-    'international_phone_number',
-    'website',
-    'price_level',
-    'rating',
-    'user_ratings_total',
-    'opening_hours',
-    'current_opening_hours',
-    'editorial_summary',
-    'types',
-    'photos',
-    'geometry',
-  ].join(','));
-  url.searchParams.set('key', GOOGLE_API_KEY);
-  const r = await fetch(url.toString());
-  const j = await r.json();
-  return j?.result || null;
+  // Use Places API (New) - Place Details
+  const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': GOOGLE_API_KEY,
+      'X-Goog-FieldMask': [
+        'displayName',
+        'formattedAddress',
+        'internationalPhoneNumber',
+        'websiteUri',
+        'priceLevel',
+        'rating',
+        'userRatingCount',
+        'regularOpeningHours',
+        'currentOpeningHours',
+        'editorialSummary',
+        'types',
+        'photos',
+        'location',
+      ].join(','),
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`Places API (New) error: ${response.status}`, errorText);
+    return null;
+  }
+
+  const place = await response.json();
+  
+  // Transform new API format to old format for compatibility
+  return {
+    name: place.displayName?.text || '',
+    formatted_address: place.formattedAddress || '',
+    international_phone_number: place.internationalPhoneNumber || '',
+    website: place.websiteUri || '',
+    price_level: place.priceLevel ? priceLevelToNumber(place.priceLevel) : null,
+    rating: place.rating ?? null,
+    user_ratings_total: place.userRatingCount ?? null,
+    opening_hours: place.regularOpeningHours ? transformOpeningHours(place.regularOpeningHours) : null,
+    current_opening_hours: place.currentOpeningHours ? transformOpeningHours(place.currentOpeningHours) : null,
+    editorial_summary: place.editorialSummary ? {
+      overview: place.editorialSummary.overview || '',
+    } : null,
+    types: place.types || [],
+    photos: place.photos || null,
+    geometry: place.location ? {
+      location: {
+        lat: place.location.latitude,
+        lng: place.location.longitude,
+      },
+    } : null,
+  };
+}
+
+// Helper to convert price level from enum to number
+function priceLevelToNumber(priceLevel: string): number | null {
+  const mapping: Record<string, number> = {
+    'PRICE_LEVEL_FREE': 0,
+    'PRICE_LEVEL_INEXPENSIVE': 1,
+    'PRICE_LEVEL_MODERATE': 2,
+    'PRICE_LEVEL_EXPENSIVE': 3,
+    'PRICE_LEVEL_VERY_EXPENSIVE': 4,
+  };
+  return mapping[priceLevel] ?? null;
+}
+
+// Helper to transform opening hours format
+function transformOpeningHours(hours: any): any {
+  return {
+    open_now: hours.openNow || false,
+    weekday_text: hours.weekdayDescriptions || [],
+    periods: hours.periods || [],
+  };
 }
 
 export async function POST(request: NextRequest) {
