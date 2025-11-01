@@ -4,8 +4,18 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
-import { MapPin, Star, ArrowLeft, Tag } from 'lucide-react';
+import { MapPin, Star, ArrowLeft, Tag, Sparkles } from 'lucide-react';
 import { stripHtmlTags } from '@/lib/stripHtmlTags';
+
+interface Recommendation {
+  slug: string;
+  name: string;
+  city: string;
+  category: string;
+  image?: string;
+  michelin_stars?: number;
+  rating?: number;
+}
 
 export default function DestinationPage() {
   const router = useRouter();
@@ -13,10 +23,18 @@ export default function DestinationPage() {
   const slug = params.slug as string;
   const [destination, setDestination] = useState<Destination | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   useEffect(() => {
     fetchDestination();
   }, [slug]);
+
+  useEffect(() => {
+    if (destination) {
+      loadRecommendations();
+    }
+  }, [destination]);
 
   const fetchDestination = async () => {
     try {
@@ -32,6 +50,24 @@ export default function DestinationPage() {
       console.error('Error fetching destination:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRecommendations = async () => {
+    if (!destination) return;
+
+    setLoadingRecommendations(true);
+    try {
+      const response = await fetch(`/api/recommendations?slug=${destination.slug}&limit=6`);
+      const data = await response.json();
+
+      if (data.recommendations) {
+        setRecommendations(data.recommendations);
+      }
+    } catch (error) {
+      console.error('Error loading recommendations:', error);
+    } finally {
+      setLoadingRecommendations(false);
     }
   };
 
@@ -127,6 +163,70 @@ export default function DestinationPage() {
           <div className="text-lg leading-relaxed whitespace-pre-wrap">
             {stripHtmlTags(destination.content)}
           </div>
+        </div>
+      )}
+
+      {/* AI Recommendations */}
+      {(loadingRecommendations || recommendations.length > 0) && (
+        <div className="mb-8 pt-8 border-t border-gray-200 dark:border-gray-800">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            <h3 className="text-sm font-bold uppercase text-gray-500 dark:text-gray-400">
+              You might also like
+            </h3>
+          </div>
+
+          {loadingRecommendations ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="animate-pulse">
+                  <div className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-lg mb-2" />
+                  <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded mb-1" />
+                  <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-2/3" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {recommendations.map(rec => (
+                <button
+                  key={rec.slug}
+                  onClick={() => router.push(`/destination/${rec.slug}`)}
+                  className="text-left group"
+                >
+                  <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-2">
+                    {rec.image ? (
+                      <img
+                        src={rec.image}
+                        alt={rec.name}
+                        className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <MapPin className="h-8 w-8 opacity-20" />
+                      </div>
+                    )}
+                    {rec.michelin_stars && rec.michelin_stars > 0 && (
+                      <div className="absolute bottom-2 left-2 bg-white dark:bg-gray-900 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-0.5">
+                        <img
+                          src="https://guide.michelin.com/assets/images/icons/1star-1f2c04d7e6738e8a3312c9cda4b64fd0.svg"
+                          alt="Michelin star"
+                          className="h-3 w-3"
+                        />
+                        <span>{rec.michelin_stars}</span>
+                      </div>
+                    )}
+                  </div>
+                  <h4 className="font-medium text-sm mb-1 line-clamp-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                    {rec.name}
+                  </h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                    {rec.city}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
