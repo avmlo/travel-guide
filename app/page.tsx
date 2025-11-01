@@ -455,6 +455,15 @@ export default function Home() {
     const categories = ['dining', 'restaurant', 'cafe', 'hotel', 'bar', 'bakery', 'culture'];
     const foundCategory = categories.find(cat => lowerQuery.includes(cat));
     if (foundCategory) {
+      // Extract descriptive keywords (romantic, cozy, best, etc.)
+      const descriptiveKeywords = ['romantic', 'cozy', 'best', 'fancy', 'cheap', 'expensive', 'luxury', 'casual', 'fine', 'popular', 'trendy', 'hidden', 'local', 'authentic', 'traditional', 'modern', 'classic', 'unique', 'famous', 'top', 'amazing', 'incredible'];
+      const foundKeywords: string[] = [];
+      for (const keyword of descriptiveKeywords) {
+        if (lowerQuery.includes(keyword)) {
+          foundKeywords.push(keyword);
+        }
+      }
+      
       // Check for city in query - support both patterns:
       // 1. "restaurant in bangkok" or "restaurant at bangkok"
       // 2. "bangkok restaurant" or "tokyo cafe"
@@ -505,11 +514,11 @@ export default function Home() {
         query = query.ilike('city', `%${city}%`);
       }
 
-      const { data } = await query.limit(20); // Fetch more to filter
+      const { data } = await query.limit(30); // Fetch more to filter and rank
 
       if (data && data.length > 0) {
         // Filter by Google place types if available
-        const filtered = data.filter((d: any) => {
+        let filtered = data.filter((d: any) => {
           // First check our category
           const matchesCategory = !d.category || d.category.toLowerCase().includes(foundCategory);
           
@@ -532,12 +541,56 @@ export default function Home() {
           }
           
           return matchesCategory;
-        }).slice(0, 6);
+        });
+
+        // Rank results based on descriptive keywords
+        if (foundKeywords.length > 0) {
+          filtered = filtered.map((d: any) => {
+            let score = 0;
+            const searchText = `${d.name || ''} ${d.description || ''} ${d.content || ''} ${d.editorial_summary || ''}`.toLowerCase();
+            
+            // Check if descriptive keywords appear in name (highest priority)
+            foundKeywords.forEach(keyword => {
+              if (d.name?.toLowerCase().includes(keyword)) {
+                score += 10;
+              }
+              // Check in description/content
+              if (searchText.includes(keyword)) {
+                score += 5;
+              }
+            });
+            
+            // Boost if keyword appears early in query (before category)
+            const categoryIndex = lowerQuery.indexOf(foundCategory);
+            foundKeywords.forEach(keyword => {
+              const keywordIndex = lowerQuery.indexOf(keyword);
+              if (keywordIndex >= 0 && keywordIndex < categoryIndex) {
+                // Keyword appears before category = more important
+                score += 3;
+              }
+            });
+            
+            return { ...d, _searchScore: score };
+          }).sort((a, b) => {
+            // Sort by score (descending), then by rating if available
+            if (b._searchScore !== a._searchScore) {
+              return b._searchScore - a._searchScore;
+            }
+            // Fallback to rating if scores are equal
+            const ratingA = a.rating || 0;
+            const ratingB = b.rating || 0;
+            return ratingB - ratingA;
+          });
+        }
+
+        // Limit to top 6 results
+        filtered = filtered.slice(0, 6);
 
         if (filtered.length > 0) {
           const location = city ? ` in ${city.replace(/-/g, ' ')}` : '';
+          const keywordText = foundKeywords.length > 0 ? `${foundKeywords.join(', ')} ` : '';
           return {
-            content: `Here are some great ${foundCategory}s${location}:`,
+            content: `Here are some ${keywordText}${foundCategory}s${location}:`,
             destinations: filtered
           };
         }
@@ -848,42 +901,24 @@ export default function Home() {
         ) : (
           <>
             {/* AI Chat Response - replaces city filter when searching */}
-            <div className="mb-8">
+            <div className="mb-8 text-center">
               <div className="max-w-[680px] mx-auto px-[24px]">
-                {searching ? (
-                  <div className="flex items-center justify-center gap-2 py-4">
-                    <span className="animate-pulse">✨</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Searching...</span>
-                  </div>
-                ) : chatResponse ? (
-                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <Sparkles className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
-                          AI Assistant
-                        </div>
-                        <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                          {chatResponse}
-                        </div>
-                      </div>
+                <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {searching ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="animate-pulse">✨</span>
+                      <span>Searching...</span>
                     </div>
-                  </div>
-                ) : filteredDestinations.length > 0 ? (
-                  <div className="text-center py-4">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                  ) : chatResponse ? (
+                    <span className="whitespace-pre-line block">{chatResponse}</span>
+                  ) : filteredDestinations.length > 0 ? (
+                    <span>
                       ✨ Found <strong className="text-black dark:text-white">{filteredDestinations.length}</strong> {filteredDestinations.length === 1 ? 'place' : 'places'}
                     </span>
-                  </div>
-                ) : searchTerm ? (
-                  <div className="text-center py-4">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"
-                    </span>
-                  </div>
-                ) : null}
+                  ) : searchTerm ? (
+                    <span>No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"</span>
+                  ) : null}
+                </div>
               </div>
             </div>
           </>
