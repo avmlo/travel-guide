@@ -583,13 +583,29 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
 
       try {
         const response = await fetch(`/api/recommendations?slug=${destination.slug}&limit=6`);
+        
+        // Handle 404 gracefully (recommendations endpoint might not be available)
+        if (!response.ok && response.status === 404) {
+          console.log('Recommendations endpoint not available');
+          setRecommendations([]);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
         const data = await response.json();
 
-        if (data.recommendations) {
+        if (data.recommendations && Array.isArray(data.recommendations)) {
           setRecommendations(data.recommendations);
+        } else {
+          setRecommendations([]);
         }
       } catch (error) {
-        console.error('Error loading recommendations:', error);
+        // Silently handle errors - recommendations are optional
+        console.log('Recommendations not available:', error);
+        setRecommendations([]);
       } finally {
         setLoadingRecommendations(false);
       }
