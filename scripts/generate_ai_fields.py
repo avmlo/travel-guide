@@ -33,7 +33,7 @@ if not GOOGLE_API_KEY:
 # Initialize clients
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-pro')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # Rate limiting: 15 requests per minute
 RATE_LIMIT_REQUESTS = 15

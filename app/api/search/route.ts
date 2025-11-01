@@ -164,6 +164,38 @@ export async function POST(request: NextRequest) {
 
     // Extract structured filters using AI
     const intent = await understandQuery(query);
+    
+    // Map category synonyms to database categories
+    const categorySynonyms: Record<string, string> = {
+      'restaurant': 'Dining',
+      'dining': 'Dining',
+      'food': 'Dining',
+      'eat': 'Dining',
+      'meal': 'Dining',
+      'hotel': 'Hotel',
+      'stay': 'Hotel',
+      'accommodation': 'Hotel',
+      'lodging': 'Hotel',
+      'cafe': 'Cafe',
+      'coffee': 'Cafe',
+      'bar': 'Bar',
+      'drink': 'Bar',
+      'cocktail': 'Bar',
+      'nightlife': 'Bar',
+      'culture': 'Culture',
+      'museum': 'Culture',
+      'art': 'Culture',
+      'gallery': 'Culture'
+    };
+    
+    // Normalize category
+    if (intent.category) {
+      const normalized = categorySynonyms[intent.category.toLowerCase()];
+      if (normalized) {
+        intent.category = normalized;
+      }
+    }
+    
     console.log('[Search API] Query:', query, 'Intent:', JSON.stringify(intent, null, 2));
 
     // Generate embedding for vector search
