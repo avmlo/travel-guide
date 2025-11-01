@@ -168,6 +168,7 @@ export async function POST(request: NextRequest) {
 
     // Use AI to understand the query
     const intent = await understandQuery(query);
+    console.log('[Search API] Query:', query, 'Intent:', JSON.stringify(intent, null, 2));
 
     // Build Supabase query
     let supabaseQuery = supabase
@@ -207,14 +208,20 @@ export async function POST(request: NextRequest) {
 
     // Full-text search on keywords
     if (intent.keywords && intent.keywords.length > 0) {
-      // Search for all keywords in name or description
-      const keywordConditions = intent.keywords
-        .map((keyword: string) => `name.ilike.%${keyword}%,description.ilike.%${keyword}%`)
-        .join(',');
-      supabaseQuery = supabaseQuery.or(keywordConditions);
+      // Build OR conditions for keywords - search in name, description, or content
+      // Each keyword can match in name OR description OR content
+      const conditions: string[] = [];
+      for (const keyword of intent.keywords) {
+        conditions.push(`name.ilike.%${keyword}%`);
+        conditions.push(`description.ilike.%${keyword}%`);
+        conditions.push(`content.ilike.%${keyword}%`);
+      }
+      if (conditions.length > 0) {
+        supabaseQuery = supabaseQuery.or(conditions.join(','));
+      }
     } else {
       // Fallback: search the entire query
-      supabaseQuery = supabaseQuery.or(`name.ilike.%${query}%,description.ilike.%${query}%,city.ilike.%${query}%`);
+      supabaseQuery = supabaseQuery.or(`name.ilike.%${query}%,description.ilike.%${query}%,content.ilike.%${query}%,city.ilike.%${query}%`);
     }
 
     const { data, error } = await supabaseQuery;
