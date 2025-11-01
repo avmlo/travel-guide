@@ -413,7 +413,7 @@ export default function Home() {
     <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
       <div className="max-w-[1920px] mx-auto">
         {/* Greeting Hero above the search bar */}
-        <div className="mb-6 relative" id="greeting-hero-container">
+        <div className="mb-4 relative" id="greeting-hero-container">
           <GreetingHero
             searchQuery={searchTerm}
             onSearchChange={(value) => {
@@ -535,7 +535,7 @@ export default function Home() {
 
         {/* City Filter - Hidden during search, replaced by AI chat response */}
         {!searchTerm ? (
-          <div className="mb-8 text-center">
+          <div className="mb-6 text-center">
             <div className="max-w-[680px] mx-auto px-[24px]">
               <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs">
               <button
@@ -582,7 +582,7 @@ export default function Home() {
         ) : (
           <>
             {/* Simple AI Chat Response - replaces country list */}
-            <div className="mb-8 text-center">
+            <div className="mb-6 text-center">
               <div className="max-w-[680px] mx-auto px-[24px]">
                 <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                   {searching ? (

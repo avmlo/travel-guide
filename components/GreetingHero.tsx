@@ -96,7 +96,7 @@ export default function GreetingHero({
   };
 
   return (
-    <div className="w-full pt-10 pb-6 relative" data-name="Greeting and Filters">
+    <div className="w-full pt-10 pb-2 relative" data-name="Greeting and Filters">
       <div className="max-w-[680px] mx-auto px-[24px] relative">
         {/* Greeting */}
         <div className="text-center mb-3">
