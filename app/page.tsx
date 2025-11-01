@@ -155,6 +155,8 @@ export default function Home() {
   const [searching, setSearching] = useState(false);
   const [searchTier, setSearchTier] = useState<string | null>(null);
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [searchIntent, setSearchIntent] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [openNowOnly, setOpenNowOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
