@@ -7,6 +7,7 @@ import { Loader2, Plus, Edit, Search, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { stripHtmlTags } from "@/lib/stripHtmlTags";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -28,8 +29,8 @@ function DestinationForm({
     name: destination?.name || '',
     city: destination?.city || '',
     category: destination?.category || '',
-    description: destination?.description || '',
-    content: destination?.content || '',
+    description: stripHtmlTags(destination?.description || ''),
+    content: stripHtmlTags(destination?.content || ''),
     image: destination?.image || '',
     michelin_stars: destination?.michelin_stars || null,
     crown: destination?.crown || false,
@@ -49,8 +50,8 @@ function DestinationForm({
         name: destination.name || '',
         city: destination.city || '',
         category: destination.category || '',
-        description: destination.description || '',
-        content: destination.content || '',
+        description: stripHtmlTags(destination.description || ''),
+        content: stripHtmlTags(destination.content || ''),
         image: destination.image || '',
         michelin_stars: destination.michelin_stars || null,
         crown: destination.crown || false,
@@ -163,8 +164,8 @@ function DestinationForm({
         name: data.name || prev.name,
         city: data.city || prev.city,
         category: data.category || prev.category,
-        description: data.description || prev.description,
-        content: data.content || prev.content,
+        description: stripHtmlTags(data.description || prev.description),
+        content: stripHtmlTags(data.content || prev.content),
         image: data.image || prev.image,
       }));
 

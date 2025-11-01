@@ -3,6 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
+function stripHtmlTags(text: string | null | undefined): string {
+  if (!text) return '';
+  
+  return text
+    .replace(/<p[^>]*>/gi, '') // Remove opening <p> tags
+    .replace(/<\/p>/gi, '')    // Remove closing </p> tags
+    .replace(/<br\s*\/?>/gi, '\n') // Convert <br> to newlines
+    .trim();
+}
+
 async function findPlaceId(query: string, name?: string, city?: string): Promise<string | null> {
   if (!GOOGLE_API_KEY) return null;
   
@@ -143,12 +153,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Build response with form-friendly data
+    const editorialSummary = stripHtmlTags(details.editorial_summary?.overview || '');
     const result = {
       name: details.name || name,
       city: extractedCity || city || '',
       category: category,
-      description: details.editorial_summary?.overview || '',
-      content: details.editorial_summary?.overview || '',
+      description: editorialSummary,
+      content: editorialSummary,
       image: imageUrl,
       formatted_address: details.formatted_address || '',
       phone: details.international_phone_number || '',
