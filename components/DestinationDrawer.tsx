@@ -785,8 +785,29 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             )}
 
             {/* Opening Hours */}
-            {((enrichedData?.opening_hours || enrichedData?.current_opening_hours) || destination.opening_hours) && (() => {
+            {(() => {
               const hours = enrichedData?.current_opening_hours || enrichedData?.opening_hours || destination.opening_hours;
+              
+              // Debug logging
+              if (!hours) {
+                console.log('No opening hours data found:', {
+                  hasCurrent: !!enrichedData?.current_opening_hours,
+                  hasRegular: !!enrichedData?.opening_hours,
+                  hasDestination: !!destination.opening_hours,
+                  enrichedData: enrichedData
+                });
+                return null;
+              }
+              
+              // Check if hours has weekday_text or periods (different Google API formats)
+              const hasWeekdayText = hours.weekday_text && Array.isArray(hours.weekday_text) && hours.weekday_text.length > 0;
+              const hasPeriods = hours.periods && Array.isArray(hours.periods) && hours.periods.length > 0;
+              
+              if (!hasWeekdayText && !hasPeriods) {
+                console.log('Opening hours missing weekday_text or periods:', hours);
+                return null;
+              }
+              
               const openStatus = getOpenStatus(
                 hours, 
                 destination.city, 
@@ -827,7 +848,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                       </span>
                     )}
                   </div>
-                  {hours.weekday_text && (
+                  {hasWeekdayText && (
                     <details className="text-sm">
                       <summary className="cursor-pointer text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
                         View all hours
@@ -842,7 +863,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
                           return (
                             <div key={index} className={`flex justify-between ${isToday ? 'font-semibold text-black dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                               <span>{dayName}</span>
-                              <span>{hoursText}</span>
+                              <span>{hoursText || 'Closed'}</span>
                             </div>
                           );
                         })}
