@@ -257,6 +257,12 @@ export default function Home() {
         .select('destination_slug')
         .eq('user_id', user.id);
 
+      // Handle missing table or RLS errors gracefully
+      if (error && (error.code === 'PGRST116' || error.code === 'PGRST301')) {
+        // Table doesn't exist or RLS blocking - that's fine, just continue
+        return;
+      }
+
       if (error) throw error;
 
       const slugs = new Set(data?.map(v => v.destination_slug) || []);

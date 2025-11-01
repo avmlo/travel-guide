@@ -209,8 +209,6 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             user_ratings_total,
             price_level,
             opening_hours_json,
-            current_opening_hours_json,
-            secondary_opening_hours_json,
             business_status,
             editorial_summary,
             google_name,
@@ -244,24 +242,8 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
               console.error('Error parsing opening_hours_json:', e);
             }
           }
-          if (data.current_opening_hours_json) {
-            try {
-              enriched.current_opening_hours = typeof data.current_opening_hours_json === 'string'
-                ? JSON.parse(data.current_opening_hours_json)
-                : data.current_opening_hours_json;
-            } catch (e) {
-              console.error('Error parsing current_opening_hours_json:', e);
-            }
-          }
-          if (data.secondary_opening_hours_json) {
-            try {
-              enriched.secondary_opening_hours = typeof data.secondary_opening_hours_json === 'string'
-                ? JSON.parse(data.secondary_opening_hours_json)
-                : data.secondary_opening_hours_json;
-            } catch (e) {
-              console.error('Error parsing secondary_opening_hours_json:', e);
-            }
-          }
+          // Note: current_opening_hours_json and secondary_opening_hours_json may not exist in all schemas
+          // These fields are optional and will be added if the column exists
           if (data.place_types_json) {
             try {
               enriched.place_types = typeof data.place_types_json === 'string'

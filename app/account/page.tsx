@@ -89,16 +89,37 @@ export default function Account() {
             .from('user_profiles')
             .select('*')
             .eq('user_id', user.id)
-            .single(),
+            .single()
+            .then(result => {
+              // Handle 406/400 errors gracefully (RLS or missing table)
+              if (result.error && (result.error.code === 'PGRST116' || result.error.code === 'PGRST301')) {
+                return { data: null, error: null };
+              }
+              return result;
+            }),
           supabase
             .from('saved_places')
             .select('destination_slug')
-            .eq('user_id', user.id),
+            .eq('user_id', user.id)
+            .then(result => {
+              // Handle 406/400 errors gracefully (RLS or missing table)
+              if (result.error && (result.error.code === 'PGRST116' || result.error.code === 'PGRST301')) {
+                return { data: [], error: null };
+              }
+              return result;
+            }),
           supabase
             .from('visited_places')
             .select('destination_slug, visited_at, rating, notes')
             .eq('user_id', user.id)
             .order('visited_at', { ascending: false })
+            .then(result => {
+              // Handle 406/400 errors gracefully (RLS or missing table)
+              if (result.error && (result.error.code === 'PGRST116' || result.error.code === 'PGRST301')) {
+                return { data: [], error: null };
+              }
+              return result;
+            })
         ]);
 
         if (profileResult.data) {

@@ -195,6 +195,7 @@ export async function initializeSession() {
   const context = await getUserContext();
 
   // Create or update session record
+  // Silently fail if table doesn't exist (optional feature)
   const { error } = await supabase
     .from('user_sessions')
     .upsert({
@@ -208,7 +209,9 @@ export async function initializeSession() {
       ignoreDuplicates: false,
     });
 
-  if (error) {
+  // Silently fail if table doesn't exist (optional tracking feature)
+  if (error && error.code !== 'PGRST116') {
+    // PGRST116 = relation does not exist, which is fine
     console.error('Error initializing session:', error);
   }
 }
@@ -225,7 +228,9 @@ export async function endSession() {
     })
     .eq('session_id', sessionId);
 
-  if (error) {
+  // Silently fail if table doesn't exist (optional tracking feature)
+  if (error && error.code !== 'PGRST116') {
+    // PGRST116 = relation does not exist, which is fine
     console.error('Error ending session:', error);
   }
 }
