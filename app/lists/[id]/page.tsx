@@ -53,6 +53,8 @@ export default function ListDetailPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [addingDestination, setAddingDestination] = useState(false);
 
   // Edit form state
   const [editName, setEditName] = useState("");
@@ -133,6 +135,7 @@ export default function ListDetailPage() {
   const updateList = async () => {
     if (!user || !list || !editName.trim()) return;
 
+    setIsUpdating(true);
     const { error } = await supabase
       .from('lists')
       .update({
@@ -154,6 +157,7 @@ export default function ListDetailPage() {
       });
       setShowEditModal(false);
     }
+    setIsUpdating(false);
   };
 
   const deleteList = async () => {
@@ -196,6 +200,7 @@ export default function ListDetailPage() {
   const addDestinationToList = async (destination: Destination) => {
     if (!user || !list) return;
 
+    setAddingDestination(true);
     const { error } = await supabase
       .from('list_items')
       .insert([{
@@ -212,6 +217,7 @@ export default function ListDetailPage() {
       setSearchResults([]);
       setShowAddModal(false);
     }
+    setAddingDestination(false);
   };
 
   const removeDestinationFromList = async (slug: string, name: string) => {
@@ -256,7 +262,7 @@ export default function ListDetailPage() {
   return (
     <main className="px-4 md:px-6 lg:px-10 py-8 dark:text-white min-h-screen">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* Header - Improved responsive layout */}
         <div className="mb-8">
           <button
             onClick={() => router.push('/lists')}
@@ -266,18 +272,18 @@ export default function ListDetailPage() {
             <span>Back to Lists</span>
           </button>
 
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-4xl font-bold">{list.name}</h1>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <h1 className="text-3xl sm:text-4xl font-bold break-words">{list.name}</h1>
                 {list.is_public ? (
-                  <Globe className="h-5 w-5 text-gray-500" />
+                  <Globe className="h-5 w-5 text-gray-500 flex-shrink-0" />
                 ) : (
-                  <Lock className="h-5 w-5 text-gray-500" />
+                  <Lock className="h-5 w-5 text-gray-500 flex-shrink-0" />
                 )}
               </div>
               {list.description && (
-                <span className="text-base text-gray-600 dark:text-gray-400 mb-4">
+                <span className="block text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-2 break-words">
                   {list.description}
                 </span>
               )}
@@ -286,39 +292,31 @@ export default function ListDetailPage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {list.is_public && (
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
                 >
                   <Share2 className="h-4 w-4" />
-                  <span>Share</span>
+                  <span className="hidden sm:inline">Share</span>
                 </button>
               )}
               {user?.id === list.user_id && (
                 <>
                   <button
                     onClick={() => setShowEditModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm"
                   >
                     <Edit2 className="h-4 w-4" />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    onClick={updateList}
-                    className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity"
-                    disabled={!editName.trim()}
-                    title="Save changes"
-                  >
-                    <span>Save</span>
+                    <span className="hidden sm:inline">Edit</span>
                   </button>
                   <button
                     onClick={deleteList}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
+                    className="group relative flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors text-sm"
                   >
                     <Trash2 className="h-4 w-4" />
-                    <span>Delete</span>
+                    <span className="hidden sm:inline">Delete</span>
                   </button>
                 </>
               )}
@@ -331,17 +329,20 @@ export default function ListDetailPage() {
           <div className="mb-6">
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
+              disabled={addingDestination}
+              className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Plus className="h-4 w-4" />
-              <span>Add Place</span>
-            </button>
-            <button
-              onClick={updateList}
-              className="ml-3 inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-black dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              title="Save list changes"
-            >
-              Save
+              {addingDestination ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Adding...</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  <span>Add Place</span>
+                </>
+              )}
             </button>
           </div>
         )}
@@ -350,18 +351,20 @@ export default function ListDetailPage() {
         {destinations.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
             <MapPin className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-            <span className="text-xl text-gray-400 mb-6">No places in this list yet</span>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
-            >
-              Add Your First Place
-            </button>
+            <span className="text-xl text-gray-400 dark:text-gray-500 mb-6 block">No places in this list yet</span>
+            {user?.id === list.user_id && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity font-medium"
+              >
+                Add Your First Place
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {destinations.map((destination) => (
-              <div key={destination.slug} className={`${CARD_WRAPPER}`}>
+              <div key={destination.slug} className={`${CARD_WRAPPER} group`}>
                 <Link href={`/destination/${destination.slug}`}>
                   <div className={`${CARD_MEDIA} mb-2 hover-lift`}>
                     {destination.image ? (
@@ -389,12 +392,18 @@ export default function ListDetailPage() {
                     </div>
                   </div>
                 </Link>
-                <button
-                  onClick={() => removeDestinationFromList(destination.slug, destination.name)}
-                  className="absolute top-2 right-2 p-1.5 bg-white dark:bg-gray-900 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-900/20"
-                >
-                  <X className="h-4 w-4 text-red-600 dark:text-red-400" />
-                </button>
+                {user?.id === list.user_id && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      removeDestinationFromList(destination.slug, destination.name);
+                    }}
+                    className="absolute top-2 right-2 p-1.5 bg-white dark:bg-gray-900 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-900/20 z-10"
+                    title="Remove from list"
+                  >
+                    <X className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -458,10 +467,17 @@ export default function ListDetailPage() {
                 </button>
                 <button
                   onClick={updateList}
-                  disabled={!editName.trim()}
-                  className="flex-1 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  disabled={!editName.trim() || isUpdating}
+                  className="flex-1 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
                 >
-                  Save Changes
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
               </div>
             </div>
@@ -519,7 +535,8 @@ export default function ListDetailPage() {
                     <button
                       key={destination.slug}
                       onClick={() => addDestinationToList(destination)}
-                      className="text-left hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors"
+                      disabled={addingDestination}
+                      className="text-left hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
                         {destination.image && (
