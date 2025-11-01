@@ -544,7 +544,7 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          /* Search Results Summary - replaces city filter when searching */
+          // Search Results Summary - replaces city filter when searching
           <div className="mb-8 text-center">
             <div className="max-w-[680px] mx-auto px-[24px]">
               <div className="text-sm text-gray-600 dark:text-gray-400">
