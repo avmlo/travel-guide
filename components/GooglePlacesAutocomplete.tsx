@@ -248,7 +248,7 @@ export default function GooglePlacesAutocomplete({
                 <span className="text-gray-400 mt-0.5">📍</span>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-900 dark:text-white">
-                    {highlightMatch(prediction.main_text, prediction.matched_substrings)}
+                    {highlightMatch(prediction.main_text, prediction.matched_substrings || [])}
                   </div>
                   {prediction.secondary_text && (
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
