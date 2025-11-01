@@ -170,19 +170,21 @@ export async function POST(request: NextRequest) {
       searchCategory = categories.find(cat => lowerQuery.includes(cat));
     }
 
-    // Extract Michelin stars if not from context
-    if (searchMichelinStars === undefined) {
-      if (lowerQuery.includes('michelin') || lowerQuery.includes('star')) {
-        const starMatch = lowerQuery.match(/(\d)\s*star|star.*?(\d)/);
-        if (starMatch) {
-          const stars = parseInt(starMatch[1] || starMatch[2]);
-          if (stars >= 1 && stars <= 3) {
-            searchMichelinStars = stars;
-          }
-        } else if (lowerQuery.includes('michelin')) {
-          searchMichelinStars = null; // Search all michelin restaurants
+    // Extract Michelin stars ONLY if explicitly mentioned in current query
+    // Don't use context value unless current query mentions it
+    if (lowerQuery.includes('michelin') || lowerQuery.match(/\d+\s*star|star\s*\d+/)) {
+      const starMatch = lowerQuery.match(/(\d)\s*star|star.*?(\d)/);
+      if (starMatch) {
+        const stars = parseInt(starMatch[1] || starMatch[2]);
+        if (stars >= 1 && stars <= 3) {
+          searchMichelinStars = stars;
         }
+      } else if (lowerQuery.includes('michelin')) {
+        searchMichelinStars = null; // Search all michelin restaurants
       }
+    } else {
+      // If not mentioned in current query, ignore any context value
+      searchMichelinStars = undefined;
     }
 
     // Check if this is a follow-up that should use previous context
