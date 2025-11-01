@@ -318,7 +318,7 @@ export default function Home() {
 
       const { data } = await supabase
         .from('destinations')
-        .select('*')
+        .select('*, place_types_json, editorial_summary')
         .or(`city.ilike.%${area}%,name.ilike.%${area}%`)
         .limit(15);
 
@@ -379,7 +379,7 @@ export default function Home() {
       if (city) {
         const { data } = await supabase
           .from('destinations')
-          .select('*')
+          .select('*, place_types_json, editorial_summary')
           .ilike('city', `%${city}%`)
           .limit(10);
 
@@ -439,7 +439,7 @@ export default function Home() {
       const city = cityMatch[1].trim().replace(/\s+/g, '-');
       const { data } = await supabase
         .from('destinations')
-        .select('*')
+        .select('*, place_types_json, editorial_summary')
         .ilike('city', `%${city}%`)
         .limit(6);
 
@@ -455,26 +455,92 @@ export default function Home() {
     const categories = ['dining', 'restaurant', 'cafe', 'hotel', 'bar', 'bakery', 'culture'];
     const foundCategory = categories.find(cat => lowerQuery.includes(cat));
     if (foundCategory) {
-      // Check for city in query too
-      const cityInQuery = lowerQuery.match(/(?:in|at)\s+([a-z\s-]+)/i);
+      // Check for city in query - support both patterns:
+      // 1. "restaurant in bangkok" or "restaurant at bangkok"
+      // 2. "bangkok restaurant" or "tokyo cafe"
+      let cityInQuery = lowerQuery.match(/(?:in|at|near)\s+([a-z\s-]+)/i);
+      let city: string | null = null;
+      
+      if (cityInQuery) {
+        // Pattern 1: category in/at city
+        city = cityInQuery[1].trim().replace(/\s+/g, '-');
+      } else {
+        // Pattern 2: city category (check if city name appears before category)
+        const categoryIndex = lowerQuery.indexOf(foundCategory);
+        if (categoryIndex > 0) {
+          const beforeCategory = lowerQuery.substring(0, categoryIndex).trim();
+          // Check if it's a known city name
+          const cityNames = ['tokyo', 'new york', 'paris', 'london', 'los angeles', 'singapore', 'hong kong', 'sydney', 'dubai', 'bangkok', 'berlin', 'amsterdam', 'rome', 'barcelona', 'lisbon', 'madrid', 'vienna', 'prague', 'stockholm', 'oslo', 'copenhagen', 'helsinki', 'seoul', 'mumbai', 'delhi', 'bangalore', 'jakarta', 'manila', 'ho chi minh', 'hanoi'];
+          for (const cityName of cityNames) {
+            const cityLower = cityName.toLowerCase();
+            // Check if the city name appears in the text before the category
+            if (beforeCategory.includes(cityLower) || lowerQuery.includes(`${cityLower} ${foundCategory}`) || lowerQuery.includes(`${cityLower.replace(' ', '-')} ${foundCategory}`)) {
+              city = cityName.replace(/\s+/g, '-');
+              break;
+            }
+          }
+        }
+      }
+      
+      // Map our categories to Google place types
+      const googleTypeMap: Record<string, string[]> = {
+        'restaurant': ['restaurant', 'food', 'meal_takeaway', 'meal_delivery'],
+        'dining': ['restaurant', 'food', 'meal_takeaway'],
+        'cafe': ['cafe', 'bakery', 'store'],
+        'bar': ['bar', 'night_club'],
+        'hotel': ['lodging'],
+        'bakery': ['bakery', 'store'],
+        'culture': ['museum', 'art_gallery', 'library', 'tourist_attraction']
+      };
+      
+      const googleTypes = googleTypeMap[foundCategory] || [foundCategory];
+      
+      // Fetch with enriched data
       let query = supabase
         .from('destinations')
-        .select('*')
-        .ilike('category', `%${foundCategory}%`);
+        .select('*, place_types_json, editorial_summary')
+        .or(`category.ilike.%${foundCategory}%,name.ilike.%${foundCategory}%,description.ilike.%${foundCategory}%,content.ilike.%${foundCategory}%`);
 
-      if (cityInQuery) {
-        const city = cityInQuery[1].trim().replace(/\s+/g, '-');
+      if (city) {
         query = query.ilike('city', `%${city}%`);
       }
 
-      const { data } = await query.limit(6);
+      const { data } = await query.limit(20); // Fetch more to filter
 
       if (data && data.length > 0) {
-        const location = cityInQuery ? ` in ${cityInQuery[1]}` : '';
-        return {
-          content: `Here are some great ${foundCategory}s${location}:`,
-          destinations: data
-        };
+        // Filter by Google place types if available
+        const filtered = data.filter((d: any) => {
+          // First check our category
+          const matchesCategory = !d.category || d.category.toLowerCase().includes(foundCategory);
+          
+          // Then check Google place types if available
+          if (d.place_types_json) {
+            try {
+              const types = typeof d.place_types_json === 'string' 
+                ? JSON.parse(d.place_types_json) 
+                : d.place_types_json;
+              if (Array.isArray(types)) {
+                const typeLower = types.map((t: string) => t.toLowerCase());
+                const matchesGoogleType = googleTypes.some(gt => 
+                  typeLower.some((tl: string) => tl.includes(gt.toLowerCase()))
+                );
+                return matchesCategory || matchesGoogleType;
+              }
+            } catch (e) {
+              // Ignore JSON parse errors
+            }
+          }
+          
+          return matchesCategory;
+        }).slice(0, 6);
+
+        if (filtered.length > 0) {
+          const location = city ? ` in ${city.replace(/-/g, ' ')}` : '';
+          return {
+            content: `Here are some great ${foundCategory}s${location}:`,
+            destinations: filtered
+          };
+        }
       }
     }
 
@@ -482,7 +548,7 @@ export default function Home() {
     if (lowerQuery.includes('michelin') || lowerQuery.includes('star')) {
       const { data } = await supabase
         .from('destinations')
-        .select('*')
+        .select('*, place_types_json, editorial_summary')
         .gt('michelin_stars', 0)
         .order('michelin_stars', { ascending: false })
         .limit(6);
@@ -782,24 +848,42 @@ export default function Home() {
         ) : (
           <>
             {/* AI Chat Response - replaces city filter when searching */}
-            <div className="mb-8 text-center">
+            <div className="mb-8">
               <div className="max-w-[680px] mx-auto px-[24px]">
-                <div className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {searching ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="animate-pulse">✨</span>
-                      <span>Searching...</span>
+                {searching ? (
+                  <div className="flex items-center justify-center gap-2 py-4">
+                    <span className="animate-pulse">✨</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Searching...</span>
+                  </div>
+                ) : chatResponse ? (
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <Sparkles className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                          AI Assistant
+                        </div>
+                        <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                          {chatResponse}
+                        </div>
+                      </div>
                     </div>
-                  ) : chatResponse ? (
-                    <span className="whitespace-pre-line block">{chatResponse}</span>
-                  ) : filteredDestinations.length > 0 ? (
-                    <span>
+                  </div>
+                ) : filteredDestinations.length > 0 ? (
+                  <div className="text-center py-4">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       ✨ Found <strong className="text-black dark:text-white">{filteredDestinations.length}</strong> {filteredDestinations.length === 1 ? 'place' : 'places'}
                     </span>
-                  ) : searchTerm ? (
-                    <span>No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"</span>
-                  ) : null}
-                </div>
+                  </div>
+                ) : searchTerm ? (
+                  <div className="text-center py-4">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"
+                    </span>
+                  </div>
+                ) : null}
               </div>
             </div>
           </>
