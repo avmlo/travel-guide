@@ -578,19 +578,19 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* AI Chat Response - replaces city filter when searching */}
+            {/* AI Chat Response - always shown when searching (pure AI chat mode) */}
             <div className="mb-8 text-center">
               <div className="max-w-[680px] mx-auto px-[24px]">
                 <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                   {searching ? (
                     <div className="flex items-center justify-center gap-2">
                       <span className="animate-pulse">✨</span>
-                      <span>Searching...</span>
+                      <span>Thinking...</span>
                     </div>
                   ) : chatResponse ? (
                     <span className="whitespace-pre-line block">{chatResponse}</span>
-                  ) : searchTerm && filteredDestinations.length === 0 ? (
-                    <span>No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"</span>
+                  ) : searchTerm ? (
+                    <span className="text-gray-500 dark:text-gray-400">Type your question and I'll help you find places...</span>
                   ) : null}
                 </div>
               </div>
