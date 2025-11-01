@@ -63,8 +63,9 @@ export async function POST(request: NextRequest) {
 
         const categoryText = foundCategory ? ` ${foundCategory}s` : ' places';
         const locationText = city.replace(/-/g, ' ');
+        const descriptiveText = descriptiveKeyword ? ` that match "${descriptiveKeyword}"` : '';
         return NextResponse.json({
-          content: `Found ${filtered.length}${categoryText} in ${locationText}:`,
+          content: `✨ I found ${filtered.length}${categoryText}${descriptiveText} in ${locationText} for you:`,
           destinations: filtered
         });
       }
@@ -107,8 +108,10 @@ export async function POST(request: NextRequest) {
         filtered = filtered.slice(0, 12);
 
         const location = cityInQuery ? ` in ${cityInQuery[1]}` : '';
+        const descriptiveKeyword = ['romantic', 'cozy', 'fine', 'casual', 'upscale', 'trendy', 'hidden', 'best'].find(k => lowerQuery.includes(k));
+        const descriptiveText = descriptiveKeyword ? ` that are ${descriptiveKeyword}` : '';
         return NextResponse.json({
-          content: `Found ${filtered.length} ${foundCategory}${location !== '' ? location + '' : 's'}:`,
+          content: `✨ Here are ${filtered.length} ${foundCategory}${location !== '' ? location : 's'}${descriptiveText} I think you'll love:`,
           destinations: filtered
         });
       }
@@ -123,14 +126,14 @@ export async function POST(request: NextRequest) {
 
     if (!error && data && data.length > 0) {
       return NextResponse.json({
-        content: `Found ${data.length} places matching "${query}":`,
+        content: `✨ I found ${data.length} ${data.length === 1 ? 'place' : 'places'} matching "${query}" for you:`,
         destinations: data
       });
     }
 
-    // No results
+    // No results - more helpful AI response
     return NextResponse.json({
-      content: `No places found for "${query}". Try searching for a city or category like "restaurants in Tokyo".`,
+      content: `I couldn't find any places for "${query}". 💡 Try asking me:\n\n• "romantic restaurants in Tokyo"\n• "cozy cafes in Paris"\n• "best hotels in New York"\n\nOr search by city or category!`,
       destinations: []
     });
 

@@ -544,21 +544,24 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Chat Response - replaces city filter when searching */}
+            {/* AI Chat Response - replaces city filter when searching */}
             <div className="mb-8 text-center">
               <div className="max-w-[680px] mx-auto px-[24px]">
-                <div className="text-sm text-gray-700 dark:text-gray-300">
+                <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                   {searching ? (
-                    <span>Searching...</span>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="animate-pulse">✨</span>
+                      <span>Searching...</span>
+                    </div>
                   ) : chatResponse ? (
-                    <span className="whitespace-pre-line">{chatResponse}</span>
+                    <span className="whitespace-pre-line block">{chatResponse}</span>
                   ) : filteredDestinations.length > 0 ? (
                     <span>
-                      Found <strong className="text-black dark:text-white">{filteredDestinations.length}</strong> {filteredDestinations.length === 1 ? 'place' : 'places'}
+                      ✨ Found <strong className="text-black dark:text-white">{filteredDestinations.length}</strong> {filteredDestinations.length === 1 ? 'place' : 'places'}
                     </span>
-                  ) : (
+                  ) : searchTerm ? (
                     <span>No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"</span>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>

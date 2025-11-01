@@ -64,7 +64,7 @@ export default function GreetingHero({
                 </div>
               )}
               <input
-                placeholder={isAIEnabled ? "Try: 'romantic restaurant in Tokyo'" : "Search places..."}
+                placeholder={isAIEnabled ? "Ask me anything: 'romantic restaurant in Tokyo' or 'cozy cafe Paris'..." : "Search places..."}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 className={`h-12 w-full ${isAIEnabled ? 'pr-[44px]' : ''} pl-[44px] bg-gray-100 border border-transparent rounded-2xl font-['Inter:Regular',sans-serif] text-[15px] text-black placeholder:text-[#9ca3af] text-center outline-none focus:ring-2 focus:ring-black`}
