@@ -84,23 +84,33 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, city } = body;
+    const { name, city, placeId } = body;
 
-    if (!name) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+    // If placeId is provided directly, use it (from autocomplete)
+    let finalPlaceId: string | null = null;
+    
+    if (placeId) {
+      finalPlaceId = placeId;
+    } else if (name) {
+      // Build search query
+      const query = city ? `${name}, ${city}` : name;
+      
+      // Find place ID
+      finalPlaceId = await findPlaceId(query, name, city);
+      if (!finalPlaceId) {
+        return NextResponse.json({ error: 'Place not found' }, { status: 404 });
+      }
+    } else {
+      return NextResponse.json({ error: 'Name or placeId is required' }, { status: 400 });
     }
 
-    // Build search query
-    const query = city ? `${name}, ${city}` : name;
-    
-    // Find place ID
-    const placeId = await findPlaceId(query, name, city);
-    if (!placeId) {
-      return NextResponse.json({ error: 'Place not found' }, { status: 404 });
+    // Ensure we have a valid placeId
+    if (!finalPlaceId) {
+      return NextResponse.json({ error: 'Place ID is required' }, { status: 400 });
     }
 
     // Get place details
-    const details = await getPlaceDetails(placeId);
+    const details = await getPlaceDetails(finalPlaceId);
     if (!details) {
       return NextResponse.json({ error: 'Failed to fetch place details' }, { status: 500 });
     }
