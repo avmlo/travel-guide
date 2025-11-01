@@ -26,7 +26,8 @@ async function understandQuery(query: string): Promise<{
 
   try {
     const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // Use gemini-1.5-pro for better performance, fallback to gemini-pro
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
 
     const prompt = `Analyze this travel/dining search query and extract structured information. Return ONLY valid JSON with this exact structure:
 {

@@ -389,7 +389,12 @@ export default function Home() {
         <div className="mb-6">
           <GreetingHero
             searchQuery={searchTerm}
-            onSearchChange={setSearchTerm}
+            onSearchChange={(value) => {
+              setSearchTerm(value);
+              setSearchSuggestions([]);
+              setSearchIntent(null);
+              setSearchTier(null);
+            }}
             onOpenFilters={() => setIsFiltersOpen(true)}
             userName={(function () {
               const raw = ((user?.user_metadata as any)?.name || (user?.email ? user.email.split('@')[0] : undefined)) as string | undefined;
@@ -400,6 +405,7 @@ export default function Home() {
                 .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
                 .join(' ');
             })()}
+            isAIEnabled={!!(process.env.NEXT_PUBLIC_GOOGLE_API_KEY || process.env.GOOGLE_API_KEY)}
           />
         </div>
         {/* Old search and standalone filters removed (now inside GreetingHero) */}
