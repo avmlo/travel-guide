@@ -18,6 +18,7 @@ import {
   getSessionId,
 } from '@/lib/tracking';
 import GreetingHero from '@/components/GreetingHero';
+import AIChatMessages from '@/components/AIChatMessages';
 
 // Dynamically import MapView to avoid SSR issues
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false });
