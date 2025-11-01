@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import packageJson from '@/../package.json';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 // Get build version from environment or package.json
 export async function GET() {
@@ -7,15 +8,26 @@ export async function GET() {
   const vercelCommitSha = process.env.VERCEL_GIT_COMMIT_SHA;
   const vercelEnv = process.env.VERCEL_ENV;
   
+  // Read package.json version
+  let packageVersion = '0.1.0';
+  try {
+    const packageJsonPath = join(process.cwd(), 'package.json');
+    const packageJsonContent = readFileSync(packageJsonPath, 'utf-8');
+    const packageJson = JSON.parse(packageJsonContent);
+    packageVersion = packageJson.version || '0.1.0';
+  } catch (error) {
+    console.error('Error reading package.json:', error);
+  }
+  
   // Use NEXT_PUBLIC_BUILD_VERSION if set, otherwise construct from available info
   const buildVersion = process.env.NEXT_PUBLIC_BUILD_VERSION 
     || (vercelCommitSha 
-      ? `${packageJson.version}-${vercelCommitSha.substring(0, 7)}${vercelEnv !== 'production' ? ` (${vercelEnv})` : ''}`
-      : `${packageJson.version}-dev`);
+      ? `${packageVersion}-${vercelCommitSha.substring(0, 7)}${vercelEnv && vercelEnv !== 'production' ? ` (${vercelEnv})` : ''}`
+      : `${packageVersion}-dev`);
 
   return NextResponse.json({ 
     version: buildVersion,
-    packageVersion: packageJson.version,
+    packageVersion,
     commitSha: vercelCommitSha || null,
     environment: vercelEnv || null
   });
