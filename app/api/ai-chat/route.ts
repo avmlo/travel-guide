@@ -147,9 +147,19 @@ export async function POST(request: NextRequest) {
 
     // If context didn't provide city but query does, extract it
     if (!searchCity) {
+      // Try pattern matching first: "in tokyo", "at paris", etc.
       const cityMatch = lowerQuery.match(/(?:in|at|near)\s+([a-z\s-]+)/i);
       if (cityMatch) {
         searchCity = cityMatch[1].trim().replace(/\s+/g, '-');
+      } else {
+        // Check if query ends with a known city name
+        const cityNames = ['tokyo', 'new york', 'paris', 'london', 'los angeles', 'singapore', 'hong kong', 'sydney', 'dubai', 'bangkok', 'berlin', 'amsterdam', 'rome', 'barcelona', 'lisbon', 'madrid', 'vienna', 'prague', 'stockholm', 'oslo', 'copenhagen', 'helsinki'];
+        for (const cityName of cityNames) {
+          if (lowerQuery.endsWith(cityName) || lowerQuery.includes(` ${cityName}`) || lowerQuery.includes(` ${cityName.replace(' ', '-')}`)) {
+            searchCity = cityName.replace(/\s+/g, '-');
+            break;
+          }
+        }
       }
     }
 
@@ -194,13 +204,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if query is a city/country name (show all places in that city)
-    // First, try to match city names directly
-    const cityNames = ['tokyo', 'new york', 'paris', 'london', 'los angeles', 'singapore', 'hong kong', 'sydney', 'dubai', 'bangkok', 'berlin', 'amsterdam', 'rome', 'barcelona', 'lisbon', 'madrid', 'vienna', 'prague', 'stockholm', 'oslo', 'copenhagen', 'helsinki'];
-    const isCityQuery = cityNames.some(city => {
-      const cityLower = city.toLowerCase();
-      const queryLower = lowerQuery.trim();
-      return queryLower === cityLower || queryLower === cityLower.replace(' ', '-') || queryLower.includes(cityLower);
-    });
+    // First, try to match city names directly - but only if we don't already have a city extracted
+    let isCityQuery = false;
+    if (!searchCity) {
+      const cityNames = ['tokyo', 'new york', 'paris', 'london', 'los angeles', 'singapore', 'hong kong', 'sydney', 'dubai', 'bangkok', 'berlin', 'amsterdam', 'rome', 'barcelona', 'lisbon', 'madrid', 'vienna', 'prague', 'stockholm', 'oslo', 'copenhagen', 'helsinki'];
+      isCityQuery = cityNames.some(city => {
+        const cityLower = city.toLowerCase();
+        const queryLower = lowerQuery.trim();
+        // Match if query is just the city name, or ends with it, or contains it as a word
+        return queryLower === cityLower || 
+               queryLower === cityLower.replace(' ', '-') || 
+               queryLower.endsWith(` ${cityLower}`) ||
+               queryLower.endsWith(` ${cityLower.replace(' ', '-')}`);
+      });
+    }
 
     // Check for city queries (with extracted or context city, or direct city name)
     if (searchCity || isCityQuery) {
@@ -234,13 +251,26 @@ export async function POST(request: NextRequest) {
           // Filter by descriptive keywords in name, description, or content if present
           let filtered = data;
           if (searchDescriptive) {
-            filtered = data.filter(d => 
-              (d.name || '').toLowerCase().includes(searchDescriptive) ||
-              (d.description || '').toLowerCase().includes(searchDescriptive) ||
-              (d.content || '').toLowerCase().includes(searchDescriptive)
-            );
-            // If no matches, use original data
-            if (filtered.length === 0) filtered = data;
+            // Try exact match first
+            filtered = data.filter(d => {
+              const name = (d.name || '').toLowerCase();
+              const description = (d.description || '').toLowerCase();
+              const content = (d.content || '').toLowerCase();
+              const keyword = searchDescriptive.toLowerCase();
+              
+              return name.includes(keyword) || 
+                     description.includes(keyword) || 
+                     content.includes(keyword);
+            });
+            
+            // If no exact matches but we have a category filter, 
+            // still return results (descriptive keywords are suggestions, not strict filters)
+            if (filtered.length === 0 && searchCategory) {
+              filtered = data;
+            } else if (filtered.length === 0) {
+              // Only use all data if no category filter either
+              filtered = data;
+            }
           }
 
           // Limit to top 12 results

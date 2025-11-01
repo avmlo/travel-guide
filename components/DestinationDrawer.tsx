@@ -397,7 +397,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
 
     const url = `${window.location.origin}/destination/${destination.slug}`;
     const title = destination.name || 'Check out this place';
-    const text = destination.description || `Visit ${destination.name} in ${capitalizeCity(destination.city)}`;
+    const text = `Visit ${destination.name} in ${capitalizeCity(destination.city)}`;
 
     // Use native Web Share API if available (iOS Safari, Android Chrome, etc.)
     if (navigator.share) {
