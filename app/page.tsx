@@ -318,13 +318,10 @@ export default function Home() {
       }
 
       const data = await response.json();
-      
-      console.log('[SearchBar] AI response:', { 
-        content: data.content?.substring(0, 50), 
-        destinationsCount: data.destinations?.length || 0 
-      });
 
-      // Update conversation history EXACTLY like chat component (adds assistant response)
+      // Update conversation history FIRST (like chat component updates messages)
+      // Chat component adds user message to messages, then gets response, then adds assistant
+      // We do the same: add user message to history, then add assistant response
       const newHistory = [
         ...conversationHistory,
         { role: 'user' as const, content: query },
@@ -332,15 +329,11 @@ export default function Home() {
       ];
       setConversationHistory(newHistory.slice(-10)); // Keep last 10 messages
 
-      // Always set the AI response, even if no destinations (like chat component)
+      // ALWAYS set the AI response (chat component always shows response, even if no destinations)
       setChatResponse(data.content || '');
       
-      // Set destinations if available (chat component stores in message.destinations)
-      if (data.destinations && data.destinations.length > 0) {
-        setFilteredDestinations(data.destinations);
-      } else {
-        setFilteredDestinations([]);
-      }
+      // ALWAYS set destinations array (chat component stores destinations even if empty)
+      setFilteredDestinations(data.destinations || []);
     } catch (error) {
       console.error('AI chat error:', error);
       setChatResponse('Sorry, I encountered an error. Please try again.');
