@@ -143,7 +143,8 @@ export async function POST(request: NextRequest) {
     let searchCity = context.city;
     let searchCategory = context.category;
     let searchDescriptive = context.descriptiveKeyword;
-    let searchMichelinStars = context.michelinStars;
+    // Only track Michelin if explicitly mentioned in query (not from false positives)
+    let searchMichelinStars = lowerQuery.includes('michelin') || lowerQuery.includes('star') ? context.michelinStars : undefined;
 
     // If context didn't provide city but query does, extract it
     if (!searchCity) {
@@ -237,8 +238,9 @@ export async function POST(request: NextRequest) {
           supabaseQuery = supabaseQuery.ilike('category', `%${searchCategory}%`);
         }
 
-        // Filter by Michelin stars if specified
-        if (searchMichelinStars !== undefined) {
+        // Filter by Michelin stars ONLY if explicitly mentioned in query
+        // Only apply if user actually mentioned "michelin" or "star" in their query
+        if (searchMichelinStars !== undefined && (lowerQuery.includes('michelin') || lowerQuery.includes('star'))) {
           if (searchMichelinStars !== null) {
             // Specific number of stars (1, 2, or 3)
             supabaseQuery = supabaseQuery.eq('michelin_stars', searchMichelinStars);
@@ -319,8 +321,9 @@ export async function POST(request: NextRequest) {
           supabaseQuery = supabaseQuery.ilike('city', `%${searchCity}%`);
         }
 
-        // Filter by Michelin stars if specified
-        if (searchMichelinStars !== undefined) {
+        // Filter by Michelin stars ONLY if explicitly mentioned in query
+        // Only apply if user actually mentioned "michelin" or "star" in their query
+        if (searchMichelinStars !== undefined && (lowerQuery.includes('michelin') || lowerQuery.includes('star'))) {
           if (searchMichelinStars !== null) {
             // Specific number of stars (1, 2, or 3)
             supabaseQuery = supabaseQuery.eq('michelin_stars', searchMichelinStars);
