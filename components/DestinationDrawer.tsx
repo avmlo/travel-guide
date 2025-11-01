@@ -817,7 +817,7 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
               </div>
 
               <button
-                onClick={handleVisit}
+                onClick={handleVisitClick}
                 disabled={loading}
                 className={`relative flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                   isVisited
@@ -1239,6 +1239,15 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
           </div>
         </div>
       )}
+
+      {/* Visit Modal */}
+      <VisitModal
+        isOpen={showVisitModal}
+        onClose={() => setShowVisitModal(false)}
+        onConfirm={(rating, notes) => handleVisit(rating, notes)}
+        destinationName={destination?.name || ''}
+        isCurrentlyVisited={isVisited}
+      />
     </>
   );
 }
