@@ -430,7 +430,7 @@ export default function Home() {
         {isFiltersOpen && (
           <>
             <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setIsFiltersOpen(false)} />
-            <div className="absolute right-0 top-full z-50 w-80 sm:w-96 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl overflow-hidden" style={{ marginTop: '10px' }}>
+            <div className="fixed right-4 top-[180px] z-50 w-80 sm:w-96 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
               <div className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-sm font-bold uppercase">Filters</h2>

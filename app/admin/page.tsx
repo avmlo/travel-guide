@@ -575,6 +575,13 @@ export default function AdminPage() {
   const [listOffset, setListOffset] = useState(0);
   const [bulkEnriching, setBulkEnriching] = useState(false);
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
+  
+  // Regenerate content state
+  const [regenerateRunning, setRegenerateRunning] = useState(false);
+  const [regenerateResult, setRegenerateResult] = useState<any>(null);
+  const [regenerateSlug, setRegenerateSlug] = useState('');
+  const [regenerateLimit, setRegenerateLimit] = useState(10);
+  const [regenerateOffset, setRegenerateOffset] = useState(0);
   const [listSearchQuery, setListSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingDestination, setEditingDestination] = useState<any>(null);
@@ -1271,6 +1278,127 @@ export default function AdminPage() {
                 <div className="mt-4">
                   <pre className="text-xs bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-auto max-h-[40vh] border border-gray-200 dark:border-gray-800">
                     {JSON.stringify(enrichResult, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Regenerate Content with AI */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Regenerate Content with AI</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Regenerate the "About" section for destinations using AI (Gemini) and all available Google Places API data.
+                The AI will create engaging, informative descriptions using ratings, reviews, opening hours, and other enriched data.
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">Slug (optional - leave empty for batch)</label>
+                <input
+                  type="text"
+                  value={regenerateSlug}
+                  onChange={(e) => setRegenerateSlug(e.target.value)}
+                  placeholder="e.g., palace-hotel-tokyo"
+                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700"
+                />
+              </div>
+
+              {!regenerateSlug && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Limit</label>
+                      <input
+                        type="number"
+                        value={regenerateLimit}
+                        onChange={(e) => setRegenerateLimit(Number(e.target.value))}
+                        min="1"
+                        max="50"
+                        className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Offset</label>
+                      <input
+                        type="number"
+                        value={regenerateOffset}
+                        onChange={(e) => setRegenerateOffset(Number(e.target.value))}
+                        min="0"
+                        className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700"
+                      />
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Processing {regenerateLimit} destinations starting from offset {regenerateOffset}. 
+                    Rate limited to 1 per second to avoid API limits.
+                  </div>
+                </>
+              )}
+
+              <Button
+                onClick={async () => {
+                  if (!user?.email) return;
+                  setRegenerateRunning(true);
+                  setRegenerateResult(null);
+                  try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const token = session?.access_token;
+                    
+                    const res = await fetch('/api/regenerate-content', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({ 
+                        email: user.email,
+                        slug: regenerateSlug || undefined,
+                        limit: regenerateLimit,
+                        offset: regenerateOffset
+                      })
+                    });
+                    const j = await res.json();
+                    setRegenerateResult(j);
+                  } catch (e: any) {
+                    setRegenerateResult({ error: e?.message || 'Failed to regenerate content' });
+                  } finally {
+                    setRegenerateRunning(false);
+                  }
+                }}
+                disabled={regenerateRunning || !user?.email}
+                className="w-full sm:w-auto"
+              >
+                {regenerateRunning ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Regenerating...
+                  </>
+                ) : (
+                  `Regenerate Content ${regenerateSlug ? `(${regenerateSlug})` : `(${regenerateLimit} places)`}`
+                )}
+              </Button>
+
+              {regenerateResult && (
+                <div className="mt-4">
+                  <div className="mb-2 text-sm font-medium">
+                    {regenerateResult.success !== undefined && (
+                      <div className="mb-2">
+                        <span className="text-green-600 dark:text-green-400">
+                          ✅ Success: {regenerateResult.success}
+                        </span>
+                        {regenerateResult.failures > 0 && (
+                          <span className="text-red-600 dark:text-red-400 ml-4">
+                            ❌ Failures: {regenerateResult.failures}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <pre className="text-xs bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-auto max-h-[40vh] border border-gray-200 dark:border-gray-800">
+                    {JSON.stringify(regenerateResult, null, 2)}
                   </pre>
                 </div>
               )}
