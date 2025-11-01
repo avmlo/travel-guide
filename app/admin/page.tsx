@@ -1007,8 +1007,8 @@ export default function AdminPage() {
                   </button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div className="p-6">
               {isLoadingList ? (
                 <div className="text-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
@@ -1069,8 +1069,8 @@ export default function AdminPage() {
                   })}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Create/Edit Drawer */}
           {showCreateModal && (
@@ -1274,8 +1274,8 @@ export default function AdminPage() {
                   </pre>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Regenerate Content with AI */}
           <Card>
@@ -1395,8 +1395,8 @@ export default function AdminPage() {
                   </pre>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </main>
     </div>
