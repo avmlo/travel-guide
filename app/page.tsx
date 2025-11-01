@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
-import { Search, MapPin, Clock, Map, Grid3x3, SlidersHorizontal, X, Star, Sparkles } from 'lucide-react';
+import { Search, MapPin, Clock, Map, Grid3x3, SlidersHorizontal, X, Star } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
 import { CARD_WRAPPER, CARD_MEDIA, CARD_TITLE, CARD_META } from '@/components/CardStyles';
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
@@ -593,7 +593,21 @@ export default function Home() {
             content: `Here are some ${keywordText}${foundCategory}s${location}:`,
             destinations: filtered
           };
+        } else {
+          // No results found
+          const location = city ? ` in ${city.replace(/-/g, ' ')}` : '';
+          return {
+            content: `Sorry, I couldn't find any ${foundCategory}s${location}. Try searching for a different category or city!`,
+            destinations: []
+          };
         }
+      } else {
+        // No data from query
+        const location = city ? ` in ${city.replace(/-/g, ' ')}` : '';
+        return {
+          content: `I couldn't find any ${foundCategory}s${location}. Try a different search!`,
+          destinations: []
+        };
       }
     }
 
@@ -911,11 +925,7 @@ export default function Home() {
                     </div>
                   ) : chatResponse ? (
                     <span className="whitespace-pre-line block">{chatResponse}</span>
-                  ) : filteredDestinations.length > 0 ? (
-                    <span>
-                      ✨ Found <strong className="text-black dark:text-white">{filteredDestinations.length}</strong> {filteredDestinations.length === 1 ? 'place' : 'places'}
-                    </span>
-                  ) : searchTerm ? (
+                  ) : searchTerm && filteredDestinations.length === 0 ? (
                     <span>No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"</span>
                   ) : null}
                 </div>
@@ -924,31 +934,8 @@ export default function Home() {
           </>
         )}
 
-        {/* Results Count */}
-        <div className="mb-6">
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {filteredDestinations.length} {filteredDestinations.length === 1 ? 'destination' : 'destinations'}
-          </span>
-        </div>
-
         {/* Destination Grid */}
-        {filteredDestinations.length === 0 ? (
-          <div className="text-center py-20">
-            <span className="text-xl text-gray-400 mb-6">
-              No destinations found.
-            </span>
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCity("");
-                setSelectedCategory("");
-              }}
-              className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-2xl hover:opacity-80 transition-opacity font-medium"
-            >
-              Clear filters
-            </button>
-          </div>
-        ) : (
+        {filteredDestinations.length > 0 && (
           <>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 md:gap-6 items-start">
             {filteredDestinations.slice(0, displayedCount).map((destination, index) => {
