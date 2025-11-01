@@ -185,14 +185,14 @@ export default function Home() {
   }, [user]);
 
   // Pure AI Chat search - NO filter dependencies, works exactly like chat component
+  // Accept ANY query length (like chat component), let API handle validation
   useEffect(() => {
-    // Match chat component: require at least 2 characters (API requirement)
-    if (searchTerm.trim().length >= 2) {
+    if (searchTerm.trim().length > 0) {
       const timer = setTimeout(() => {
         performAISearch(searchTerm);
       }, 500); // 500ms debounce
       return () => clearTimeout(timer);
-    } else if (searchTerm.trim().length === 0) {
+    } else {
       // Clear everything when search is empty
       setFilteredDestinations([]);
       setChatResponse('');
@@ -273,9 +273,10 @@ export default function Home() {
   const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string, destinations?: Destination[]}>>([]);
 
   // AI Chat-only search - EXACTLY like chat component
+  // Accept ANY query (like chat component), API will validate
   const performAISearch = async (query: string) => {
-    // Match chat component check
-    if (!query.trim() || query.trim().length < 2) {
+    // Match chat component: only check if empty or loading
+    if (!query.trim() || searching) {
       return;
     }
 
