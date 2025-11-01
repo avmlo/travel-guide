@@ -143,6 +143,10 @@ function capitalizeCity(city: string): string {
 export default function Home() {
   const router = useRouter();
   const { user } = useAuth();
+  
+  // Check if AI is enabled (client-side check via API)
+  const [isAIEnabled, setIsAIEnabled] = useState(false);
+  
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [filteredDestinations, setFilteredDestinations] = useState<Destination[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
