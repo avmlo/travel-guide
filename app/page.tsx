@@ -184,21 +184,27 @@ export default function Home() {
     }
   }, [user]);
 
-  // Debounced AI search
+  // AI Chat search - ALL queries go through AI (no basic search fallback)
   useEffect(() => {
-    if (searchTerm.trim().length > 2) {
+    if (searchTerm.trim().length > 0) {
       const timer = setTimeout(() => {
         performAISearch(searchTerm);
       }, 500); // 500ms debounce
       return () => clearTimeout(timer);
     } else {
+      // Clear everything when search is empty
+      setFilteredDestinations([]);
+      setChatResponse('');
+      setConversationHistory([]);
+      setSearching(false);
+      // Show all destinations when no search
       filterDestinations();
     }
     // Reset displayed count when filters change
     setDisplayedCount(24);
 
     // Track search if there's a search term
-    if (searchTerm.trim().length > 2) {
+    if (searchTerm.trim().length > 0) {
       setTimeout(() => {
         trackSearch({
           query: searchTerm,
@@ -272,14 +278,19 @@ export default function Home() {
   const [chatResponse, setChatResponse] = useState<string>('');
   const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string, destinations?: Destination[]}>>([]);
 
+  // AI Chat-only search - NO fallback to basic search
   const performAISearch = async (query: string) => {
+    if (!query.trim()) {
+      return;
+    }
+
     setSearching(true);
-    setSearchTier(null);
+    setSearchTier('ai-enhanced');
     setSearchIntent(null);
     setSearchSuggestions([]);
 
     try {
-      // Call the /api/ai-chat endpoint (same as chat component)
+      // ALL queries go through AI chat - no exceptions
       const response = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: {
@@ -293,12 +304,16 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error('AI search failed');
+        const errorText = await response.text();
+        console.error('AI chat error:', errorText);
+        setChatResponse('Sorry, I encountered an error. Please try again.');
+        setFilteredDestinations([]);
+        return;
       }
 
       const data = await response.json();
 
-      // Update conversation history
+      // Always update conversation history for continuity
       const newHistory = [
         ...conversationHistory,
         { role: 'user' as const, content: query },
@@ -306,22 +321,19 @@ export default function Home() {
       ];
       setConversationHistory(newHistory.slice(-10)); // Keep last 10 messages
 
+      // Always set the AI response, even if no destinations
+      setChatResponse(data.content || '');
+      
+      // Set destinations if available
       if (data.destinations && data.destinations.length > 0) {
         setFilteredDestinations(data.destinations);
-        setChatResponse(data.content || '');
-        setSearchTier('ai-enhanced');
-      } else if (data.content) {
-        // No destinations but has a response
-        setFilteredDestinations([]);
-        setChatResponse(data.content);
-        setSearchTier('ai-enhanced');
       } else {
-        // Fallback to basic search
-        filterDestinations();
+        setFilteredDestinations([]);
       }
     } catch (error) {
-      console.error('AI search error, falling back to basic:', error);
-      filterDestinations();
+      console.error('AI chat error:', error);
+      setChatResponse('Sorry, I encountered an error. Please try again.');
+      setFilteredDestinations([]);
     } finally {
       setSearching(false);
     }
@@ -416,6 +428,7 @@ export default function Home() {
                 setSearchIntent(null);
                 setSearchTier(null);
                 setChatResponse('');
+                setFilteredDestinations([]);
               }
             }}
             onOpenFilters={() => setIsFiltersOpen(true)}
@@ -429,6 +442,7 @@ export default function Home() {
                 .join(' ');
             })()}
             isAIEnabled={isAIEnabled}
+            isSearching={searching}
           />
         </div>
         {/* Old search and standalone filters removed (now inside GreetingHero) */}
