@@ -6,11 +6,20 @@ This script is safe to run multiple times - it will skip existing records.
 
 from supabase import create_client
 from collections import defaultdict
+from dotenv import load_dotenv
+import os
 import sys
 
+# Load environment variables
+load_dotenv('.env.local')
+
 # Supabase credentials
-url = "https://avdnefdfwvpjkuanhdwk.supabase.co"
-key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2ZG5lZmRmd3Zwamt1YW5oZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3MTg4MzMsImV4cCI6MjA2OTI5NDgzM30.imGFTDynzDG5bK0w_j5pgwMPBeT9rkXm8ZQ18W6A-nw"
+url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+
+if not url or not key:
+    print("❌ Error: Supabase credentials not found in .env.local")
+    sys.exit(1)
 
 supabase = create_client(url, key)
 
