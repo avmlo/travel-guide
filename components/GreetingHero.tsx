@@ -5,6 +5,7 @@ interface GreetingHeroProps {
   onSearchChange: (value: string) => void;
   onOpenFilters: () => void;
   userName?: string;
+  isAIEnabled?: boolean;
 }
 
 export default function GreetingHero({
@@ -12,6 +13,7 @@ export default function GreetingHero({
   onSearchChange,
   onOpenFilters,
   userName,
+  isAIEnabled = false,
 }: GreetingHeroProps) {
   // Get current time for greeting
   const now = new Date();
@@ -56,11 +58,16 @@ export default function GreetingHero({
               <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999]">
                 <Search className="w-full h-full" strokeWidth={1.5} />
               </div>
+              {isAIEnabled && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                  <span className="text-yellow-500 text-lg" title="AI Enhanced Search">✨</span>
+                </div>
+              )}
               <input
-                placeholder="Search places..."
+                placeholder={isAIEnabled ? "Try: 'romantic restaurant in Tokyo'" : "Search places..."}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="h-12 w-full pl-[44px] bg-gray-100 border border-transparent rounded-2xl font-['Inter:Regular',sans-serif] text-[15px] text-black placeholder:text-[#9ca3af] text-center outline-none focus:ring-2 focus:ring-black"
+                className={`h-12 w-full ${isAIEnabled ? 'pr-[44px]' : ''} pl-[44px] bg-gray-100 border border-transparent rounded-2xl font-['Inter:Regular',sans-serif] text-[15px] text-black placeholder:text-[#9ca3af] text-center outline-none focus:ring-2 focus:ring-black`}
               />
             </div>
             <button
