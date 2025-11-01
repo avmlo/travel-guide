@@ -184,7 +184,7 @@ export default function Home() {
     }
   }, [user]);
 
-  // AI Chat search - ALL queries go through AI (no basic search fallback)
+  // Pure AI Chat search - NO filter dependencies, works exactly like chat component
   useEffect(() => {
     if (searchTerm.trim().length > 0) {
       const timer = setTimeout(() => {
@@ -197,27 +197,20 @@ export default function Home() {
       setChatResponse('');
       setConversationHistory([]);
       setSearching(false);
-      // Show all destinations when no search
+      // Show all destinations when no search (with filters if set)
       filterDestinations();
     }
-    // Reset displayed count when filters change
+    // Reset displayed count when search changes
     setDisplayedCount(24);
+  }, [searchTerm]); // ONLY depend on searchTerm - filters don't affect AI chat
 
-    // Track search if there's a search term
-    if (searchTerm.trim().length > 0) {
-      setTimeout(() => {
-        trackSearch({
-          query: searchTerm,
-          resultsCount: filteredDestinations.length,
-          filters: {
-            city: selectedCity || undefined,
-            category: selectedCategory || undefined,
-            openNow: openNowOnly || undefined,
-          },
-        });
-      }, 600);
+  // Separate useEffect for filters (only when NO search term)
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      filterDestinations();
     }
-  }, [searchTerm, selectedCity, selectedCategory, destinations, visitedSlugs, openNowOnly]);
+    // Don't reset displayed count here - let the search effect handle it
+  }, [selectedCity, selectedCategory, openNowOnly, destinations, visitedSlugs]); // Filters only apply when no search
 
   const fetchDestinations = async () => {
     try {
