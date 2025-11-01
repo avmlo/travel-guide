@@ -285,15 +285,19 @@ export default function Home() {
     setSearchSuggestions([]);
 
     try {
-      // Build conversation history EXACTLY like chat component does
-      // Chat component maps messages array to {role, content}
-      // We do the same but conversationHistory already has that format, so we ensure it's clean
+      // CRITICAL: Match chat component exactly - build history BEFORE adding current query
+      // Chat component: adds user message to messages, THEN builds history from messages
+      // We need to build history from conversationHistory (which doesn't include current query yet)
       const historyForAPI = conversationHistory.map(msg => ({
         role: msg.role,
         content: msg.content
       }));
       
-      console.log('[SearchBar] Calling AI chat with:', { query, historyLength: historyForAPI.length });
+      console.log('[SearchBar] Calling AI chat:', { 
+        query, 
+        historyLength: historyForAPI.length,
+        history: historyForAPI.map(h => h.role + ': ' + h.content.substring(0, 30))
+      });
 
       // ALL queries go through AI chat - no exceptions
       const response = await fetch('/api/ai-chat', {
@@ -304,7 +308,7 @@ export default function Home() {
         body: JSON.stringify({
           query: query.trim(),
           userId: user?.id,
-          conversationHistory: historyForAPI, // Use mapped history
+          conversationHistory: historyForAPI, // History WITHOUT current query (matches chat component)
         }),
       });
 
