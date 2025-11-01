@@ -202,7 +202,14 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             reviews_json,
             timezone_id,
             latitude,
-            longitude
+            longitude,
+            plus_code,
+            adr_address,
+            address_components_json,
+            icon_url,
+            icon_background_color,
+            icon_mask_base_uri,
+            google_place_id
           `)
           .eq('slug', destination.slug)
           .single();
@@ -243,6 +250,13 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
               enriched.reviews = typeof data.reviews_json === 'string'
                 ? JSON.parse(data.reviews_json)
                 : data.reviews_json;
+            } catch {}
+          }
+          if (data.address_components_json) {
+            try {
+              enriched.address_components = typeof data.address_components_json === 'string'
+                ? JSON.parse(data.address_components_json)
+                : data.address_components_json;
             } catch {}
           }
           setEnrichedData(enriched);
