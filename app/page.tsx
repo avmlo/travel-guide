@@ -186,12 +186,13 @@ export default function Home() {
 
   // Pure AI Chat search - NO filter dependencies, works exactly like chat component
   useEffect(() => {
-    if (searchTerm.trim().length > 0) {
+    // Match chat component: require at least 2 characters (API requirement)
+    if (searchTerm.trim().length >= 2) {
       const timer = setTimeout(() => {
         performAISearch(searchTerm);
       }, 500); // 500ms debounce
       return () => clearTimeout(timer);
-    } else {
+    } else if (searchTerm.trim().length === 0) {
       // Clear everything when search is empty
       setFilteredDestinations([]);
       setChatResponse('');
@@ -273,7 +274,8 @@ export default function Home() {
 
   // AI Chat-only search - EXACTLY like chat component
   const performAISearch = async (query: string) => {
-    if (!query.trim()) {
+    // Match chat component check
+    if (!query.trim() || query.trim().length < 2) {
       return;
     }
 
@@ -284,11 +286,14 @@ export default function Home() {
 
     try {
       // Build conversation history EXACTLY like chat component does
-      // Map conversationHistory to simple format (chat component maps messages array)
+      // Chat component maps messages array to {role, content}
+      // We do the same but conversationHistory already has that format, so we ensure it's clean
       const historyForAPI = conversationHistory.map(msg => ({
         role: msg.role,
         content: msg.content
       }));
+      
+      console.log('[SearchBar] Calling AI chat with:', { query, historyLength: historyForAPI.length });
 
       // ALL queries go through AI chat - no exceptions
       const response = await fetch('/api/ai-chat', {
@@ -308,6 +313,11 @@ export default function Home() {
       }
 
       const data = await response.json();
+      
+      console.log('[SearchBar] AI response:', { 
+        content: data.content?.substring(0, 50), 
+        destinationsCount: data.destinations?.length || 0 
+      });
 
       // Update conversation history EXACTLY like chat component (adds assistant response)
       const newHistory = [
@@ -317,10 +327,10 @@ export default function Home() {
       ];
       setConversationHistory(newHistory.slice(-10)); // Keep last 10 messages
 
-      // Always set the AI response, even if no destinations
+      // Always set the AI response, even if no destinations (like chat component)
       setChatResponse(data.content || '');
       
-      // Set destinations if available
+      // Set destinations if available (chat component stores in message.destinations)
       if (data.destinations && data.destinations.length > 0) {
         setFilteredDestinations(data.destinations);
       } else {
