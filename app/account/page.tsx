@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import {
   MapPin, Heart, CheckCircle2, Map, Loader2, User
 } from "lucide-react";
+import VisitedCountriesMap from "@/components/VisitedCountriesMap";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -358,6 +359,19 @@ export default function Account() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* World Map */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Travel Map</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <VisitedCountriesMap 
+                    visitedPlaces={visitedPlaces}
+                    savedPlaces={savedPlaces}
+                  />
+                </CardContent>
+              </Card>
 
               {/* Recent Activity */}
               {visitedPlaces.length > 0 && (
