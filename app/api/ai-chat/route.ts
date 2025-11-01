@@ -224,10 +224,13 @@ export async function POST(request: NextRequest) {
       const cityToSearch = searchCity || (isCityQuery ? lowerQuery.trim().replace(/\s+/g, '-') : null);
       
       if (cityToSearch) {
+        // Normalize city search - handle both hyphenated and spaced versions
+        const citySearchTerm = cityToSearch.replace(/-/g, ' ').trim().toLowerCase();
+        
         let supabaseQuery = supabase
           .from('destinations')
           .select('*')
-          .ilike('city', `%${cityToSearch.replace(/-/g, ' ')}%`);
+          .or(`city.ilike.%${citySearchTerm}%,city.ilike.%${citySearchTerm.replace(' ', '-')}%`);
 
         // Filter by category if found
         if (searchCategory && searchCategory !== 'romantic' && searchCategory !== 'cozy' && searchCategory !== 'fine' && searchCategory !== 'casual') {
@@ -245,30 +248,27 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const { data, error } = await supabaseQuery.limit(20);
+        const { data, error } = await supabaseQuery.limit(50);
 
         if (!error && data && data.length > 0) {
           // Filter by descriptive keywords in name, description, or content if present
           let filtered = data;
           if (searchDescriptive) {
-            // Try exact match first
+            // Try to find matches with descriptive keyword
+            const keyword = searchDescriptive.toLowerCase();
             filtered = data.filter(d => {
               const name = (d.name || '').toLowerCase();
               const description = (d.description || '').toLowerCase();
               const content = (d.content || '').toLowerCase();
-              const keyword = searchDescriptive.toLowerCase();
               
               return name.includes(keyword) || 
                      description.includes(keyword) || 
                      content.includes(keyword);
             });
             
-            // If no exact matches but we have a category filter, 
-            // still return results (descriptive keywords are suggestions, not strict filters)
-            if (filtered.length === 0 && searchCategory) {
-              filtered = data;
-            } else if (filtered.length === 0) {
-              // Only use all data if no category filter either
+            // Descriptive keywords are optional hints - always return results if we have city/category
+            // If no matches found, still return all results (the keyword is just a preference)
+            if (filtered.length === 0) {
               filtered = data;
             }
           }
@@ -392,11 +392,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // No results - more conversational and helpful response
+    // No results - more conversational and helpful response with working examples
     const noResultResponses = [
-      `Hmm, I couldn't find anything for "${query}" 🧐 But hey, try asking me:\n\n• "romantic restaurants in Tokyo"\n• "cozy cafes in Paris"\n• "best hotels in New York"\n\nI'm pretty good with city names and categories!`,
-      `Nope, nothing for "${query}" 😅 Want to try something like:\n\n• "romantic restaurants in Tokyo"\n• "cozy cafes in Paris"\n• "best hotels in New York"\n\nOr just tell me a city name!`,
-      `No luck with "${query}" 🤔 But I can help if you ask:\n\n• "romantic restaurants in Tokyo"\n• "cozy cafes in Paris"\n• "best hotels in New York"\n\nTry a city or category - that's my thing!`,
+      `Hmm, I couldn't find anything for "${query}" 🧐 Try simpler queries like:\n\n• "tokyo" (all places in Tokyo)\n• "cafe in paris"\n• "restaurant in london"\n• Just a city name works great!`,
+      `No results for "${query}" 😅 Keep it simple:\n\n• "paris" (see everything in Paris)\n• "restaurant in new york"\n• "hotel in tokyo"\n\nCity names are your friend!`,
+      `Didn't find anything for "${query}" 🤔 Try:\n\n• Just type a city: "tokyo", "paris", "london"\n• Add a category: "restaurant in tokyo"\n• Be specific: "cafe in paris"\n\nSimple is better!`,
+      `Nothing found for "${query}" 💡 Here's what works:\n\n• City only: "tokyo", "paris"\n• Category + city: "restaurant in london"\n• Keep it straightforward!`,
     ];
     const randomNoResult = noResultResponses[Math.floor(Math.random() * noResultResponses.length)];
     

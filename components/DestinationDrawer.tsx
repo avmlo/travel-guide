@@ -223,44 +223,59 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
               enriched.opening_hours = typeof data.opening_hours_json === 'string' 
                 ? JSON.parse(data.opening_hours_json) 
                 : data.opening_hours_json;
-            } catch {}
+            } catch (e) {
+              console.error('Error parsing opening_hours_json:', e);
+            }
           }
           if (data.current_opening_hours_json) {
             try {
               enriched.current_opening_hours = typeof data.current_opening_hours_json === 'string'
                 ? JSON.parse(data.current_opening_hours_json)
                 : data.current_opening_hours_json;
-            } catch {}
+            } catch (e) {
+              console.error('Error parsing current_opening_hours_json:', e);
+            }
           }
           if (data.secondary_opening_hours_json) {
             try {
               enriched.secondary_opening_hours = typeof data.secondary_opening_hours_json === 'string'
                 ? JSON.parse(data.secondary_opening_hours_json)
                 : data.secondary_opening_hours_json;
-            } catch {}
+            } catch (e) {
+              console.error('Error parsing secondary_opening_hours_json:', e);
+            }
           }
           if (data.place_types_json) {
             try {
               enriched.place_types = typeof data.place_types_json === 'string'
                 ? JSON.parse(data.place_types_json)
                 : data.place_types_json;
-            } catch {}
+            } catch (e) {
+              console.error('Error parsing place_types_json:', e);
+            }
           }
           if (data.reviews_json) {
             try {
               enriched.reviews = typeof data.reviews_json === 'string'
                 ? JSON.parse(data.reviews_json)
                 : data.reviews_json;
-            } catch {}
+            } catch (e) {
+              console.error('Error parsing reviews_json:', e);
+            }
           }
           if (data.address_components_json) {
             try {
               enriched.address_components = typeof data.address_components_json === 'string'
                 ? JSON.parse(data.address_components_json)
                 : data.address_components_json;
-            } catch {}
+            } catch (e) {
+              console.error('Error parsing address_components_json:', e);
+            }
           }
           setEnrichedData(enriched);
+          console.log('Enriched data loaded:', enriched);
+        } else if (error) {
+          console.error('Error fetching enriched data:', error);
         }
       } catch (error) {
         console.error('Error loading enriched data:', error);
@@ -718,15 +733,17 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
             )}
 
             {/* Formatted Address */}
-            {enrichedData?.formatted_address && (
+            {(enrichedData?.formatted_address || enrichedData?.vicinity) && (
               <div className="mt-4">
                 <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5" />
-                  <div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">Address</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">{enrichedData.formatted_address}</span>
-                    {enrichedData.vicinity && enrichedData.vicinity !== enrichedData.formatted_address && (
-                      <span className="text-xs text-gray-500 dark:text-gray-500 mt-1">{enrichedData.vicinity}</span>
+                  <MapPin className="h-4 w-4 text-gray-500 dark:text-gray-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white mb-1">Address</div>
+                    {enrichedData?.formatted_address && (
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{enrichedData.formatted_address}</div>
+                    )}
+                    {enrichedData?.vicinity && enrichedData.vicinity !== enrichedData?.formatted_address && (
+                      <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">{enrichedData.vicinity}</div>
                     )}
                   </div>
                 </div>
