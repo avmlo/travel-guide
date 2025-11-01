@@ -19,16 +19,19 @@ export async function GET() {
     console.error('Error reading package.json:', error);
   }
   
-  // Use NEXT_PUBLIC_BUILD_VERSION if set, otherwise construct from available info
-  const buildVersion = process.env.NEXT_PUBLIC_BUILD_VERSION 
-    || (vercelCommitSha 
-      ? `${packageVersion}-${vercelCommitSha.substring(0, 7)}${vercelEnv && vercelEnv !== 'production' ? ` (${vercelEnv})` : ''}`
-      : `${packageVersion}-dev`);
+  // Return commit SHA as the build version (preferred) or fallback
+  const commitSha = vercelCommitSha || process.env.VERCEL_GIT_COMMIT_SHA || null;
+  const shortSha = commitSha ? commitSha.substring(0, 7) : null;
+  
+  const buildVersion = commitSha 
+    ? shortSha + (vercelEnv && vercelEnv !== 'production' ? ` (${vercelEnv})` : '')
+    : (process.env.NEXT_PUBLIC_BUILD_VERSION || `${packageVersion}-dev`);
 
   return NextResponse.json({ 
     version: buildVersion,
+    commitSha: commitSha || null,
+    shortSha: shortSha || null,
     packageVersion,
-    commitSha: vercelCommitSha || null,
     environment: vercelEnv || null
   });
 }

@@ -396,13 +396,38 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
     if (!destination) return;
 
     const url = `${window.location.origin}/destination/${destination.slug}`;
+    const title = destination.name || 'Check out this place';
+    const text = destination.description || `Visit ${destination.name} in ${capitalizeCity(destination.city)}`;
 
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy link', err);
+    // Use native Web Share API if available (iOS Safari, Android Chrome, etc.)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text,
+          url,
+        });
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err: any) {
+        // User cancelled or error occurred
+        if (err.name !== 'AbortError') {
+          console.error('Error sharing:', err);
+          // Fallback to clipboard
+          await navigator.clipboard.writeText(url);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }
+      }
+    } else {
+      // Fallback to clipboard for browsers without native share
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy link', err);
+      }
     }
   };
 

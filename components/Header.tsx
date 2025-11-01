@@ -54,7 +54,8 @@ export function Header() {
           try {
             const versionRes = await fetch('/api/build-version');
             const versionData = await versionRes.json();
-            setBuildVersion(versionData.version || null);
+            // Prefer commit SHA, fallback to version
+            setBuildVersion(versionData.shortSha || versionData.commitSha?.substring(0, 7) || versionData.version || null);
           } catch {
             // Ignore version fetch errors
           }

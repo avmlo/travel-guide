@@ -13,6 +13,7 @@ async function understandQueryWithContext(query: string, conversationHistory: an
   city?: string;
   category?: string;
   descriptiveKeyword?: string;
+  michelinStars?: number | null;
   intent: string;
 }> {
   if (!GOOGLE_API_KEY || conversationHistory.length === 0) {
@@ -41,7 +42,8 @@ Extract search intent and return ONLY valid JSON:
   "intent": "specific intent description",
   "city": "city name or null",
   "category": "restaurant/cafe/hotel/etc or null",
-  "descriptiveKeyword": "romantic/cozy/best/etc or null"
+  "descriptiveKeyword": "romantic/cozy/best/etc or null",
+  "michelinStars": number of michelin stars (1, 2, or 3) or null
 }
 
 Handle follow-up questions like:
@@ -49,6 +51,11 @@ Handle follow-up questions like:
 - "what about cafes" → change category to cafe, keep city
 - "nearby places" → keep previous location context
 - "more options" → expand search
+
+Examples:
+- "michelin restaurant in tokyo" → {"city": "tokyo", "category": "restaurant", "michelinStars": null}
+- "3 star restaurant in paris" → {"city": "paris", "category": "restaurant", "michelinStars": 3}
+- "2 michelin star dining in london" → {"city": "london", "category": "dining", "michelinStars": 2}
 
 Return only the JSON, no other text:`;
 
@@ -75,6 +82,7 @@ function parseQueryFallback(query: string): {
   city?: string;
   category?: string;
   descriptiveKeyword?: string;
+  michelinStars?: number | null;
   intent: string;
 } {
   const lowerQuery = query.toLowerCase();
@@ -89,11 +97,28 @@ function parseQueryFallback(query: string): {
   const descriptiveKeywords = ['romantic', 'cozy', 'fine', 'casual', 'upscale', 'trendy', 'hidden', 'best'];
   const descriptiveKeyword = descriptiveKeywords.find(k => lowerQuery.includes(k));
 
+  // Extract Michelin star rating
+  let michelinStars: number | null = null;
+  if (lowerQuery.includes('michelin') || lowerQuery.includes('star')) {
+    // Try to extract number of stars (1, 2, or 3)
+    const starMatch = lowerQuery.match(/(\d)\s*star|star.*?(\d)/);
+    if (starMatch) {
+      const stars = parseInt(starMatch[1] || starMatch[2]);
+      if (stars >= 1 && stars <= 3) {
+        michelinStars = stars;
+      }
+    } else if (lowerQuery.includes('michelin')) {
+      // If just "michelin" without specific stars, set to null (will search all michelin)
+      michelinStars = null;
+    }
+  }
+
   return {
     intent: isFollowUp ? 'follow-up' : 'search',
     city: cityMatch ? cityMatch[1].trim().replace(/\s+/g, '-') : undefined,
     category: foundCategory,
     descriptiveKeyword,
+    michelinStars,
   };
 }
 
@@ -118,6 +143,7 @@ export async function POST(request: NextRequest) {
     let searchCity = context.city;
     let searchCategory = context.category;
     let searchDescriptive = context.descriptiveKeyword;
+    let searchMichelinStars = context.michelinStars;
 
     // If context didn't provide city but query does, extract it
     if (!searchCity) {
@@ -131,6 +157,21 @@ export async function POST(request: NextRequest) {
     if (!searchCategory) {
       const categories = ['dining', 'restaurant', 'cafe', 'hotel', 'bar', 'bakery', 'culture'];
       searchCategory = categories.find(cat => lowerQuery.includes(cat));
+    }
+
+    // Extract Michelin stars if not from context
+    if (searchMichelinStars === undefined) {
+      if (lowerQuery.includes('michelin') || lowerQuery.includes('star')) {
+        const starMatch = lowerQuery.match(/(\d)\s*star|star.*?(\d)/);
+        if (starMatch) {
+          const stars = parseInt(starMatch[1] || starMatch[2]);
+          if (stars >= 1 && stars <= 3) {
+            searchMichelinStars = stars;
+          }
+        } else if (lowerQuery.includes('michelin')) {
+          searchMichelinStars = null; // Search all michelin restaurants
+        }
+      }
     }
 
     // Check if this is a follow-up that should use previous context
@@ -152,44 +193,81 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check for city queries (with extracted or context city)
-    if (searchCity) {
-      let supabaseQuery = supabase
-        .from('destinations')
-        .select('*')
-        .ilike('city', `%${searchCity}%`);
+    // Check if query is a city/country name (show all places in that city)
+    // First, try to match city names directly
+    const cityNames = ['tokyo', 'new york', 'paris', 'london', 'los angeles', 'singapore', 'hong kong', 'sydney', 'dubai', 'bangkok', 'berlin', 'amsterdam', 'rome', 'barcelona', 'lisbon', 'madrid', 'vienna', 'prague', 'stockholm', 'oslo', 'copenhagen', 'helsinki'];
+    const isCityQuery = cityNames.some(city => {
+      const cityLower = city.toLowerCase();
+      const queryLower = lowerQuery.trim();
+      return queryLower === cityLower || queryLower === cityLower.replace(' ', '-') || queryLower.includes(cityLower);
+    });
 
-      // Filter by category if found
-      if (searchCategory && searchCategory !== 'romantic' && searchCategory !== 'cozy' && searchCategory !== 'fine' && searchCategory !== 'casual') {
-        supabaseQuery = supabaseQuery.ilike('category', `%${searchCategory}%`);
-      }
+    // Check for city queries (with extracted or context city, or direct city name)
+    if (searchCity || isCityQuery) {
+      const cityToSearch = searchCity || (isCityQuery ? lowerQuery.trim().replace(/\s+/g, '-') : null);
+      
+      if (cityToSearch) {
+        let supabaseQuery = supabase
+          .from('destinations')
+          .select('*')
+          .ilike('city', `%${cityToSearch.replace(/-/g, ' ')}%`);
 
-      const { data, error } = await supabaseQuery.limit(20);
-
-      if (!error && data && data.length > 0) {
-        // Filter by descriptive keywords in name, description, or content if present
-        let filtered = data;
-        if (searchDescriptive) {
-          filtered = data.filter(d => 
-            (d.name || '').toLowerCase().includes(searchDescriptive) ||
-            (d.description || '').toLowerCase().includes(searchDescriptive) ||
-            (d.content || '').toLowerCase().includes(searchDescriptive)
-          );
-          // If no matches, use original data
-          if (filtered.length === 0) filtered = data;
+        // Filter by category if found
+        if (searchCategory && searchCategory !== 'romantic' && searchCategory !== 'cozy' && searchCategory !== 'fine' && searchCategory !== 'casual') {
+          supabaseQuery = supabaseQuery.ilike('category', `%${searchCategory}%`);
         }
 
-        // Limit to top 12 results
-        filtered = filtered.slice(0, 12);
+        // Filter by Michelin stars if specified
+        if (searchMichelinStars !== undefined) {
+          if (searchMichelinStars !== null) {
+            // Specific number of stars (1, 2, or 3)
+            supabaseQuery = supabaseQuery.eq('michelin_stars', searchMichelinStars);
+          } else {
+            // "michelin" without specific stars - show all michelin restaurants (stars >= 1)
+            supabaseQuery = supabaseQuery.gte('michelin_stars', 1);
+          }
+        }
 
-        const categoryText = searchCategory ? ` ${searchCategory}s` : ' places';
-        const locationText = searchCity.replace(/-/g, ' ');
-        const descriptiveText = searchDescriptive ? ` that are ${searchDescriptive}` : '';
-        const followUpText = isFollowUp ? ' Here are more' : ` I found ${filtered.length}`;
-        return NextResponse.json({
-          content: `✨${followUpText}${categoryText}${descriptiveText} in ${locationText}:`,
-          destinations: filtered
-        });
+        const { data, error } = await supabaseQuery.limit(20);
+
+        if (!error && data && data.length > 0) {
+          // Filter by descriptive keywords in name, description, or content if present
+          let filtered = data;
+          if (searchDescriptive) {
+            filtered = data.filter(d => 
+              (d.name || '').toLowerCase().includes(searchDescriptive) ||
+              (d.description || '').toLowerCase().includes(searchDescriptive) ||
+              (d.content || '').toLowerCase().includes(searchDescriptive)
+            );
+            // If no matches, use original data
+            if (filtered.length === 0) filtered = data;
+          }
+
+          // Limit to top 12 results
+          filtered = filtered.slice(0, 12);
+
+          const categoryText = searchCategory ? ` ${searchCategory}s` : ' places';
+          const locationText = cityToSearch.replace(/-/g, ' ');
+          const descriptiveText = searchDescriptive ? ` that are ${searchDescriptive}` : '';
+          const michelinText = searchMichelinStars !== undefined 
+            ? (searchMichelinStars !== null ? ` with ${searchMichelinStars} Michelin star${searchMichelinStars > 1 ? 's' : ''}` : ' Michelin')
+            : '';
+          const count = filtered.length;
+          
+          // More conversational and fun responses
+          const responses = [
+            `✨ Ooh, ${locationText}! I've got ${count} amazing${michelinText} ${categoryText}${descriptiveText} for you in ${locationText}:`,
+            `🎯 Perfect choice! Here are ${count}${michelinText} ${categoryText}${descriptiveText} in ${locationText} that'll blow your mind:`,
+            `🌟 ${locationText}? Love it! Check out these ${count}${michelinText} ${categoryText}${descriptiveText}:`,
+            `🔥 ${count} incredible${michelinText} ${categoryText}${descriptiveText} in ${locationText} coming right up:`,
+          ];
+          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+          
+          return NextResponse.json({
+            content: randomResponse,
+            destinations: filtered
+          });
+        }
       }
     }
 
@@ -211,6 +289,17 @@ export async function POST(request: NextRequest) {
           supabaseQuery = supabaseQuery.ilike('city', `%${searchCity}%`);
         }
 
+        // Filter by Michelin stars if specified
+        if (searchMichelinStars !== undefined) {
+          if (searchMichelinStars !== null) {
+            // Specific number of stars (1, 2, or 3)
+            supabaseQuery = supabaseQuery.eq('michelin_stars', searchMichelinStars);
+          } else {
+            // "michelin" without specific stars - show all michelin restaurants (stars >= 1)
+            supabaseQuery = supabaseQuery.gte('michelin_stars', 1);
+          }
+        }
+
         const { data } = await supabaseQuery.limit(20);
 
         if (data && data.length > 0) {
@@ -229,9 +318,22 @@ export async function POST(request: NextRequest) {
 
           const location = searchCity ? ` in ${searchCity.replace(/-/g, ' ')}` : '';
           const descriptiveText = searchDescriptive ? ` that are ${searchDescriptive}` : '';
-          const followUpText = isFollowUp ? 'Here are more' : `Here are ${filtered.length}`;
+          const michelinText = searchMichelinStars !== undefined 
+            ? (searchMichelinStars !== null ? ` with ${searchMichelinStars} Michelin star${searchMichelinStars > 1 ? 's' : ''}` : ' Michelin')
+            : '';
+          const count = filtered.length;
+          
+          // More conversational responses for categories
+          const categoryResponses = [
+            `✨ Yum! Here are ${count}${michelinText} ${searchCategory}${location !== '' ? location : 's'}${descriptiveText} that are absolutely worth visiting:`,
+            `🎉 ${count}${michelinText} ${searchCategory}${location !== '' ? location : 's'}${descriptiveText}? Yes please! Check these out:`,
+            `🌟 You're in for a treat! ${count}${michelinText} ${searchCategory}${location !== '' ? location : 's'}${descriptiveText} that'll make your day:`,
+            `🔥 These ${count}${michelinText} ${searchCategory}${location !== '' ? location : 's'}${descriptiveText} are top-tier. Trust me:`,
+          ];
+          const randomResponse = categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
+          
           return NextResponse.json({
-            content: `✨ ${followUpText} ${searchCategory}${location !== '' ? location : 's'}${descriptiveText} I think you'll love:`,
+            content: randomResponse,
             destinations: filtered
           });
         }
@@ -246,15 +348,30 @@ export async function POST(request: NextRequest) {
       .limit(12);
 
     if (!error && data && data.length > 0) {
+      const count = data.length;
+      const generalResponses = [
+        `✨ Found ${count} ${count === 1 ? 'spot' : 'places'} matching "${query}" that caught my eye:`,
+        `🎯 ${count} ${count === 1 ? 'place' : 'results'} for "${query}" - these look promising:`,
+        `🌟 Here are ${count} ${count === 1 ? 'place' : 'places'} related to "${query}":`,
+      ];
+      const randomResponse = generalResponses[Math.floor(Math.random() * generalResponses.length)];
+      
       return NextResponse.json({
-        content: `✨ I found ${data.length} ${data.length === 1 ? 'place' : 'places'} matching "${query}" for you:`,
+        content: randomResponse,
         destinations: data
       });
     }
 
-    // No results - more helpful AI response
+    // No results - more conversational and helpful response
+    const noResultResponses = [
+      `Hmm, I couldn't find anything for "${query}" 🧐 But hey, try asking me:\n\n• "romantic restaurants in Tokyo"\n• "cozy cafes in Paris"\n• "best hotels in New York"\n\nI'm pretty good with city names and categories!`,
+      `Nope, nothing for "${query}" 😅 Want to try something like:\n\n• "romantic restaurants in Tokyo"\n• "cozy cafes in Paris"\n• "best hotels in New York"\n\nOr just tell me a city name!`,
+      `No luck with "${query}" 🤔 But I can help if you ask:\n\n• "romantic restaurants in Tokyo"\n• "cozy cafes in Paris"\n• "best hotels in New York"\n\nTry a city or category - that's my thing!`,
+    ];
+    const randomNoResult = noResultResponses[Math.floor(Math.random() * noResultResponses.length)];
+    
     return NextResponse.json({
-      content: `I couldn't find any places for "${query}". 💡 Try asking me:\n\n• "romantic restaurants in Tokyo"\n• "cozy cafes in Paris"\n• "best hotels in New York"\n\nOr search by city or category!`,
+      content: randomNoResult,
       destinations: []
     });
 
