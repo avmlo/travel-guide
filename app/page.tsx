@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Destination } from '@/types/destination';
-import { Search, MapPin, Clock, Map, Grid3x3, SlidersHorizontal, X, Star } from 'lucide-react';
+import { Search, MapPin, Clock, Map, Grid3x3, SlidersHorizontal, X, Star, Sparkles } from 'lucide-react';
 import { DestinationDrawer } from '@/components/DestinationDrawer';
 import { CARD_WRAPPER, CARD_MEDIA, CARD_TITLE, CARD_META } from '@/components/CardStyles';
 import { ChatGPTStyleAI } from '@/components/ChatGPTStyleAI';
@@ -558,24 +558,42 @@ export default function Home() {
         ) : (
           <>
             {/* AI Chat Response - replaces city filter when searching */}
-            <div className="mb-8 text-center">
+            <div className="mb-8">
               <div className="max-w-[680px] mx-auto px-[24px]">
-                <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {searching ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="animate-pulse">✨</span>
-                      <span>Searching...</span>
+                {searching ? (
+                  <div className="flex items-center justify-center gap-2 py-4">
+                    <span className="animate-pulse">✨</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Searching...</span>
+                  </div>
+                ) : chatResponse ? (
+                  <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <Sparkles className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                          AI Assistant
+                        </div>
+                        <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                          {chatResponse}
+                        </div>
+                      </div>
                     </div>
-                  ) : chatResponse ? (
-                    <span className="whitespace-pre-line block">{chatResponse}</span>
-                  ) : filteredDestinations.length > 0 ? (
-                    <span>
+                  </div>
+                ) : filteredDestinations.length > 0 ? (
+                  <div className="text-center py-4">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       ✨ Found <strong className="text-black dark:text-white">{filteredDestinations.length}</strong> {filteredDestinations.length === 1 ? 'place' : 'places'}
                     </span>
-                  ) : searchTerm ? (
-                    <span>No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"</span>
-                  ) : null}
-                </div>
+                  </div>
+                ) : searchTerm ? (
+                  <div className="text-center py-4">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"
+                    </span>
+                  </div>
+                ) : null}
               </div>
             </div>
           </>
