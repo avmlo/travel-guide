@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
     || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null)
     || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-    || 'https://theurbanmanual.com';
+    || 'https://www.urbanmanual.co';
 
   const currentDate = new Date().toISOString();
 
