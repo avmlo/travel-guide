@@ -6,6 +6,7 @@ import { Destination } from '@/types/destination';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { stripHtmlTags } from '@/lib/stripHtmlTags';
+import VisitModal from './VisitModal';
 
 interface List {
   id: string;
@@ -334,7 +335,9 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
     }
   };
 
-  const handleVisit = async () => {
+  const [showVisitModal, setShowVisitModal] = useState(false);
+
+  const handleVisit = async (rating: number | null = null, notes: string = '') => {
     if (!user || !destination) return;
 
     setLoading(true);
@@ -351,18 +354,22 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
 
     try {
       if (previousState) {
+        // Remove visit
         await supabase
           .from('visited_places')
           .delete()
           .eq('user_id', user.id)
           .eq('destination_slug', destination.slug);
       } else {
+        // Add visit with optional rating and notes
         await supabase
           .from('visited_places')
           .insert({
             user_id: user.id,
             destination_slug: destination.slug,
             visited_at: new Date().toISOString(),
+            rating: rating || null,
+            notes: notes || null,
           });
       }
     } catch (error) {
@@ -372,6 +379,16 @@ export function DestinationDrawer({ destination, isOpen, onClose, onSaveToggle, 
       console.error('Error toggling visit:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVisitClick = () => {
+    if (isVisited) {
+      // If already visited, toggle off immediately
+      handleVisit();
+    } else {
+      // If not visited, show modal to add rating/notes
+      setShowVisitModal(true);
     }
   };
 
