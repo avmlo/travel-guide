@@ -504,10 +504,10 @@ export default function Home() {
       
       const googleTypes = googleTypeMap[foundCategory] || [foundCategory];
       
-      // Fetch with enriched data
+      // Fetch with enriched data (try to get place_types_json and editorial_summary if available)
       let query = supabase
         .from('destinations')
-        .select('*, place_types_json, editorial_summary')
+        .select('*')
         .or(`category.ilike.%${foundCategory}%,name.ilike.%${foundCategory}%,description.ilike.%${foundCategory}%,content.ilike.%${foundCategory}%`);
 
       if (city) {
@@ -522,7 +522,12 @@ export default function Home() {
           // First check our category
           const matchesCategory = !d.category || d.category.toLowerCase().includes(foundCategory);
           
-          // Then check Google place types if available
+          // If category matches, return it
+          if (matchesCategory) {
+            return true;
+          }
+          
+          // Then check Google place types if available (as additional filter, not replacement)
           if (d.place_types_json) {
             try {
               const types = typeof d.place_types_json === 'string' 
@@ -533,14 +538,16 @@ export default function Home() {
                 const matchesGoogleType = googleTypes.some(gt => 
                   typeLower.some((tl: string) => tl.includes(gt.toLowerCase()))
                 );
-                return matchesCategory || matchesGoogleType;
+                // If Google type matches, include it even if category doesn't match
+                return matchesGoogleType;
               }
             } catch (e) {
               // Ignore JSON parse errors
             }
           }
           
-          return matchesCategory;
+          // Default: return false if nothing matches
+          return false;
         });
 
         // Rank results based on descriptive keywords
