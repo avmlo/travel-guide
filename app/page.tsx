@@ -543,6 +543,29 @@ export default function Home() {
               </div>
             </div>
           </div>
+        ) : (
+          /* Search Results Summary - replaces city filter when searching */
+          <div className="mb-8 text-center">
+            <div className="max-w-[680px] mx-auto px-[24px]">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {searching ? (
+                  <span>Searching...</span>
+                ) : filteredDestinations.length > 0 ? (
+                  <span>
+                    Found <strong className="text-black dark:text-white">{filteredDestinations.length}</strong> {filteredDestinations.length === 1 ? 'place' : 'places'}
+                    {searchIntent?.city && (
+                      <span> in <strong className="text-black dark:text-white">{capitalizeCity(searchIntent.city)}</strong></span>
+                    )}
+                    {searchIntent?.category && (
+                      <span> • <strong className="text-black dark:text-white">{capitalizeCategory(searchIntent.category)}</strong></span>
+                    )}
+                  </span>
+                ) : (
+                  <span>No results found for "<strong className="text-black dark:text-white">{searchTerm}</strong>"</span>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Results Count */}
