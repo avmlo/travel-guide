@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
-  MapPin, Heart, CheckCircle2, Map, Loader2, User, Settings, LogOut
+  MapPin, Heart, CheckCircle2, Map, Loader2, User, Settings, LogOut, Plus, Lock, Globe, Trash2, X
 } from "lucide-react";
 import VisitedCountriesMap from "@/components/VisitedCountriesMap";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +33,16 @@ export default function Account() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'saved' | 'visited' | 'profile'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'saved' | 'visited' | 'profile' | 'lists'>('overview');
+  
+  // Lists state
+  const [lists, setLists] = useState<any[]>([]);
+  const [loadingLists, setLoadingLists] = useState(false);
+  const [showCreateListModal, setShowCreateListModal] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [newListDescription, setNewListDescription] = useState("");
+  const [newListPublic, setNewListPublic] = useState(true);
+  const [creatingList, setCreatingList] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -322,6 +331,16 @@ export default function Account() {
                 }`}
               >
                 Profile
+              </button>
+              <button
+                onClick={() => setActiveTab('lists')}
+                className={`pb-3 px-1 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === 'lists'
+                    ? 'border-black dark:border-white text-black dark:text-white'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'
+                }`}
+              >
+                Lists
               </button>
             </nav>
           </div>
