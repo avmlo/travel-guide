@@ -58,10 +58,33 @@ Return only the JSON, no other text:`;
     // Extract JSON from response (might have markdown code blocks)
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        console.log('[AI Search] Parsed intent:', parsed);
+        return parsed;
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', parseError, 'Raw text:', text);
+      }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gemini API error:', error);
+    // Try with gemini-pro as fallback if gemini-1.5-pro fails
+    if (error.message?.includes('gemini-1.5-pro') || error.message?.includes('not found')) {
+      try {
+        console.log('[AI Search] Trying fallback model: gemini-pro');
+        const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY!);
+        const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-pro' });
+        const result = await fallbackModel.generateContent(prompt);
+        const response = result.response;
+        const text = response.text();
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+      } catch (fallbackError) {
+        console.error('Fallback model also failed:', fallbackError);
+      }
+    }
   }
 
   return parseQueryFallback(query);
@@ -167,8 +190,11 @@ export async function POST(request: NextRequest) {
 
     // Full-text search on keywords
     if (intent.keywords && intent.keywords.length > 0) {
-      const searchTerms = intent.keywords.join(' & ');
-      supabaseQuery = supabaseQuery.or(`name.ilike.%${intent.keywords[0]}%,description.ilike.%${intent.keywords[0]}%`);
+      // Search for all keywords in name or description
+      const keywordConditions = intent.keywords
+        .map((keyword: string) => `name.ilike.%${keyword}%,description.ilike.%${keyword}%`)
+        .join(',');
+      supabaseQuery = supabaseQuery.or(keywordConditions);
     } else {
       // Fallback: search the entire query
       supabaseQuery = supabaseQuery.or(`name.ilike.%${query}%,description.ilike.%${query}%,city.ilike.%${query}%`);

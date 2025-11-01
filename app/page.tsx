@@ -405,7 +405,7 @@ export default function Home() {
                 .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
                 .join(' ');
             })()}
-            isAIEnabled={!!(process.env.NEXT_PUBLIC_GOOGLE_API_KEY || process.env.GOOGLE_API_KEY)}
+            isAIEnabled={isAIEnabled}
           />
         </div>
         {/* Old search and standalone filters removed (now inside GreetingHero) */}
